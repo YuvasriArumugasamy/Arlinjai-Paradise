@@ -198,3 +198,13 @@
     display: none !important;
   }
 }
+
+/* Diagonal Split Hover Animation */
+.clip-diagonal-tl {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.clip-diagonal-br {
+  clip-path: polygon(100% 100%, 100% 0, 0 100%);
+}
+

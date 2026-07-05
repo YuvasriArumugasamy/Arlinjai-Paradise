@@ -67,14 +67,21 @@ export default function RoomPreview() {
                     </span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-navy bg-opacity-0 group-hover:bg-opacity-30 
-                               transition-all duration-300 flex items-center justify-center">
+                {/* Diagonal Hover Overlay */}
+                <div className="absolute inset-0 pointer-events-none z-10">
+                  <div className="absolute inset-0 bg-navy/60 clip-diagonal-tl translate-x-[-100%] translate-y-[-100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-500 ease-out" />
+                  <div className="absolute inset-0 bg-navy/60 clip-diagonal-br translate-x-[100%] translate-y-[100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-500 ease-out" />
+                </div>
+                
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-150">
+                  <span className="font-playfair text-white text-2xl mb-3 font-medium tracking-wide">
+                    Beautiful
+                  </span>
                   <Link
                     to={`/rooms/${room.slug}`}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-300
-                               bg-gold text-white px-5 py-2 font-poppins text-sm font-semibold rounded-sm"
+                    className="bg-white/10 backdrop-blur-sm border border-white/30 text-white font-poppins text-xs font-semibold px-6 py-2 rounded-full hover:bg-gold hover:border-gold hover:text-white transition-all duration-300"
                   >
-                    View Details
+                    Click Here
                   </Link>
                 </div>
               </div>
