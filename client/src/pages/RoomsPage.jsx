@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaFilter, FaUsers, FaBed, FaRulerCombined, FaCheck,
   FaArrowRight, FaTimes, FaSnowflake, FaFan
@@ -47,28 +47,111 @@ export default function RoomsPage() {
 
   return (
     <div className="min-h-screen bg-lightbg">
-      {/* Page Header */}
+      {/* ── Premium Page Header ── */}
       <div
-        className="relative py-24 md:py-32"
+        className="relative overflow-hidden"
         style={{
-          backgroundImage: `linear-gradient(rgba(8,17,31,0.8), rgba(8,17,31,0.8)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.jpeg')`,
+          minHeight: '340px',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundImage: `url('/Screenshot 2026-07-04 223125.png')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="font-poppins text-gold uppercase tracking-widest text-sm mb-3">
+        {/* Dark gradient overlay */}
+        <div
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(120deg, rgba(5,10,20,0.92) 60%, rgba(5,10,20,0.7) 100%)',
+          }}
+        />
+
+        {/* Text content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center w-full">
+          {/* Label */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            style={{
+              fontFamily: 'Poppins, sans-serif',
+              fontSize: '11px',
+              letterSpacing: '0.25em',
+              textTransform: 'uppercase',
+              color: '#c9a84c',
+              marginBottom: '14px',
+              fontWeight: 500,
+            }}
+          >
             Accommodations
-          </p>
-          <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-4">
-            Our Rooms
-          </h1>
-          <p className="font-poppins text-gray-300 text-base max-w-xl mx-auto">
+          </motion.p>
+
+          {/* Main heading */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.45 }}
+            style={{
+              fontFamily: 'Playfair Display, serif',
+              fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
+              fontWeight: 700,
+              color: '#ffffff',
+              marginBottom: '16px',
+              lineHeight: 1.15,
+            }}
+          >
+            Our{' '}
+            <span
+              style={{
+                fontStyle: 'italic',
+                color: '#c9a84c',
+                fontWeight: 400,
+              }}
+            >
+              Rooms
+            </span>
+          </motion.h1>
+
+          {/* Gold divider */}
+          <motion.div
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            style={{
+              width: '60px', height: '2px',
+              background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)',
+              margin: '0 auto 18px',
+              transformOrigin: 'center',
+            }}
+          />
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            style={{
+              fontFamily: 'Poppins, sans-serif',
+              color: 'rgba(220,220,220,0.8)',
+              fontSize: '0.95rem',
+              maxWidth: '480px',
+              margin: '0 auto 24px',
+              lineHeight: 1.7,
+            }}
+          >
             Choose from our carefully designed rooms offering comfort and convenience.
-          </p>
-          <div className="mt-6 flex justify-center">
+          </motion.p>
+
+          {/* Breadcrumb */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.85 }}
+            className="flex justify-center"
+          >
             <Breadcrumb items={[{ label: 'Rooms', path: '/rooms' }]} />
-          </div>
+          </motion.div>
         </div>
       </div>
 
@@ -286,9 +369,6 @@ export default function RoomsPage() {
                               </span>
                               <span className="font-poppins text-sm text-gray-500">/night</span>
                             </div>
-                            <p className="font-poppins text-xs text-gray-400">
-                              ₹{room.highSeasonPrice.toLocaleString()}/night during {room.highSeasonLabel}
-                            </p>
                           </div>
                           <div className="flex gap-3">
                             <Link

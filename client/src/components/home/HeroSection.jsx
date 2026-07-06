@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FaCalendarAlt, FaUsers, FaBed, FaStar } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
@@ -30,27 +30,27 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('/B791C280-016C-4109-AD3A-787851527299.JPG.jpeg')`,
+          backgroundImage: `url('/ChatGPT Image Jul 5, 2026, 12_17_46 PM.png')`,
         }}
       />
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-navy/60 via-navy/40 to-navy/75" />
+      {/* Overlay - stronger for better text clarity */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/80" />
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-24 flex flex-col items-center text-center">
 
-        {/* Rating badge */}
+        {/* Logo above heading */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="flex items-center gap-2 bg-white bg-opacity-15 backdrop-blur-sm text-white 
-                     px-4 py-2 rounded-full text-sm font-poppins mb-6 border border-white border-opacity-20"
+          className="mb-6"
         >
-          <div className="flex text-gold">
-            {[...Array(5)].map((_, i) => <FaStar key={i} size={12} />)}
-          </div>
-          <span>Rated #1 Hotel in Kanyakumari</span>
+          <img
+            src="/Elegant monogram with seaside emblem.png"
+            alt="Arlinjai Paradise Logo"
+            className="w-20 h-20 md:w-24 md:h-24 object-contain rounded-full border-2 border-gold shadow-lg mx-auto"
+          />
         </motion.div>
 
         {/* Heading */}
@@ -58,7 +58,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
-          className="font-playfair text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 leading-tight"
+          className="font-playfair text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 leading-tight drop-shadow-lg"
         >
           Welcome to{' '}
           <span className="text-gradient-gold block sm:inline">Arlinjai Paradise</span>
@@ -68,21 +68,32 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="font-poppins text-white text-opacity-90 text-base sm:text-lg md:text-xl 
-                     max-w-2xl mb-3 leading-relaxed"
+          className="font-poppins text-white text-base sm:text-lg md:text-xl 
+                     max-w-2xl mb-4 leading-relaxed drop-shadow-md"
+          style={{ textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}
         >
           {HOTEL_INFO.tagline}
         </motion.p>
 
+        {/* Buttons - Mobile Side-by-side, Desktop side-by-side */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex items-center gap-2 text-gold text-sm font-poppins mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.25 }}
+          className="flex flex-row items-center justify-center gap-4 mb-8 sm:mb-12"
         >
-          <span className="w-8 h-px bg-gold" />
-          <span>{HOTEL_INFO.location}</span>
-          <span className="w-8 h-px bg-gold" />
+          <Link
+            to="/booking"
+            className="bg-gold hover:bg-gold-dark text-white font-poppins text-xs font-bold px-6 py-3 uppercase tracking-wider transition-all duration-300"
+          >
+            Book Now
+          </Link>
+          <Link
+            to="/rooms"
+            className="border-2 border-white hover:border-gold hover:bg-gold hover:text-white text-white font-poppins text-xs font-bold px-6 py-2.5 uppercase tracking-wider transition-all duration-300"
+          >
+            View More
+          </Link>
         </motion.div>
 
         {/* Booking Card */}
@@ -99,8 +110,8 @@ export default function HeroSection() {
           </div>
           <form onSubmit={handleSearch} className="p-5 md:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="label-text flex items-center gap-2">
+              <div className="flex flex-col gap-1 text-left">
+                <label className="label-text flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
                   <FaCalendarAlt className="text-gold" size={12} />
                   Check In
                 </label>
@@ -114,8 +125,8 @@ export default function HeroSection() {
                   required
                 />
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="label-text flex items-center gap-2">
+              <div className="flex flex-col gap-1 text-left">
+                <label className="label-text flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
                   <FaCalendarAlt className="text-gold" size={12} />
                   Check Out
                 </label>
@@ -129,8 +140,8 @@ export default function HeroSection() {
                   required
                 />
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="label-text flex items-center gap-2">
+              <div className="flex flex-col gap-1 text-left">
+                <label className="label-text flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
                   <FaUsers className="text-gold" size={12} />
                   Guests
                 </label>
@@ -147,8 +158,8 @@ export default function HeroSection() {
                   ))}
                 </select>
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="label-text flex items-center gap-2">
+              <div className="flex flex-col gap-1 text-left">
+                <label className="label-text flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
                   <FaBed className="text-gold" size={12} />
                   Room Type
                 </label>
@@ -168,32 +179,12 @@ export default function HeroSection() {
             <div className="mt-4 flex justify-center">
               <button
                 type="submit"
-                className="btn-gold px-10 py-3.5 text-sm uppercase tracking-widest w-full sm:w-auto"
+                className="btn-gold px-10 py-3.5 text-sm uppercase tracking-widest w-full"
               >
                 Check Availability
               </button>
             </div>
           </form>
-        </motion.div>
-
-        {/* Quick info bar */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="flex flex-wrap justify-center gap-6 mt-10 text-white text-sm font-poppins"
-        >
-          {[
-            { label: 'Starting from ₹1,500/night' },
-            { label: 'Free WiFi' },
-            { label: 'Free Parking' },
-            { label: 'Best Price Guarantee' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-gold rounded-full" />
-              <span className="text-white text-opacity-85">{item.label}</span>
-            </div>
-          ))}
         </motion.div>
       </div>
 

@@ -24,17 +24,19 @@ function StarRating({ rating }) {
 
 function ReviewCard({ review }) {
   return (
-    <div className="bg-white rounded-sm p-8 shadow-card mx-2 relative h-full">
-      <FaQuoteLeft className="text-gold opacity-20 absolute top-5 left-5" size={32} />
-      <div className="mb-4">
-        <StarRating rating={review.rating} />
+    <div className="bg-white rounded-sm p-6 sm:p-8 shadow-card mx-2 relative h-full flex flex-col justify-between text-left border border-gray-200 hover:border-gold hover:shadow-card-hover transition-all duration-300">
+      <div>
+        <FaQuoteLeft className="text-gold opacity-20 mb-3" size={32} />
+        <p className="font-poppins text-gray-700 text-sm leading-relaxed mb-4 relative z-10">
+          "{review.review}"
+        </p>
+        <div className="mb-4">
+          <StarRating rating={review.rating} />
+        </div>
       </div>
-      <p className="font-poppins text-gray-700 text-sm leading-relaxed mb-6 relative z-10">
-        "{review.review}"
-      </p>
-      <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-        <div className="w-10 h-10 bg-gold rounded-full flex items-center justify-center 
-                       font-poppins font-bold text-white text-sm flex-shrink-0">
+      <div className="flex items-center gap-3 pt-4 border-t border-gray-100 mt-2">
+        <div className="w-10 h-10 bg-gold bg-opacity-10 border border-gold/20 rounded-full flex items-center justify-center 
+                       font-poppins font-bold text-gold text-sm flex-shrink-0">
           {review.avatar}
         </div>
         <div>
@@ -69,9 +71,9 @@ export default function GuestReviews() {
             transition={{ delay: 0.1 }}
             className="section-title"
           >
-            What Our Guests Say
+            What Our <span className="text-gold italic font-normal">Guests Say</span>
           </motion.h2>
-          <div className="gold-divider" />
+          <div className="w-14 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto my-4" />
           <motion.div
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
@@ -99,6 +101,7 @@ export default function GuestReviews() {
             autoplay={{ delay: 4000, disableOnInteraction: false }}
             pagination={{ clickable: true }}
             breakpoints={{
+              320: { slidesPerView: 1 },
               640: { slidesPerView: 1 },
               768: { slidesPerView: 2 },
               1024: { slidesPerView: 3 },

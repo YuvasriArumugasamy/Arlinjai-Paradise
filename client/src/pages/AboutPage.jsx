@@ -1,172 +1,277 @@
-import { motion } from 'framer-motion'
-import { FaStar, FaHeart, FaShieldAlt, FaLeaf, FaUsers } from 'react-icons/fa'
+import { useState, useEffect, useRef } from 'react'
+import { motion, useInView } from 'framer-motion'
+import {
+  FaMapMarkerAlt, FaUsers, FaHeadset, FaWifi,
+  FaCalendarCheck, FaSun, FaCheckCircle, FaShieldAlt,
+  FaTag, FaHeart, FaBed, FaStar, FaSmile
+} from 'react-icons/fa'
 import Breadcrumb from '../components/common/Breadcrumb'
-import { HOTEL_INFO, REVIEWS } from '../constants'
+import { HOTEL_INFO } from '../constants'
 
-const VALUES = [
-  { icon: FaStar, title: 'Excellence', desc: 'We strive for excellence in every aspect of hospitality.' },
-  { icon: FaHeart, title: 'Warmth', desc: 'Every guest is treated like family with genuine care.' },
-  { icon: FaShieldAlt, title: 'Reliability', desc: 'Consistent quality and trustworthy service, every stay.' },
-  { icon: FaLeaf, title: 'Cleanliness', desc: 'Immaculate standards of hygiene and cleanliness.' },
+function AnimatedCounter({ target, suffix, inView }) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (!inView) return
+    let start = 0
+    const duration = 2000
+    const step = target / (duration / 16)
+    const timer = setInterval(() => {
+      start += step
+      if (start >= target) { setCount(target); clearInterval(timer) }
+      else setCount(Math.floor(start))
+    }, 16)
+    return () => clearInterval(timer)
+  }, [inView, target])
+  return <span>{count.toLocaleString()}{suffix}</span>
+}
+
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.55, delay, ease: 'easeOut' },
+})
+
+const FEATURES = [
+  { icon: FaMapMarkerAlt, title: 'Prime Location', desc: 'Close to beaches, temples, Vivekananda Rock Memorial and local markets.' },
+  { icon: FaUsers, title: 'Family Friendly', desc: 'Safe, welcoming and suitable for families, couples and solo travelers.' },
+  { icon: FaHeadset, title: '24×7 Support', desc: 'Round-the-clock assistance and quick response to all guest requests.' },
+  { icon: FaWifi, title: 'Modern Facilities', desc: 'Free Wi-Fi, Smart TV, Ample parking, Air-conditioned rooms & Hot water.' },
+  { icon: FaCalendarCheck, title: 'Easy Booking', desc: 'Book directly through our website with secure payment and instant confirmation.' },
+  { icon: FaSun, title: 'Local Experience', desc: 'Sunrise & sunset viewing, sightseeing, taxi and tour arrangements.' },
 ]
 
-const TIMELINE = [
-  { year: '2019', title: 'Founded', desc: 'Arlinjai Paradise opened its doors in Kanyakumari.' },
-  { year: '2020', title: 'Expansion', desc: 'Added new room categories to serve diverse travelers.' },
-  { year: '2021', title: 'Recognition', desc: 'Recognized as a top-rated hotel by guests on multiple platforms.' },
-  { year: '2023', title: 'Renovation', desc: 'Complete renovation and upgrade of all rooms and facilities.' },
-  { year: '2024', title: 'Growing', desc: '500+ satisfied guests and counting. Continuing to grow.' },
+const PROMISES = [
+  { icon: FaCheckCircle, title: 'Clean & Hygienic Rooms', desc: 'Well-maintained rooms for a pleasant stay.' },
+  { icon: FaShieldAlt, title: 'Safe & Secure', desc: 'Your safety and comfort are our top priority.' },
+  { icon: FaTag, title: 'Best Price Guarantee', desc: 'Get the best rates when you book directly with us.' },
+  { icon: FaHeart, title: 'Personalized Care', desc: 'We treat every guest like our family.' },
 ]
+
+const STATS = [
+  { icon: FaSmile, target: 500, suffix: '+', label: 'Happy Guests' },
+  { icon: FaBed, target: 25, suffix: '+', label: 'Comfortable Rooms' },
+  { icon: FaHeadset, target: 2, suffix: '+', label: 'Years of Hospitality' },
+  { icon: FaStar, target: 100, suffix: '%', label: 'Guest Satisfaction' },
+]
+
+function StatsBar() {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-80px' })
+
+  return (
+    <section style={{ background: '#c9a84c', padding: '56px 0' }} ref={ref}>
+      <div style={{
+        maxWidth: 1160, margin: '0 auto', padding: '0 24px',
+        display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 32,
+      }} className="stats-grid">
+        {STATS.map((s, i) => {
+          const Icon = s.icon
+          return (
+            <motion.div key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.15, duration: 0.5 }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
+            >
+              <div style={{
+                width: 56, height: 56, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 16,
+                transition: 'background 0.3s',
+              }}>
+                <Icon size={22} style={{ color: '#fff' }} />
+              </div>
+              <p style={{
+                fontFamily: 'Playfair Display,serif', fontWeight: 700,
+                fontSize: '2.6rem', color: '#fff', margin: '0 0 4px', lineHeight: 1,
+              }}>
+                <AnimatedCounter target={s.target} suffix={s.suffix} inView={inView} />
+              </p>
+              <p style={{
+                fontFamily: 'Poppins,sans-serif', fontSize: '0.85rem',
+                color: 'rgba(255,255,255,0.88)', fontWeight: 500, margin: 0,
+              }}>
+                {s.label}
+              </p>
+            </motion.div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div
-        className="relative py-24 md:py-32"
-        style={{
-          backgroundImage: `linear-gradient(rgba(8,17,31,0.8), rgba(8,17,31,0.8)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.jpeg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="font-poppins text-gold uppercase tracking-widest text-sm mb-3">Our Story</p>
-          <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-4">About Us</h1>
-          <p className="font-poppins text-gray-300 max-w-xl mx-auto">
-            Discover the story behind Arlinjai Paradise and our commitment to exceptional hospitality.
+    <div style={{ minHeight: '100vh', background: '#f8f7f4' }}>
+
+      {/* ── Hero Header ── */}
+      <div style={{
+        position: 'relative',
+        backgroundImage: `linear-gradient(rgba(8,17,31,0.76), rgba(8,17,31,0.76)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.jpeg')`,
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        padding: '140px 0 80px', textAlign: 'center', overflow: 'hidden',
+      }}>
+        {/* Watermark logo right side */}
+        <div style={{
+          position: 'absolute', right: 48, top: '50%', transform: 'translateY(-50%)',
+          opacity: 0.08, pointerEvents: 'none',
+        }}>
+          <img src="/Elegant monogram with seaside emblem.png" alt=""
+            style={{ width: 160, height: 160, objectFit: 'contain',
+              filter: 'brightness(0) invert(1)' }} />
+          <p style={{ fontFamily: 'Playfair Display,serif', color: '#fff',
+            fontSize: '0.7rem', letterSpacing: '0.2em', textAlign: 'center', marginTop: 6 }}>
+            ARLINJAI PARADISE
           </p>
-          <div className="mt-6 flex justify-center">
+        </div>
+
+        {/* Bottom glow */}
+        <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+          transition={{ duration: 0.9, delay: 0.6 }}
+          style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 1,
+            background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent)',
+            transformOrigin: 'left' }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <motion.h1 {...fadeUp(0.3)} style={{
+            fontFamily: 'Playfair Display,serif',
+            fontSize: 'clamp(2.4rem,5vw,3.8rem)', fontWeight: 700, color: '#fff',
+            marginBottom: 20, lineHeight: 1.15,
+          }}>
+            About <span style={{ fontStyle: 'italic', color: '#c9a84c', fontWeight: 400 }}>Us</span>
+          </motion.h1>
+          <motion.div {...fadeUp(0.45)} style={{ display: 'flex', justifyContent: 'center' }}>
             <Breadcrumb items={[{ label: 'About Us', path: '/about' }]} />
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Story Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <p className="section-subtitle mb-3">Our Story</p>
-              <h2 className="section-title mb-6">A Home Away From Home</h2>
-              <div className="gold-divider-left" />
-              <div className="space-y-4 mt-6 font-poppins text-gray-700 text-sm leading-relaxed">
-                <p>
-                  Arlinjai Paradise was born from a simple dream – to create a place where every traveler 
-                  visiting the sacred land of Kanyakumari feels truly welcomed and cared for. 
-                </p>
-                <p>
-                  Located at the southern tip of India, where the Bay of Bengal, Arabian Sea, and Indian 
-                  Ocean converge, Kanyakumari has been a pilgrimage destination for centuries. We recognized 
-                  the need for comfortable, clean, and affordable accommodation in this spiritual city.
-                </p>
-                <p>
-                  Our hotel, nestled on Beach Road just steps from Kumari Amman Temple and a short walk 
-                  from the iconic Vivekananda Rock Memorial, offers the perfect base for exploring this 
-                  magnificent destination.
-                </p>
-                <p>
-                  Our team of dedicated hospitality professionals ensures that every guest – whether 
-                  a pilgrim, a family on vacation, or a solo traveler – experiences the warmth of 
-                  Tamil Nadu's famed hospitality.
-                </p>
-              </div>
+      {/* ── Our Story ── */}
+      <section style={{ background: '#fff', padding: '72px 0' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 56, alignItems: 'center' }}
+            className="about-story-grid">
+
+            {/* Left text */}
+            <motion.div {...fadeUp(0.1)}>
+              <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 11, color: '#c9a84c',
+                letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 10 }}>
+                Our Story
+              </p>
+              <h2 style={{ fontFamily: 'Playfair Display,serif', fontSize: 'clamp(1.8rem,3vw,2.5rem)',
+                fontWeight: 700, color: '#08111f', marginBottom: 10 }}>
+                Your Home in{' '}
+                <span style={{ color: '#c9a84c', fontStyle: 'italic', fontWeight: 400 }}>Kanyakumari</span>
+              </h2>
+              <div style={{ width: 56, height: 2, background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)', marginBottom: 20 }} />
+
+              <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: '0.87rem', color: '#374151',
+                lineHeight: 1.8, marginBottom: 14 }}>
+                Arlinjai Paradise was established on{' '}
+                <span style={{ color: '#c9a84c', fontWeight: 600 }}>30th August 2022</span>{' '}
+                with a simple vision – to provide every guest with a comfortable, clean and memorable
+                stay in the divine land of Kanyakumari.
+              </p>
+              <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: '0.87rem', color: '#374151',
+                lineHeight: 1.8, marginBottom: 28 }}>
+                Located close to the major attractions, we offer well-maintained rooms, modern
+                facilities and warm hospitality that make every stay feel like home.
+              </p>
+
+              {/* Signature */}
+              <p style={{ fontFamily: 'Playfair Display,serif', fontStyle: 'italic',
+                fontSize: '1.35rem', color: '#c9a84c', marginBottom: 4 }}>
+                Arlinjai Paradise
+              </p>
+              <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: '0.8rem', color: '#6b7280',
+                lineHeight: 1.5 }}>
+                Comfort, Cleanliness, and Care –<br />Your Home in Kanyakumari.
+              </p>
             </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative"
-            >
-              <img
-                src="/B791C280-016C-4109-AD3A-787851527299.JPG.jpeg"
-                alt="Arlinjai Paradise"
-                className="rounded-sm shadow-card-hover w-full h-80 object-cover"
-              />
-              <div className="absolute -bottom-6 -left-6 bg-gold p-6 rounded-sm shadow-gold-lg 
-                             hidden md:block">
-                <p className="font-playfair text-white font-bold text-4xl">5+</p>
-                <p className="font-poppins text-white text-sm">Years of Service</p>
+
+            {/* Right photo */}
+            <motion.div {...fadeUp(0.2)} style={{ position: 'relative' }}>
+              <div style={{ borderRadius: 14, overflow: 'hidden',
+                boxShadow: '0 12px 48px rgba(0,0,0,0.16)' }}>
+                <img src="/B791C280-016C-4109-AD3A-787851527299.JPG.jpeg"
+                  alt="Arlinjai Paradise Hotel"
+                  style={{ width: '100%', height: 380, objectFit: 'cover', display: 'block' }} />
+              </div>
+              {/* SINCE badge */}
+              <div style={{
+                position: 'absolute', bottom: 20, right: 20,
+                background: '#fff', borderRadius: 10, padding: '12px 18px',
+                boxShadow: '0 6px 24px rgba(0,0,0,0.14)',
+                display: 'flex', alignItems: 'center', gap: 12,
+                border: '1px solid rgba(201,168,76,0.2)',
+              }}>
+                <FaCalendarCheck size={22} style={{ color: '#c9a84c' }} />
+                <div>
+                  <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 10,
+                    color: '#9ca3af', letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0 }}>
+                    Since
+                  </p>
+                  <p style={{ fontFamily: 'Playfair Display,serif', fontWeight: 700,
+                    fontSize: '1rem', color: '#08111f', margin: 0 }}>
+                    30 Aug 2022
+                  </p>
+                </div>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Mission & Vision */}
-      <section className="py-20 bg-lightbg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[
-              {
-                title: 'Our Mission',
-                content: 'To provide every guest with an exceptional stay experience that combines comfort, cleanliness, and genuine care. We aim to be the preferred choice for travelers visiting Kanyakumari by offering the best value for their money.',
-                bg: 'bg-navy',
-                titleColor: 'text-gold',
-                textColor: 'text-gray-300',
-              },
-              {
-                title: 'Our Vision',
-                content: 'To become the most trusted and beloved hotel in Kanyakumari – a place where guests return time and again, and recommend to their loved ones. We envision Arlinjai Paradise as a symbol of genuine South Indian hospitality.',
-                bg: 'bg-gold',
-                titleColor: 'text-white',
-                textColor: 'text-white text-opacity-90',
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.2 }}
-                className={`${item.bg} rounded-sm p-10`}
-              >
-                <h3 className={`font-playfair font-bold text-2xl mb-4 ${item.titleColor}`}>
-                  {item.title}
-                </h3>
-                <div className={`w-12 h-1 ${i === 0 ? 'bg-gold' : 'bg-white bg-opacity-50'} mb-5`} />
-                <p className={`font-poppins text-sm leading-relaxed ${item.textColor}`}>
-                  {item.content}
-                </p>
-              </motion.div>
-            ))}
+      {/* ── What Makes Us Special ── */}
+      <section style={{ background: '#f8f7f4', padding: '72px 0' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 52 }}>
+            <motion.p {...fadeUp(0)} style={{ fontFamily: 'Poppins,sans-serif', fontSize: 11,
+              color: '#c9a84c', letterSpacing: '0.22em', textTransform: 'uppercase',
+              fontWeight: 600, marginBottom: 10 }}>
+              What Makes Us Special
+            </motion.p>
+            <motion.h2 {...fadeUp(0.1)} style={{ fontFamily: 'Playfair Display,serif',
+              fontSize: 'clamp(1.8rem,3vw,2.5rem)', fontWeight: 700, color: '#08111f', marginBottom: 14 }}>
+              Comfort, Care &amp;{' '}
+              <span style={{ color: '#c9a84c', fontStyle: 'italic', fontWeight: 400 }}>Convenience</span>
+            </motion.h2>
+            <motion.div {...fadeUp(0.2)} style={{ width: 56, height: 2, margin: '0 auto 14px',
+              background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)' }} />
           </div>
-        </div>
-      </section>
 
-      {/* Values */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <p className="section-subtitle mb-3">What Drives Us</p>
-            <h2 className="section-title">Our Core Values</h2>
-            <div className="gold-divider" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {VALUES.map((value, i) => {
-              const Icon = value.icon
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 20 }}
+            className="features-grid">
+            {FEATURES.map((f, i) => {
+              const Icon = f.icon
               return (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="text-center p-8 bg-lightbg rounded-sm hover:shadow-card 
-                             transition-all duration-300 group"
-                >
-                  <div className="w-14 h-14 bg-gold bg-opacity-10 rounded-full flex items-center justify-center 
-                                 mx-auto mb-5 group-hover:bg-gold transition-colors duration-300">
-                    <Icon size={22} className="text-gold group-hover:text-white transition-colors duration-300" />
+                <motion.div key={i} {...fadeUp(i * 0.08)}
+                  style={{ textAlign: 'center', padding: '28px 14px',
+                    background: '#fff', borderRadius: 12,
+                    boxShadow: '0 2px 14px rgba(0,0,0,0.06)',
+                    border: '1px solid rgba(201,168,76,0.1)',
+                    transition: 'box-shadow 0.2s, border-color 0.2s, transform 0.2s',
+                    cursor: 'default' }}
+                  whileHover={{ y: -4,
+                    boxShadow: '0 8px 28px rgba(201,168,76,0.2)',
+                    borderColor: 'rgba(201,168,76,0.4)' }}>
+                  <div style={{ width: 52, height: 52, borderRadius: '50%',
+                    border: '1.5px solid rgba(201,168,76,0.4)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 14px' }}>
+                    <Icon size={20} style={{ color: '#c9a84c' }} />
                   </div>
-                  <h3 className="font-playfair font-bold text-lg text-navy mb-3">{value.title}</h3>
-                  <p className="font-poppins text-sm text-gray-600">{value.desc}</p>
+                  <h4 style={{ fontFamily: 'Poppins,sans-serif', fontWeight: 700,
+                    fontSize: '0.82rem', color: '#08111f', marginBottom: 8 }}>
+                    {f.title}
+                  </h4>
+                  <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: '0.72rem',
+                    color: '#9ca3af', lineHeight: 1.6, margin: 0 }}>
+                    {f.desc}
+                  </p>
                 </motion.div>
               )
             })}
@@ -174,67 +279,89 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Timeline */}
-      <section className="py-20 bg-navy">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <p className="font-poppins text-gold uppercase tracking-widest text-sm mb-3">Our Journey</p>
-            <h2 className="font-playfair text-3xl md:text-4xl font-bold text-white">Our History</h2>
-            <div className="gold-divider" />
-          </div>
-          <div className="relative">
-            <div className="absolute left-1/2 -translate-x-px top-0 bottom-0 w-0.5 bg-gold bg-opacity-30" />
-            {TIMELINE.map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className={`flex items-center gap-6 mb-10 ${
-                  i % 2 === 0 ? 'flex-row' : 'flex-row-reverse'
-                }`}
-              >
-                <div className={`flex-1 ${i % 2 === 0 ? 'text-right' : 'text-left'}`}>
-                  <div className={`bg-white bg-opacity-5 border border-white border-opacity-10 
-                                  rounded-sm p-5 hover:border-gold hover:border-opacity-30 transition-colors
-                                  ${i % 2 === 0 ? 'ml-auto' : 'mr-auto'}`}>
-                    <p className="font-poppins font-bold text-gold text-sm mb-1">{item.year}</p>
-                    <h4 className="font-playfair font-bold text-white text-lg mb-2">{item.title}</h4>
-                    <p className="font-poppins text-gray-400 text-sm">{item.desc}</p>
-                  </div>
-                </div>
-                <div className="w-10 h-10 bg-gold rounded-full flex items-center justify-center 
-                               flex-shrink-0 relative z-10 shadow-gold">
-                  <span className="text-white font-bold text-xs">{i + 1}</span>
-                </div>
-                <div className="flex-1" />
-              </motion.div>
-            ))}
+      {/* ── Our Promise ── */}
+      <section style={{ background: '#fff', padding: '72px 0' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 56, alignItems: 'center' }}
+            className="about-promise-grid">
+
+            {/* Left photo */}
+            <motion.div {...fadeUp(0.1)}
+              style={{ borderRadius: 14, overflow: 'hidden',
+                boxShadow: '0 12px 48px rgba(0,0,0,0.14)' }}>
+              <img src="/Screenshot 2026-07-04 223125.png"
+                alt="Our Promise"
+                style={{ width: '100%', height: 420, objectFit: 'cover', display: 'block' }} />
+            </motion.div>
+
+            {/* Right content */}
+            <motion.div {...fadeUp(0.15)}>
+              <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 11, color: '#c9a84c',
+                letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 10 }}>
+                Our Promise
+              </p>
+              <h2 style={{ fontFamily: 'Playfair Display,serif',
+                fontSize: 'clamp(1.7rem,2.8vw,2.3rem)', fontWeight: 700,
+                color: '#08111f', marginBottom: 10 }}>
+                A Stay You Will{' '}
+                <span style={{ color: '#c9a84c', fontStyle: 'italic', fontWeight: 400 }}>Always Remember</span>
+              </h2>
+              <div style={{ width: 56, height: 2, background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)', marginBottom: 20 }} />
+              <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: '0.87rem', color: '#6b7280',
+                lineHeight: 1.8, marginBottom: 28 }}>
+                At Arlinjai Paradise, we are committed to providing more than just a place to stay.
+                We focus on every little detail to ensure cleanliness, comfort and personalized care
+                for each guest. Whether you are here for a spiritual journey, family vacation or
+                business trip, we promise you a relaxing and memorable experience.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                {PROMISES.map((p, i) => {
+                  const Icon = p.icon
+                  return (
+                    <motion.div key={i} {...fadeUp(0.1 + i * 0.08)}
+                      style={{ display: 'flex', alignItems: 'flex-start', gap: 12,
+                        padding: '14px 16px', background: '#f8f7f4', borderRadius: 10,
+                        border: '1px solid rgba(201,168,76,0.12)' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%',
+                        border: '1.5px solid rgba(201,168,76,0.35)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon size={15} style={{ color: '#c9a84c' }} />
+                      </div>
+                      <div>
+                        <p style={{ fontFamily: 'Poppins,sans-serif', fontWeight: 700,
+                          fontSize: '0.8rem', color: '#08111f', margin: '0 0 3px' }}>
+                          {p.title}
+                        </p>
+                        <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: '0.73rem',
+                          color: '#9ca3af', margin: 0, lineHeight: 1.5 }}>
+                          {p.desc}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Team / Contact Info */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="section-subtitle mb-3">Get in Touch</p>
-          <h2 className="section-title mb-6">We'd Love to Hear From You</h2>
-          <div className="gold-divider" />
-          <p className="font-poppins text-gray-600 text-sm max-w-xl mx-auto mt-6 mb-8">
-            Have questions about your stay or want to make a reservation? 
-            Our team is available 24/7 to assist you.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a href={`tel:${HOTEL_INFO.phone1}`} className="btn-gold">
-              Call {HOTEL_INFO.phone1}
-            </a>
-            <a href={`mailto:${HOTEL_INFO.email}`} className="btn-outline-gold">
-              Email Us
-            </a>
-          </div>
-        </div>
-      </section>
+      {/* ── Stats Bar — gold bg matching home page ── */}
+      <StatsBar />
+
+      {/* Responsive */}
+      <style>{`
+        @media (max-width: 900px) {
+          .about-story-grid, .about-promise-grid { grid-template-columns: 1fr !important; }
+          .features-grid { grid-template-columns: repeat(3, 1fr) !important; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 540px) {
+          .features-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
     </div>
   )
 }

@@ -28,9 +28,10 @@ export default function ExplorePage() {
           <p className="font-poppins text-gold uppercase tracking-widest text-sm mb-3">
             Kanyakumari
           </p>
-          <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-4">
-            Explore Kanyakumari
+          <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-2">
+            Explore <span className="italic font-normal text-gold">Kanyakumari</span>
           </h1>
+          <div className="w-14 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mt-3 mb-4" />
           <p className="font-poppins text-gray-300 max-w-2xl mx-auto text-base leading-relaxed">
             Discover the magical land where three seas meet. From ancient temples to iconic landmarks,
             Kanyakumari offers experiences that will last a lifetime.

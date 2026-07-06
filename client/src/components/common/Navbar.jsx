@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FaBars, FaTimes, FaPhone } from 'react-icons/fa'
+import { FaBars, FaTimes, FaPhoneAlt } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
 
 const navLinks = [
@@ -47,19 +47,6 @@ export default function Navbar() {
             : 'bg-transparent'
         }`}
       >
-        {/* Top bar - only visible when not scrolled on desktop */}
-        {!scrolled && (
-          <div className="hidden lg:flex items-center justify-end px-8 py-1 bg-navy bg-opacity-80">
-            <a
-              href={`tel:${HOTEL_INFO.phone1}`}
-              className="flex items-center gap-2 text-gold text-xs font-poppins hover:text-white transition-colors"
-            >
-              <FaPhone className="text-xs" />
-              {HOTEL_INFO.phone1} | {HOTEL_INFO.phone2}
-            </a>
-          </div>
-        )}
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
@@ -105,6 +92,13 @@ export default function Navbar() {
                   />
                 </Link>
               ))}
+              <a
+                href={`tel:${HOTEL_INFO.phone1}`}
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ml-2 shadow-sm hover:shadow-md"
+                title="Call Us"
+              >
+                <FaPhoneAlt size={14} />
+              </a>
               <Link
                 to="/booking"
                 className="bg-gold text-white font-poppins text-sm font-semibold px-5 py-2.5 rounded-sm 
@@ -179,14 +173,14 @@ export default function Navbar() {
                     href={`tel:${HOTEL_INFO.phone1}`}
                     className="flex items-center gap-3 text-white text-sm font-poppins"
                   >
-                    <FaPhone className="text-gold" />
+                    <FaPhoneAlt className="text-gold" />
                     {HOTEL_INFO.phone1}
                   </a>
                   <a
                     href={`tel:${HOTEL_INFO.phone2}`}
                     className="flex items-center gap-3 text-white text-sm font-poppins"
                   >
-                    <FaPhone className="text-gold" />
+                    <FaPhoneAlt className="text-gold" />
                     {HOTEL_INFO.phone2}
                   </a>
                 </div>

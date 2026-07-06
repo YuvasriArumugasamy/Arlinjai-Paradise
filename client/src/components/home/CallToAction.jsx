@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { FaPhone, FaArrowRight } from 'react-icons/fa'
+import { FaPhoneAlt, FaArrowRight } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
 
 export default function CallToAction() {
@@ -67,7 +67,7 @@ export default function CallToAction() {
             href={`tel:${HOTEL_INFO.phone1}`}
             className="btn-white inline-flex items-center gap-2 text-sm px-8 py-4"
           >
-            <FaPhone size={14} className="text-gold" />
+            <FaPhoneAlt size={14} className="text-gold" />
             Call Us: {HOTEL_INFO.phone1}
           </a>
         </motion.div>

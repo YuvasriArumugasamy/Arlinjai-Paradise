@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   FaUsers, FaBed, FaRulerCombined, FaCheck, FaArrowLeft,
-  FaCalendarAlt, FaPhone, FaWhatsapp, FaTimes, FaChevronLeft, FaChevronRight
+  FaCalendarAlt, FaPhoneAlt, FaWhatsapp, FaTimes, FaChevronLeft, FaChevronRight
 } from 'react-icons/fa'
 import Breadcrumb from '../components/common/Breadcrumb'
 import { ROOMS, HOTEL_INFO } from '../constants'
@@ -203,9 +203,6 @@ export default function RoomDetailsPage() {
                   ₹{room.price.toLocaleString()}
                 </span>
                 <span className="font-poppins text-sm text-gray-500"> /night</span>
-                <p className="font-poppins text-xs text-gray-400 mt-1">
-                  ₹{room.highSeasonPrice.toLocaleString()}/night during {room.highSeasonLabel}
-                </p>
               </div>
 
               {/* Booking Form */}
@@ -266,7 +263,7 @@ export default function RoomDetailsPage() {
                                rounded-sm py-3 font-poppins text-sm text-navy hover:border-gold 
                                transition-colors"
                   >
-                    <FaPhone size={12} className="text-gold" />
+                    <FaPhoneAlt size={12} className="text-gold" />
                     Call
                   </a>
                   <a
@@ -312,8 +309,7 @@ export default function RoomDetailsPage() {
                       </p>
                       <p className="font-poppins text-xs text-gold font-bold">
                         ₹{r.price.toLocaleString()}/night
-                      </p>
-                    </div>
+                      </p>                    </div>
                   </Link>
                 ))}
               </div>

@@ -29,9 +29,9 @@ export default function GalleryPreview() {
             transition={{ delay: 0.1 }}
             className="section-title"
           >
-            Gallery
+            Moments at <span className="text-gold italic font-normal">Arlinjai Paradise</span>
           </motion.h2>
-          <div className="gold-divider" />
+          <div className="w-14 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto my-4" />
         </div>
 
         {/* Masonry Grid */}
@@ -43,8 +43,9 @@ export default function GalleryPreview() {
               animate={inView ? { opacity: 1, scale: 1 } : {}}
               transition={{ delay: i * 0.1, duration: 0.4 }}
               className={`relative overflow-hidden rounded-sm cursor-pointer group
-                ${i === 0 ? 'md:col-span-2 row-span-2' : ''}
-                ${i === 0 ? 'h-72 md:h-96' : 'h-48 md:h-44'}`}
+                border-2 border-transparent hover:border-gold
+                ${i === 0 ? 'col-span-2 md:col-span-2' : ''}
+                ${i === 0 ? 'h-52 md:h-96' : 'h-40 md:h-44'}`}
               onClick={() => setLightbox(img)}
             >
               <img

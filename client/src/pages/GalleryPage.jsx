@@ -6,6 +6,128 @@ import { GALLERY_IMAGES } from '../constants'
 
 const CATEGORIES = ['all', 'exterior', 'rooms', 'interior', 'nearby']
 
+/* ── Arrow button with hover-preview thumbnail ── */
+function ArrowBtn({ direction, onClick, previewSrc, previewTitle }) {
+  const [hovered, setHovered] = useState(false)
+  const isLeft = direction === 'left'
+
+  return (
+    <div
+      className={`absolute ${isLeft ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2`}
+      style={{ alignItems: isLeft ? 'flex-start' : 'flex-end' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Preview thumbnail — appears above the arrow on hover */}
+      <AnimatePresence>
+        {hovered && previewSrc && (
+          <motion.div
+            initial={{ opacity: 0, y: isLeft ? 10 : 10, scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.85 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="pointer-events-none"
+            style={{
+              position: 'absolute',
+              bottom: '68px',
+              [isLeft ? 'left' : 'right']: '0',
+              width: '160px',
+            }}
+          >
+            <div
+              style={{
+                borderRadius: '10px',
+                overflow: 'hidden',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.55)',
+                border: '2px solid rgba(255,255,255,0.18)',
+                background: '#111',
+              }}
+            >
+              <img
+                src={previewSrc}
+                alt={previewTitle}
+                style={{
+                  width: '100%',
+                  height: '110px',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+              <div
+                style={{
+                  padding: '6px 10px 8px',
+                  background: 'rgba(10,15,30,0.88)',
+                }}
+              >
+                <p
+                  style={{
+                    color: '#fff',
+                    fontSize: '11px',
+                    fontFamily: 'Poppins, sans-serif',
+                    fontWeight: 500,
+                    margin: 0,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {previewTitle}
+                </p>
+                <p
+                  style={{
+                    color: '#c9a84c',
+                    fontSize: '10px',
+                    fontFamily: 'Poppins, sans-serif',
+                    margin: '2px 0 0',
+                  }}
+                >
+                  {isLeft ? '← Previous' : 'Next →'}
+                </p>
+              </div>
+            </div>
+            {/* Small triangle pointer */}
+            <div
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '8px solid transparent',
+                borderRight: '8px solid transparent',
+                borderTop: '8px solid rgba(10,15,30,0.88)',
+                margin: isLeft ? '0 0 0 20px' : '0 20px 0 auto',
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Arrow button */}
+      <button
+        onClick={onClick}
+        style={{
+          background: hovered
+            ? 'rgba(201,168,76,0.85)'
+            : 'rgba(255,255,255,0.18)',
+          border: hovered ? '2px solid #c9a84c' : '2px solid rgba(255,255,255,0.25)',
+          color: '#fff',
+          borderRadius: '50%',
+          width: '52px',
+          height: '52px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 0.2s, border 0.2s, transform 0.18s',
+          transform: hovered ? (isLeft ? 'scale(1.12) translateX(-3px)' : 'scale(1.12) translateX(3px)') : 'scale(1)',
+          boxShadow: hovered ? '0 4px 20px rgba(201,168,76,0.4)' : '0 2px 10px rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        {isLeft ? <FaChevronLeft size={20} /> : <FaChevronRight size={20} />}
+      </button>
+    </div>
+  )
+}
+
 export default function GalleryPage() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -18,6 +140,13 @@ export default function GalleryPage() {
   const closeLightbox = () => setLightboxIndex(null)
   const prevImage = () => setLightboxIndex((i) => (i === 0 ? filtered.length - 1 : i - 1))
   const nextImage = () => setLightboxIndex((i) => (i === filtered.length - 1 ? 0 : i + 1))
+
+  const prevIndex = lightboxIndex !== null
+    ? (lightboxIndex === 0 ? filtered.length - 1 : lightboxIndex - 1)
+    : null
+  const nextIndex = lightboxIndex !== null
+    ? (lightboxIndex === filtered.length - 1 ? 0 : lightboxIndex + 1)
+    : null
 
   return (
     <div className="min-h-screen bg-lightbg">
@@ -32,7 +161,10 @@ export default function GalleryPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="font-poppins text-gold uppercase tracking-widest text-sm mb-3">Visual Tour</p>
-          <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-4">Gallery</h1>
+          <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-2">
+            Our <span className="italic font-normal text-gold">Gallery</span>
+          </h1>
+          <div className="w-14 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mt-3 mb-4" />
           <p className="font-poppins text-gray-300 max-w-xl mx-auto text-base">
             Take a visual tour of Arlinjai Paradise and see what makes us special.
           </p>
@@ -115,22 +247,24 @@ export default function GalleryPage() {
             className="lightbox-overlay"
             onClick={closeLightbox}
           >
+            {/* Close button */}
             <button
-              className="absolute top-4 right-4 z-10 text-white bg-white bg-opacity-20 p-2 rounded-full 
+              className="absolute top-4 right-4 z-20 text-white bg-white bg-opacity-20 p-2 rounded-full 
                          hover:bg-opacity-30 transition-colors"
               onClick={closeLightbox}
             >
               <FaTimes size={20} />
             </button>
 
-            <button
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white bg-white bg-opacity-20 
-                         p-3 rounded-full hover:bg-opacity-30 transition-colors"
+            {/* Left arrow with prev preview */}
+            <ArrowBtn
+              direction="left"
               onClick={(e) => { e.stopPropagation(); prevImage() }}
-            >
-              <FaChevronLeft size={20} />
-            </button>
+              previewSrc={filtered[prevIndex]?.url}
+              previewTitle={filtered[prevIndex]?.title}
+            />
 
+            {/* Main image */}
             <motion.div
               key={lightboxIndex}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -151,13 +285,13 @@ export default function GalleryPage() {
               </p>
             </motion.div>
 
-            <button
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white bg-white bg-opacity-20 
-                         p-3 rounded-full hover:bg-opacity-30 transition-colors"
+            {/* Right arrow with next preview */}
+            <ArrowBtn
+              direction="right"
               onClick={(e) => { e.stopPropagation(); nextImage() }}
-            >
-              <FaChevronRight size={20} />
-            </button>
+              previewSrc={filtered[nextIndex]?.url}
+              previewTitle={filtered[nextIndex]?.title}
+            />
           </motion.div>
         )}
       </AnimatePresence>

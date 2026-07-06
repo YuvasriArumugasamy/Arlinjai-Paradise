@@ -28,9 +28,9 @@ export default function NearbyAttractions() {
             transition={{ delay: 0.1 }}
             className="section-title"
           >
-            Kanyakumari Attractions
+            Nearby <span className="text-gold italic font-normal">Attractions</span>
           </motion.h2>
-          <div className="gold-divider" />
+          <div className="w-14 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto my-4" />
           <motion.p
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
@@ -41,7 +41,37 @@ export default function NearbyAttractions() {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Mobile Attractions List (hidden on md and above) */}
+        <div className="block md:hidden space-y-4 mb-8">
+          {ATTRACTIONS.slice(0, 5).map((attraction) => (
+            <div
+              key={attraction.id}
+              className="bg-white rounded-sm p-3.5 shadow-sm border border-gray-100 flex gap-4 items-center text-left"
+            >
+              <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
+                <img
+                  src={attraction.image}
+                  alt={attraction.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-playfair font-bold text-sm text-navy truncate">
+                  {attraction.name}
+                </h4>
+                <p className="font-poppins text-[10px] text-gray-500 font-medium my-0.5">
+                  {attraction.distance}
+                </p>
+                <p className="font-poppins text-xs text-gray-600 line-clamp-2 leading-tight">
+                  {attraction.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Grid (hidden on mobile) */}
+        <div className="hidden md:grid grid-cols-3 gap-8">
           {highlighted.map((attraction, i) => (
             <motion.div
               key={attraction.id}
@@ -49,7 +79,7 @@ export default function NearbyAttractions() {
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: i * 0.15, duration: 0.5 }}
               className="group bg-white rounded-sm overflow-hidden shadow-card hover:shadow-card-hover 
-                         transition-all duration-300 hover:-translate-y-2"
+                         transition-all duration-300 hover:-translate-y-2 border border-gray-200 hover:border-gold"
             >
               <div className="relative h-52 overflow-hidden">
                 <img
@@ -92,10 +122,13 @@ export default function NearbyAttractions() {
           ))}
         </div>
 
-        <div className="text-center mt-12">
-          <Link to="/explore" className="btn-outline-gold inline-flex items-center gap-2">
-            View All Attractions
-            <FaArrowRight size={14} />
+        {/* Buttons (Responsive styling) */}
+        <div className="text-center mt-8 md:mt-12">
+          <Link
+            to="/explore"
+            className="block md:inline-flex w-full md:w-auto bg-gold hover:bg-gold-dark text-white font-poppins text-xs font-bold py-3.5 px-8 text-center uppercase tracking-wider transition-colors md:btn-outline-gold md:bg-transparent md:text-gold"
+          >
+            Explore More Places
           </Link>
         </div>
       </div>

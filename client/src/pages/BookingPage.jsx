@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  FaCheck, FaUser, FaEnvelope, FaPhone, FaBed,
+  FaCheck, FaUser, FaEnvelope, FaPhoneAlt, FaBed,
   FaCalendarAlt, FaUsers, FaArrowRight, FaArrowLeft
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
@@ -217,7 +217,7 @@ export default function BookingPage() {
           </div>
           <div>
             <label className="label-text flex items-center gap-2">
-              <FaPhone size={11} className="text-gold" /> Phone Number *
+              <FaPhoneAlt size={11} className="text-gold" /> Phone Number *
             </label>
             <input
               type="tel"

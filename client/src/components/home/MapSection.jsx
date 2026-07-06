@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaDirections } from 'react-icons/fa'
+import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaDirections } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
 
 export default function MapSection() {
@@ -25,9 +25,9 @@ export default function MapSection() {
             transition={{ delay: 0.1 }}
             className="section-title"
           >
-            Our Location
+            Our <span className="text-gold italic font-normal">Location</span>
           </motion.h2>
-          <div className="gold-divider" />
+          <div className="w-14 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto my-4" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -73,7 +73,7 @@ export default function MapSection() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <FaPhone className="text-gold mt-1 flex-shrink-0" size={14} />
+                  <FaPhoneAlt className="text-gold mt-1 flex-shrink-0" size={14} />
                   <div>
                     <p className="font-poppins text-gray-400 text-xs mb-1">Phone</p>
                     <a href={`tel:${HOTEL_INFO.phone1}`} className="font-poppins text-white text-sm hover:text-gold block transition-colors">

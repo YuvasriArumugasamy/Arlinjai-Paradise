@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FaSearch, FaUser, FaPhone, FaEnvelope, FaCalendarAlt } from 'react-icons/fa'
+import { FaSearch, FaUser, FaPhoneAlt, FaEnvelope, FaCalendarAlt } from 'react-icons/fa'
 
 const MOCK_CUSTOMERS = [
   { id: 1, name: 'Priya S.', email: 'priya@email.com', phone: '9876543210', city: 'Chennai', totalBookings: 3, totalSpent: 15000, lastVisit: '2025-01-23', status: 'VIP' },
@@ -91,7 +91,7 @@ export default function CustomersPage() {
                       <FaEnvelope size={10} className="text-gold" /> {customer.email}
                     </p>
                     <p className="font-poppins text-xs text-gray-600 flex items-center gap-1.5 mt-1">
-                      <FaPhone size={10} className="text-gold" /> {customer.phone}
+                      <FaPhoneAlt size={10} className="text-gold" /> {customer.phone}
                     </p>
                   </td>
                   <td className="px-5 py-4 font-poppins text-sm text-gray-600">{customer.city}</td>
