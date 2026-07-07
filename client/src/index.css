@@ -56,20 +56,90 @@
 
 @layer components {
   .btn-gold {
-    @apply bg-gold text-white font-poppins font-semibold px-6 py-3 rounded-lg 
-           hover:bg-gold-dark transition-all duration-300 shadow-gold 
-           hover:shadow-gold-lg hover:-translate-y-0.5 active:translate-y-0;
+    @apply bg-gold text-white font-poppins font-semibold px-6 py-3 rounded-lg;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+    transition: color 0.5s;
+  }
+  .btn-gold:hover {
+    color: #C9A227;
+  }
+  .btn-gold::after {
+    content: '';
+    background: white;
+    position: absolute;
+    z-index: -1;
+    left: -20%;
+    right: -20%;
+    top: 0;
+    bottom: 0;
+    transform: skewX(-45deg) scale(0, 1);
+    transition: all 0.5s;
+  }
+  .btn-gold:hover::after {
+    transform: skewX(-45deg) scale(1, 1);
+    transition: all 0.5s;
   }
 
   .btn-outline-gold {
-    @apply border-2 border-gold text-gold font-poppins font-semibold px-6 py-3 
-           rounded-lg hover:bg-gold hover:text-white transition-all duration-300;
+    @apply border-2 border-gold text-gold font-poppins font-semibold px-6 py-3 rounded-lg;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    cursor: pointer;
+    background: transparent;
+    transition: color 0.5s;
+  }
+  .btn-outline-gold:hover {
+    color: white;
+  }
+  .btn-outline-gold::after {
+    content: '';
+    background: #C9A227;
+    position: absolute;
+    z-index: -1;
+    left: -20%;
+    right: -20%;
+    top: 0;
+    bottom: 0;
+    transform: skewX(-45deg) scale(0, 1);
+    transition: all 0.5s;
+  }
+  .btn-outline-gold:hover::after {
+    transform: skewX(-45deg) scale(1, 1);
+    transition: all 0.5s;
   }
 
   .btn-white {
-    @apply bg-white text-navy font-poppins font-semibold px-6 py-3 rounded-lg 
-           hover:bg-gray-100 transition-all duration-300 shadow-card 
-           hover:shadow-card-hover hover:-translate-y-0.5;
+    @apply bg-white text-navy font-poppins font-semibold px-6 py-3 rounded-lg;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+    transition: color 0.5s;
+  }
+  .btn-white:hover {
+    color: white;
+  }
+  .btn-white::after {
+    content: '';
+    background: #08111F;
+    position: absolute;
+    z-index: -1;
+    left: -20%;
+    right: -20%;
+    top: 0;
+    bottom: 0;
+    transform: skewX(-45deg) scale(0, 1);
+    transition: all 0.5s;
+  }
+  .btn-white:hover::after {
+    transform: skewX(-45deg) scale(1, 1);
+    transition: all 0.5s;
   }
 
   .section-title {
