@@ -263,20 +263,6 @@ export default function AmenitiesSection() {
               background: 'linear-gradient(to top, rgba(8,17,31,0.75) 0%, rgba(8,17,31,0.1) 55%, transparent 100%)',
             }} />
 
-            {/* Gold corner accent */}
-            <div style={{
-              position: 'absolute', top: '16px', right: '16px',
-              width: '60px', height: '60px',
-              border: '1.5px solid rgba(201,168,76,0.5)',
-              borderRadius: '8px',
-            }} />
-            <div style={{
-              position: 'absolute', top: '24px', right: '24px',
-              width: '60px', height: '60px',
-              border: '1px solid rgba(201,168,76,0.25)',
-              borderRadius: '8px',
-            }} />
-
             {/* Bottom text */}
             <div style={{
               position: 'absolute', bottom: '28px', left: '24px', right: '24px',
