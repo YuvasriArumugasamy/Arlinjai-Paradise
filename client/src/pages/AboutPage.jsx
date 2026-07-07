@@ -49,9 +49,9 @@ const PROMISES = [
 ]
 
 const STATS = [
-  { icon: FaSmile, target: 500, suffix: '+', label: 'Happy Guests' },
-  { icon: FaBed, target: 25, suffix: '+', label: 'Comfortable Rooms' },
-  { icon: FaHeadset, target: 2, suffix: '+', label: 'Years of Hospitality' },
+  { icon: FaSmile, target: 1000, suffix: '+', label: 'Happy Guests' },
+  { icon: FaBed, target: 11, suffix: '+', label: 'Comfortable Rooms' },
+  { icon: FaHeadset, target: 5, suffix: '+', label: 'Years of Hospitality' },
   { icon: FaStar, target: 100, suffix: '%', label: 'Guest Satisfaction' },
 ]
 
