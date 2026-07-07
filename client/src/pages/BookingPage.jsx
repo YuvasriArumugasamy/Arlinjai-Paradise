@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -51,6 +51,18 @@ export default function BookingPage() {
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [bookingId, setBookingId] = useState(null)
+  const formRef = useRef(null)
+
+  const scrollToForm = () => {
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  const goToStep = (n) => {
+    setStep(n)
+    setTimeout(scrollToForm, 50)
+  }
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -186,7 +198,7 @@ export default function BookingPage() {
             if (!bookingData.roomId) { toast.error('Please select a room'); return }
             if (!bookingData.checkIn || !bookingData.checkOut) { toast.error('Please set check-in and check-out dates'); return }
             if (nights < 1) { toast.error('Check-out must be after check-in'); return }
-            setStep(1)
+            goToStep(1)
           }}
           className="btn-gold flex items-center gap-2 px-8 py-3.5"
         >
@@ -265,7 +277,7 @@ export default function BookingPage() {
       </div>
 
       <div className="mt-8 flex justify-between">
-        <button onClick={() => setStep(0)} className="btn-outline-gold flex items-center gap-2 px-6 py-3">
+        <button onClick={() => goToStep(0)} className="btn-outline-gold flex items-center gap-2 px-6 py-3">
           <FaArrowLeft size={14} /> Back
         </button>
         <button
@@ -274,7 +286,7 @@ export default function BookingPage() {
               toast.error('Please fill in all required fields')
               return
             }
-            setStep(2)
+            goToStep(2)
           }}
           className="btn-gold flex items-center gap-2 px-8 py-3.5"
         >
@@ -378,7 +390,7 @@ export default function BookingPage() {
       </div>
 
       <div className="mt-8 flex justify-between">
-        <button onClick={() => setStep(1)} className="btn-outline-gold flex items-center gap-2 px-6 py-3">
+        <button onClick={() => goToStep(1)} className="btn-outline-gold flex items-center gap-2 px-6 py-3">
           <FaArrowLeft size={14} /> Back
         </button>
         <button
@@ -387,7 +399,7 @@ export default function BookingPage() {
             try {
               const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData)
               setBookingId(res.data.bookingId || 'AP' + Date.now())
-              setStep(3)
+              goToStep(3)
             } catch {
               toast.error('Booking failed. Please try again or call us.')
             } finally {
@@ -487,7 +499,7 @@ export default function BookingPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div ref={formRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <StepIndicator currentStep={step} />
         <AnimatePresence mode="wait">
           <motion.div
