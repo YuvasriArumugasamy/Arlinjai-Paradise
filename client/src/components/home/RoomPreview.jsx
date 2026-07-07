@@ -4,6 +4,7 @@ import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { FaUsers, FaBed, FaRulerCombined, FaArrowRight, FaCheck } from 'react-icons/fa'
 import { ROOMS } from '../../constants'
+import { StarButtonLink } from '../common/StarButton'
 
 function RoomCard({ room, index, inView }) {
   return (
@@ -80,14 +81,12 @@ function RoomCard({ room, index, inView }) {
             </span>
             <span className="font-poppins text-xs text-gray-500"> /night</span>
           </div>
-          <Link
+          <StarButtonLink
             to={`/booking?roomType=${room.id}`}
-            className="bg-gold text-white font-poppins text-xs font-semibold px-4 py-2 rounded-sm
-                       hover:bg-gold-dark transition-colors flex items-center gap-1.5"
+            className="text-sm px-4 py-2"
           >
             Book Now
-            <FaArrowRight size={10} />
-          </Link>
+          </StarButtonLink>
         </div>
       </div>
     </motion.div>

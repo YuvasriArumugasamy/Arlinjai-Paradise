@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fa'
 import Breadcrumb from '../components/common/Breadcrumb'
 import { ROOMS, HOTEL_INFO } from '../constants'
+import { StarButton } from '../components/common/StarButton'
 
 export default function RoomDetailsPage() {
   const { id } = useParams()
@@ -249,12 +250,12 @@ export default function RoomDetailsPage() {
                   </select>
                 </div>
 
-                <button
+                <StarButton
                   onClick={handleBookNow}
-                  className="btn-gold w-full py-4 text-center uppercase tracking-wider"
+                  className="w-full py-4 text-center uppercase tracking-wider"
                 >
                   Book This Room
-                </button>
+                </StarButton>
 
                 <div className="grid grid-cols-2 gap-3">
                   <a

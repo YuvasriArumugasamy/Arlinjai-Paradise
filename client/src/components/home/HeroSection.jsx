@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FaCalendarAlt, FaUsers, FaBed, FaStar } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
+import { StarButtonLink, StarButton } from '../common/StarButton'
 
 export default function HeroSection() {
   const navigate = useNavigate()
@@ -82,12 +83,9 @@ export default function HeroSection() {
           transition={{ duration: 0.7, delay: 0.25 }}
           className="flex flex-row items-center justify-center gap-4 mb-8 sm:mb-12"
         >
-          <Link
-            to="/booking"
-            className="bg-gold hover:bg-gold-dark text-white font-poppins text-xs font-bold px-6 py-3 uppercase tracking-wider transition-all duration-300"
-          >
+          <StarButtonLink to="/booking" className="text-xs uppercase tracking-wider font-bold font-poppins">
             Book Now
-          </Link>
+          </StarButtonLink>
           <Link
             to="/rooms"
             className="border-2 border-white hover:border-gold hover:bg-gold hover:text-white text-white font-poppins text-xs font-bold px-6 py-2.5 uppercase tracking-wider transition-all duration-300"
@@ -177,12 +175,12 @@ export default function HeroSection() {
               </div>
             </div>
             <div className="mt-4 flex justify-center">
-              <button
+              <StarButton
                 type="submit"
-                className="btn-gold px-10 py-3.5 text-sm uppercase tracking-widest w-full"
+                className="px-10 py-3.5 text-sm uppercase tracking-widest w-full"
               >
                 Check Availability
-              </button>
+              </StarButton>
             </div>
           </form>
         </motion.div>

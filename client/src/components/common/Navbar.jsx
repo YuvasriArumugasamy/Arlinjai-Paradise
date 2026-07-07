@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaBars, FaTimes, FaPhoneAlt } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
+import { StarButtonLink } from './StarButton'
 
 const navLinks = [
   { label: 'Home', path: '/' },
@@ -99,14 +100,12 @@ export default function Navbar() {
               >
                 <FaPhoneAlt size={14} />
               </a>
-              <Link
+              <StarButtonLink
                 to="/booking"
-                className="bg-gold text-white font-poppins text-sm font-semibold px-5 py-2.5 rounded-sm 
-                           hover:bg-gold-dark transition-all duration-300 shadow-gold hover:shadow-gold-lg
-                           hover:-translate-y-0.5 ml-2"
+                className="text-sm font-semibold ml-2"
               >
                 Book Now
-              </Link>
+              </StarButtonLink>
             </div>
 
             {/* Mobile Hamburger */}
@@ -160,13 +159,12 @@ export default function Navbar() {
                   transition={{ delay: navLinks.length * 0.07 }}
                   className="mt-6"
                 >
-                  <Link
+                  <StarButtonLink
                     to="/booking"
-                    className="block w-full text-center bg-gold text-white font-poppins font-semibold 
-                               py-4 px-6 rounded-sm hover:bg-gold-dark transition-colors duration-200"
+                    className="block w-full text-center font-semibold py-4"
                   >
                     Book Now
-                  </Link>
+                  </StarButtonLink>
                 </motion.div>
                 <div className="mt-8 flex flex-col gap-3 px-4">
                   <a

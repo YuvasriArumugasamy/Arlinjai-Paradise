@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { FaMapMarkerAlt, FaClock, FaTicketAlt } from 'react-icons/fa'
 import Breadcrumb from '../components/common/Breadcrumb'
 import { ATTRACTIONS, HOTEL_INFO } from '../constants'
+import { StarButtonLink } from '../components/common/StarButton'
 
 const CATEGORIES = ['All Places', 'Nature', 'Heritage', 'Temple', 'Beach', 'Church', 'Entertainment']
 
@@ -215,12 +216,12 @@ export default function ExplorePage() {
             Arlinjai Paradise is perfectly located — walk to the beach, temple, and ferry point within minutes.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a
-              href="/booking"
-              className="btn-gold inline-flex items-center gap-2 px-8 py-3.5"
+            <StarButtonLink
+              to="/booking"
+              className="inline-flex items-center gap-2 px-8 py-3.5"
             >
               Book Your Stay
-            </a>
+            </StarButtonLink>
             <a
               href={`https://wa.me/${HOTEL_INFO.whatsapp.replace(/[\s+]/g, '')}?text=${encodeURIComponent('Hello! I want to explore Kanyakumari. Please share room availability.')}`}
               target="_blank"

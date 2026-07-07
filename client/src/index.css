@@ -253,6 +253,76 @@
   justify-content: center;
 }
 
+/* ── Star Sparkle Button ── */
+.star-btn {
+  position: relative;
+  padding: 12px 28px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+  overflow: visible;
+}
+
+.star-btn-gold {
+  background: #C9A227;
+  color: white;
+  border: 2px solid #C9A227;
+  box-shadow: 0 0 0 rgba(201,162,39,0.55);
+}
+
+.star-btn-gold:hover {
+  background: transparent;
+  color: #C9A227;
+  box-shadow: 0 0 25px rgba(201,162,39,0.55);
+}
+
+.star-btn-outline {
+  background: transparent;
+  color: #C9A227;
+  border: 2px solid #C9A227;
+  box-shadow: 0 0 0 rgba(201,162,39,0.55);
+}
+
+.star-btn-outline:hover {
+  background: #C9A227;
+  color: white;
+  box-shadow: 0 0 25px rgba(201,162,39,0.55);
+}
+
+/* Stars */
+.star-btn .star-1,
+.star-btn .star-2,
+.star-btn .star-3,
+.star-btn .star-4,
+.star-btn .star-5,
+.star-btn .star-6 {
+  position: absolute;
+  z-index: -5;
+  filter: drop-shadow(0 0 0 #C9A227);
+}
+
+.star-btn .star-1 { top: 20%; left: 20%; width: 25px; transition: all 1s cubic-bezier(0.05,0.83,0.43,0.96); }
+.star-btn .star-2 { top: 45%; left: 45%; width: 15px; transition: all 1s cubic-bezier(0,0.4,0,1.01); }
+.star-btn .star-3 { top: 40%; left: 40%; width: 5px;  transition: all 1s cubic-bezier(0,0.4,0,1.01); }
+.star-btn .star-4 { top: 20%; left: 40%; width: 8px;  transition: all 0.8s cubic-bezier(0,0.4,0,1.01); }
+.star-btn .star-5 { top: 25%; left: 45%; width: 15px; transition: all 0.6s cubic-bezier(0,0.4,0,1.01); }
+.star-btn .star-6 { top: 5%;  left: 50%; width: 5px;  transition: all 0.8s ease; }
+
+.star-btn:hover .star-1 { top: -80%; left: -30%; filter: drop-shadow(0 0 10px #C9A227); z-index: 2; }
+.star-btn:hover .star-2 { top: -25%; left: 10%;  filter: drop-shadow(0 0 10px #C9A227); z-index: 2; }
+.star-btn:hover .star-3 { top: 55%;  left: 25%;  filter: drop-shadow(0 0 10px #C9A227); z-index: 2; }
+.star-btn:hover .star-4 { top: 30%;  left: 80%;  filter: drop-shadow(0 0 10px #C9A227); z-index: 2; }
+.star-btn:hover .star-5 { top: 25%;  left: 115%; filter: drop-shadow(0 0 10px #C9A227); z-index: 2; }
+.star-btn:hover .star-6 { top: 5%;   left: 60%;  filter: drop-shadow(0 0 10px #C9A227); z-index: 2; }
+
 /* Print styles */
 @media print {
   .no-print {

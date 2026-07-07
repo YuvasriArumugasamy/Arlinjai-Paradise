@@ -4,6 +4,7 @@ import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { FaPhoneAlt, FaArrowRight } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
+import { StarButtonLink } from '../common/StarButton'
 
 export default function CallToAction() {
   const ref = useRef(null)
@@ -56,13 +57,13 @@ export default function CallToAction() {
           transition={{ delay: 0.3 }}
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-          <Link
+          <StarButtonLink
             to="/booking"
-            className="btn-gold inline-flex items-center gap-2 text-sm uppercase tracking-wider px-8 py-4"
+            className="inline-flex items-center gap-2 text-sm uppercase tracking-wider px-8 py-4"
           >
             Book Now – Best Rate
             <FaArrowRight size={14} />
-          </Link>
+          </StarButtonLink>
           <a
             href={`tel:${HOTEL_INFO.phone1}`}
             className="btn-white inline-flex items-center gap-2 text-sm px-8 py-4"

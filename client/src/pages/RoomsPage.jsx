@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fa'
 import Breadcrumb from '../components/common/Breadcrumb'
 import { ROOMS } from '../constants'
+import { StarButtonLink } from '../components/common/StarButton'
 
 const CATEGORIES = [
   { value: 'all', label: 'All Rooms' },
@@ -377,13 +378,13 @@ export default function RoomsPage() {
                             >
                               Details
                             </Link>
-                            <Link
+                            <StarButtonLink
                               to={`/booking?roomType=${room.id}`}
-                              className="btn-gold text-sm px-5 py-2 flex items-center gap-1.5"
+                              className="text-sm px-5 py-2 inline-flex items-center gap-1.5"
                             >
                               Book
                               <FaArrowRight size={12} />
-                            </Link>
+                            </StarButtonLink>
                           </div>
                         </div>
                       </div>
