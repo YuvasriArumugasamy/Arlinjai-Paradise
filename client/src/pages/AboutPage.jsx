@@ -60,7 +60,7 @@ function StatsBar() {
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section style={{ background: '#c9a84c', padding: '56px 0' }} ref={ref}>
+    <section style={{ background: '#c9a84c', padding: '36px 0' }} ref={ref}>
       <div style={{
         maxWidth: 1160, margin: '0 auto', padding: '0 24px',
         display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 32,
@@ -75,22 +75,22 @@ function StatsBar() {
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
             >
               <div style={{
-                width: 56, height: 56, borderRadius: '50%',
+                width: 44, height: 44, borderRadius: '50%',
                 background: 'rgba(255,255,255,0.2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: 16,
+                marginBottom: 12,
                 transition: 'background 0.3s',
               }}>
-                <Icon size={22} style={{ color: '#fff' }} />
+                <Icon size={17} style={{ color: '#fff' }} />
               </div>
               <p style={{
                 fontFamily: 'Playfair Display,serif', fontWeight: 700,
-                fontSize: '2.6rem', color: '#fff', margin: '0 0 4px', lineHeight: 1,
+                fontSize: '1.8rem', color: '#fff', margin: '0 0 4px', lineHeight: 1,
               }}>
                 <AnimatedCounter target={s.target} suffix={s.suffix} inView={inView} />
               </p>
               <p style={{
-                fontFamily: 'Poppins,sans-serif', fontSize: '0.85rem',
+                fontFamily: 'Poppins,sans-serif', fontSize: '0.78rem',
                 color: 'rgba(255,255,255,0.88)', fontWeight: 500, margin: 0,
               }}>
                 {s.label}
