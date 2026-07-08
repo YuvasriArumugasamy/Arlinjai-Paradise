@@ -1,25 +1,24 @@
 // Firebase Cloud Messaging Service Worker
-// This file MUST be in the /public root (served at /firebase-messaging-sw.js)
+// Must be served at /firebase-messaging-sw.js (public folder)
+// NOTE: Service workers cannot access Vite env vars — values are hardcoded here.
 
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js')
 
-// NOTE: These values must match your Firebase project config exactly.
-// Service workers cannot read Vite env vars, so hardcode them here.
 firebase.initializeApp({
-  apiKey:            'REPLACE_WITH_YOUR_API_KEY',
-  authDomain:        'REPLACE_WITH_YOUR_AUTH_DOMAIN',
-  projectId:         'REPLACE_WITH_YOUR_PROJECT_ID',
-  storageBucket:     'REPLACE_WITH_YOUR_STORAGE_BUCKET',
-  messagingSenderId: 'REPLACE_WITH_YOUR_SENDER_ID',
-  appId:             'REPLACE_WITH_YOUR_APP_ID',
+  apiKey:            'AIzaSyBBUGL7SGHCU1iYZGxsUdLaEfgHadYK0c0',
+  authDomain:        'arlinjai-paradise.firebaseapp.com',
+  projectId:         'arlinjai-paradise',
+  storageBucket:     'arlinjai-paradise.firebasestorage.app',
+  messagingSenderId: '844337819116',
+  appId:             '1:844337819116:web:9dc79e4855335f5436a4c9',
 })
 
 const messaging = firebase.messaging()
 
-// Handle background notifications (when app tab is not active)
+// Handle background notifications (tab not active / app closed)
 messaging.onBackgroundMessage((payload) => {
-  console.log('[SW] Background notification received:', payload)
+  console.log('[SW] Background message received:', payload)
 
   const { title, body, icon } = payload.notification || {}
 
