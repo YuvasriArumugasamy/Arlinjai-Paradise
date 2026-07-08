@@ -3,6 +3,7 @@ import { FaChevronLeft, FaChevronRight, FaThumbtack, FaCalendarAlt, FaUsers, FaP
 
 export default function CalendarPage() {
   const [startDate, setStartDate] = useState('2026-07-07')
+  const [selectedRoomType, setSelectedRoomType] = useState('All')
 
   // Generate 14 days starting from Wed 08 Jul (dummy data to match image)
   const days = [
@@ -40,6 +41,10 @@ export default function CalendarPage() {
     { id: '205', name: 'Room 205', type: 'Non AC', typeColor: 'text-amber-500' },
   ]
 
+  const filteredRooms = selectedRoomType === 'All'
+    ? rooms
+    : rooms.filter(room => room.type === selectedRoomType)
+
   const allocations = []
 
   return (
@@ -73,8 +78,15 @@ export default function CalendarPage() {
               />
             </div>
             <div>
-              <select className="border border-gray-300 rounded px-3 py-1 text-sm text-gray-700 outline-none font-medium">
-                <option>All Room Types</option>
+              <select 
+                value={selectedRoomType}
+                onChange={(e) => setSelectedRoomType(e.target.value)}
+                className="border border-gray-300 rounded px-3 py-1 text-sm text-gray-700 outline-none font-medium"
+              >
+                <option value="All">All Room Types</option>
+                <option value="Deluxe AC">Deluxe AC</option>
+                <option value="Normal AC">Normal AC</option>
+                <option value="Non AC">Non AC</option>
               </select>
             </div>
           </div>
@@ -85,7 +97,7 @@ export default function CalendarPage() {
           <div className="min-w-[1000px] border-b border-gray-100 flex">
             {/* Rooms Header */}
             <div className="w-48 flex-shrink-0 border-r border-gray-100 p-3 bg-gray-50 flex items-end">
-              <span className="text-sm font-semibold text-gray-700">Rooms (15)</span>
+              <span className="text-sm font-semibold text-gray-700">Rooms ({filteredRooms.length})</span>
             </div>
             
             {/* Days Header */}
@@ -101,7 +113,7 @@ export default function CalendarPage() {
 
           {/* Grid Rows */}
           <div className="flex flex-col">
-            {rooms.map((room) => (
+            {filteredRooms.map((room) => (
               <div key={room.id} className="flex border-b border-gray-100 hover:bg-gray-50">
                 {/* Room Info */}
                 <div className="w-48 flex-shrink-0 border-r border-gray-100 p-3 flex flex-col justify-center">
