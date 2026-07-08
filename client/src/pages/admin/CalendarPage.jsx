@@ -81,7 +81,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Grid Area */}
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto scrollbar-hide">
           <div className="min-w-[1000px] border-b border-gray-100 flex">
             {/* Rooms Header */}
             <div className="w-48 flex-shrink-0 border-r border-gray-100 p-3 bg-gray-50 flex items-end">
