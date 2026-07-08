@@ -63,7 +63,10 @@ export const ROOMS = [
     name: 'Deluxe AC Room',
     category: 'deluxe',
     badge: 'PREMIUM',
-    price: 2500,
+    get price() {
+      const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
+      return isPeak ? 5000 : 2500
+    },
     highSeasonPrice: 5000,
     highSeasonLabel: 'Dec–Jan',
     guests: 4,
@@ -104,7 +107,10 @@ export const ROOMS = [
     name: 'Normal AC Room',
     category: 'standard',
     badge: 'VALUE',
-    price: 2000,
+    get price() {
+      const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
+      return isPeak ? 4000 : 2000
+    },
     highSeasonPrice: 4000,
     highSeasonLabel: 'Dec–Jan',
     guests: 4,
@@ -141,7 +147,10 @@ export const ROOMS = [
     name: 'Non AC Room',
     category: 'budget',
     badge: 'BUDGET',
-    price: 1500,
+    get price() {
+      const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
+      return isPeak ? 3000 : 1500
+    },
     highSeasonPrice: 3000,
     highSeasonLabel: 'Dec–Jan',
     guests: 4,

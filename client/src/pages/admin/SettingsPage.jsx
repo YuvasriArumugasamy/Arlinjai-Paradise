@@ -68,6 +68,21 @@ export default function SettingsPage() {
     endDate: '',
   })
 
+  const [isPeakSeason, setIsPeakSeason] = useState(() => {
+    return localStorage.getItem('isPeakSeason') === 'true'
+  })
+
+  const handleTogglePeakSeason = () => {
+    const nextVal = !isPeakSeason
+    setIsPeakSeason(nextVal)
+    localStorage.setItem('isPeakSeason', String(nextVal))
+    if (nextVal) {
+      toast.success('Peak season pricing activated!')
+    } else {
+      toast.success('Peak season pricing deactivated')
+    }
+  }
+
   const handleSave = () => {
     toast.success('Settings saved successfully')
   }
@@ -202,6 +217,39 @@ export default function SettingsPage() {
                 <div>
                   <label className="label-text">Check-out Time</label>
                   <input type="time" value={settings.checkOut} onChange={(e) => setSettings({ ...settings, checkOut: e.target.value })} className="input-field" />
+                </div>
+              </div>
+
+              {/* Peak Season Pricing */}
+              <div className="mt-8 pt-8 border-t border-gray-100">
+                <div className="bg-[#FFFDF4] border border-[#E5D0A1] rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl">🔥</span>
+                      <h4 className="font-playfair font-bold text-navy text-base">
+                        Peak Season Pricing
+                      </h4>
+                    </div>
+                    <p className="font-poppins text-xs text-gray-500 leading-relaxed max-w-2xl">
+                      When activated, the website will automatically transition to peak season rates (Deluxe AC: ₹5,000 | Normal AC: ₹4,000 | Non AC: ₹3,000).
+                    </p>
+                    
+                    {isPeakSeason && (
+                      <div className="mt-4 inline-flex items-center gap-2 bg-[#FFF6E5] text-[#A07D10] text-[10px] font-bold font-poppins px-3 py-1.5 rounded-lg border border-[#F5E5C4]">
+                        <span className="w-1.5 h-1.5 bg-[#C9A227] rounded-full animate-ping" />
+                        PEAK SEASON RATES ARE LIVE
+                      </div>
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={handleTogglePeakSeason}
+                    className={`w-14 h-7 rounded-full relative transition-colors duration-300 flex-shrink-0
+                      ${isPeakSeason ? 'bg-[#C9A227]' : 'bg-gray-300'}`}
+                  >
+                    <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-all duration-300
+                      ${isPeakSeason ? 'left-[30px]' : 'left-[2px]'}`} />
+                  </button>
                 </div>
               </div>
             </div>

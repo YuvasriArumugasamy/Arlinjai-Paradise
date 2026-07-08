@@ -103,6 +103,8 @@ export default function RoomsAdminPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
         {rooms.sort((a, b) => a.roomNo - b.roomNo).map((room, ri) => {
           const st = STATUS_STYLES[room.status]
+          const isPeak = localStorage.getItem('isPeakSeason') === 'true'
+          const displayPrice = isPeak ? room.peakPrice : room.weekdayPrice
           return (
             <motion.div
               key={room.roomNo}
@@ -125,7 +127,7 @@ export default function RoomsAdminPage() {
               {/* Price Details */}
               <div className="mb-5 space-y-1">
                 <p className="font-playfair text-gold font-bold text-lg">
-                  ₹{room.weekdayPrice}<span className="text-sm text-gray-500 font-poppins font-normal">/night</span>
+                  ₹{displayPrice}<span className="text-sm text-gray-500 font-poppins font-normal">/night</span>
                 </p>
                 <p className="font-poppins text-[11px] text-gray-400">
                   (Weekday: ₹{room.weekdayPrice} | Peak: ₹{room.peakPrice})
