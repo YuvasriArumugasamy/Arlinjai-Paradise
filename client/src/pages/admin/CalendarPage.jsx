@@ -23,43 +23,43 @@ export default function CalendarPage() {
   ]
 
   const rooms = [
-    { id: '101', name: 'Room 101', type: 'Double Bed' },
-    { id: '102', name: 'Room 102', type: 'Four Bed A/C', typeColor: 'text-blue-500' },
-    { id: '103', name: 'Room 103', type: 'Double Bed' },
-    { id: '104', name: 'Room 104', type: 'Double Bed' },
-    { id: '105', name: 'Room 105', type: 'Double Bed A/C', typeColor: 'text-blue-500' },
-    { id: '106', name: 'Room 106', type: 'Double Bed' },
-    { id: '201', name: 'Room 201', type: 'Four Bed A/C', typeColor: 'text-blue-500' },
-    { id: '202', name: 'Room 202', type: 'Four Bed A/C', typeColor: 'text-blue-500' },
-    { id: '203', name: 'Room 203', type: 'Double Bed' },
-    { id: '204', name: 'Room 204', type: 'Double Bed' },
-    { id: '205', name: 'Room 205', type: 'Double Bed' },
-    { id: '206', name: 'Room 206', type: 'Double Bed' },
-    { id: '207', name: 'Room 207', type: 'Four Bed A/C', typeColor: 'text-blue-500' },
-    { id: '301', name: 'Room 301', type: 'Three Bed' },
-    { id: '302', name: 'Room 302', type: 'Four Bed A/C', typeColor: 'text-blue-500' },
+    { id: '101', name: 'Room 101', type: 'Deluxe AC', typeColor: 'text-blue-500' },
+    { id: '102', name: 'Room 102', type: 'Deluxe AC', typeColor: 'text-blue-500' },
+    { id: '103', name: 'Room 103', type: 'Deluxe AC', typeColor: 'text-blue-500' },
+    { id: '104', name: 'Room 104', type: 'Deluxe AC', typeColor: 'text-blue-500' },
+    { id: '105', name: 'Room 105', type: 'Deluxe AC', typeColor: 'text-blue-500' },
+    { id: '201', name: 'Room 201', type: 'Normal AC', typeColor: 'text-cyan-500' },
+    { id: '301', name: 'Room 301', type: 'Normal AC', typeColor: 'text-cyan-500' },
+    { id: '302', name: 'Room 302', type: 'Normal AC', typeColor: 'text-cyan-500' },
+    { id: '303', name: 'Room 303', type: 'Normal AC', typeColor: 'text-cyan-500' },
+    { id: '304', name: 'Room 304', type: 'Normal AC', typeColor: 'text-cyan-500' },
+    { id: '305', name: 'Room 305', type: 'Normal AC', typeColor: 'text-cyan-500' },
+    { id: '202', name: 'Room 202', type: 'Non AC', typeColor: 'text-amber-500' },
+    { id: '203', name: 'Room 203', type: 'Non AC', typeColor: 'text-amber-500' },
+    { id: '204', name: 'Room 204', type: 'Non AC', typeColor: 'text-amber-500' },
+    { id: '205', name: 'Room 205', type: 'Non AC', typeColor: 'text-amber-500' },
   ]
 
   const allocations = [
     {
       name: 'Santhosh Kumar',
-      type: 'FOUR BED A/C',
+      type: 'DELUXE AC',
       dates: '10 Jul - 11 Jul',
-      guests: '7 Guests',
+      guests: '4 Guests',
       phone: '9176440935',
     },
     {
       name: 'Pushparaj (Kandhan)',
-      type: 'FOUR BED A/C',
+      type: 'NORMAL AC',
       dates: '10 Jul - 11 Jul',
-      guests: '9 Guests',
+      guests: '3 Guests',
       phone: '9789309629',
     },
     {
       name: 'Vikash S',
-      type: 'FOUR BED A/C',
+      type: 'NON AC',
       dates: '17 Jul - 19 Jul',
-      guests: '3 Guests',
+      guests: '2 Guests',
       phone: '9790897241',
     },
   ]
@@ -107,7 +107,7 @@ export default function CalendarPage() {
           <div className="min-w-[1000px] border-b border-gray-100 flex">
             {/* Rooms Header */}
             <div className="w-48 flex-shrink-0 border-r border-gray-100 p-3 bg-gray-50 flex items-end">
-              <span className="text-sm font-semibold text-gray-700">Rooms (20)</span>
+              <span className="text-sm font-semibold text-gray-700">Rooms (15)</span>
             </div>
             
             {/* Days Header */}
