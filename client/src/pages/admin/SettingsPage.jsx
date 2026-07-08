@@ -1,14 +1,33 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FaSave, FaHotel, FaLock, FaBell, FaEnvelope } from 'react-icons/fa'
+import { FaSave, FaHotel, FaLock, FaBell, FaEnvelope, FaCalendarAlt } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { HOTEL_INFO } from '../../constants'
 
 const TABS = [
   { id: 'general', label: 'General', icon: FaHotel },
+  { id: 'blocking', label: 'Room Blocking', icon: FaCalendarAlt },
   { id: 'notifications', label: 'Notifications', icon: FaBell },
   { id: 'email', label: 'Email', icon: FaEnvelope },
   { id: 'security', label: 'Security', icon: FaLock },
+]
+
+const ROOMS_LIST = [
+  { id: '101', name: 'Room 101 (Deluxe AC)', type: 'Deluxe AC' },
+  { id: '102', name: 'Room 102 (Deluxe AC)', type: 'Deluxe AC' },
+  { id: '103', name: 'Room 103 (Deluxe AC)', type: 'Deluxe AC' },
+  { id: '104', name: 'Room 104 (Deluxe AC)', type: 'Deluxe AC' },
+  { id: '105', name: 'Room 105 (Deluxe AC)', type: 'Deluxe AC' },
+  { id: '201', name: 'Room 201 (Normal AC)', type: 'Normal AC' },
+  { id: '301', name: 'Room 301 (Normal AC)', type: 'Normal AC' },
+  { id: '302', name: 'Room 302 (Normal AC)', type: 'Normal AC' },
+  { id: '303', name: 'Room 303 (Normal AC)', type: 'Normal AC' },
+  { id: '304', name: 'Room 304 (Normal AC)', type: 'Normal AC' },
+  { id: '305', name: 'Room 305 (Normal AC)', type: 'Normal AC' },
+  { id: '202', name: 'Room 202 (Non AC)', type: 'Non AC' },
+  { id: '203', name: 'Room 203 (Non AC)', type: 'Non AC' },
+  { id: '204', name: 'Room 204 (Non AC)', type: 'Non AC' },
+  { id: '205', name: 'Room 205 (Non AC)', type: 'Non AC' },
 ]
 
 export default function SettingsPage() {
@@ -35,8 +54,61 @@ export default function SettingsPage() {
     confirmPassword: '',
   })
 
+  const [blockedRooms, setBlockedRooms] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('blockedRooms') || '[]')
+    } catch {
+      return []
+    }
+  })
+
+  const [blockingForm, setBlockingForm] = useState({
+    roomId: '',
+    startDate: '',
+    endDate: '',
+  })
+
   const handleSave = () => {
     toast.success('Settings saved successfully')
+  }
+
+  const handleBlockRoom = (e) => {
+    e.preventDefault()
+    if (!blockingForm.roomId) {
+      toast.error('Please select a room')
+      return
+    }
+    if (!blockingForm.startDate || !blockingForm.endDate) {
+      toast.error('Please select start and end dates')
+      return
+    }
+    if (new Date(blockingForm.startDate) > new Date(blockingForm.endDate)) {
+      toast.error('Start date cannot be after end date')
+      return
+    }
+
+    const room = ROOMS_LIST.find(r => r.id === blockingForm.roomId)
+    const newBlock = {
+      id: Date.now().toString(),
+      roomId: blockingForm.roomId,
+      roomName: room ? room.name : `Room ${blockingForm.roomId}`,
+      roomType: room ? room.type : '',
+      startDate: blockingForm.startDate,
+      endDate: blockingForm.endDate,
+    }
+
+    const updated = [...blockedRooms, newBlock]
+    setBlockedRooms(updated)
+    localStorage.setItem('blockedRooms', JSON.stringify(updated))
+    toast.success(`${room ? room.name.split(' (')[0] : 'Room'} blocked successfully`)
+    setBlockingForm({ roomId: '', startDate: '', endDate: '' })
+  }
+
+  const handleUnblockRoom = (id) => {
+    const updated = blockedRooms.filter(block => block.id !== id)
+    setBlockedRooms(updated)
+    localStorage.setItem('blockedRooms', JSON.stringify(updated))
+    toast.success('Room unblocked successfully')
   }
 
   return (
@@ -233,11 +305,128 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <div className="mt-8 pt-5 border-t border-gray-100">
-            <button onClick={handleSave} className="btn-gold flex items-center gap-2 px-8 py-3">
-              <FaSave size={14} /> Save Changes
-            </button>
-          </div>
+          {/* Room Blocking Center */}
+          {activeTab === 'blocking' && (
+            <div className="space-y-5">
+              <h3 className="font-playfair font-bold text-navy text-lg border-b border-gray-100 pb-4">
+                Room Blocking Center
+              </h3>
+              
+              <div className="bg-[#FFF5F5] border border-red-100 rounded-2xl p-6 shadow-sm">
+                {/* Header */}
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-500 flex-shrink-0">
+                    <span className="text-xl">📅</span>
+                  </div>
+                  <div>
+                    <h3 className="font-playfair font-bold text-navy text-lg leading-tight">
+                      Room Blocking Center
+                    </h3>
+                    <p className="font-poppins text-xs text-gray-500 mt-1">
+                      Block rooms for maintenance or custom bookings
+                    </p>
+                  </div>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleBlockRoom} className="space-y-5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      Select Room
+                    </label>
+                    <select
+                      value={blockingForm.roomId}
+                      onChange={(e) => setBlockingForm({ ...blockingForm, roomId: e.target.value })}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-red-300 focus:ring-1 focus:ring-red-100 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="">-- Choose Room --</option>
+                      {ROOMS_LIST.map((room) => (
+                        <option key={room.id} value={room.id}>
+                          {room.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={blockingForm.startDate}
+                        onChange={(e) => setBlockingForm({ ...blockingForm, startDate: e.target.value })}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-red-300 focus:ring-1 focus:ring-red-100 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        End Date
+                      </label>
+                      <input
+                        type="date"
+                        value={blockingForm.endDate}
+                        onChange={(e) => setBlockingForm({ ...blockingForm, endDate: e.target.value })}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-red-300 focus:ring-1 focus:ring-red-100 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-[#D32F2F] hover:bg-red-700 text-white font-poppins font-semibold py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+                  >
+                    + Block Room
+                  </button>
+                </form>
+
+                {/* Blocked Dates List */}
+                <div className="mt-8 border-t border-red-100 pt-6">
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">
+                    Blocked Dates
+                  </label>
+                  
+                  {blockedRooms.length === 0 ? (
+                    <p className="text-xs text-slate-400 italic">No blocked dates currently.</p>
+                  ) : (
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                      {blockedRooms.map((block) => (
+                        <div
+                          key={block.id}
+                          className="flex items-center justify-between bg-white border border-red-100 rounded-xl p-4 shadow-xs"
+                        >
+                          <div>
+                            <p className="font-poppins font-bold text-sm text-navy">
+                              {block.roomName}
+                            </p>
+                            <p className="font-poppins text-xs text-gray-500 mt-1">
+                              📅 {block.startDate} to {block.endDate}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleUnblockRoom(block.id)}
+                            className="text-red-500 hover:text-red-700 text-xs font-semibold px-3 py-1.5 border border-red-100 hover:border-red-200 rounded-lg transition-colors"
+                          >
+                            Unblock
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {activeTab !== 'blocking' && (
+            <div className="mt-8 pt-5 border-t border-gray-100">
+              <button onClick={handleSave} className="btn-gold flex items-center gap-2 px-8 py-3">
+                <FaSave size={14} /> Save Changes
+              </button>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
