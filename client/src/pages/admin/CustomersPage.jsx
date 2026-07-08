@@ -2,13 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { FaSearch, FaUser, FaPhoneAlt, FaEnvelope, FaCalendarAlt } from 'react-icons/fa'
 
-const MOCK_CUSTOMERS = [
-  { id: 1, name: 'Priya S.', email: 'priya@email.com', phone: '9876543210', city: 'Chennai', totalBookings: 3, totalSpent: 15000, lastVisit: '2025-01-23', status: 'VIP' },
-  { id: 2, name: 'Rahul K.', email: 'rahul@email.com', phone: '9876543211', city: 'Mumbai', totalBookings: 1, totalSpent: 2000, lastVisit: '2025-01-22', status: 'Regular' },
-  { id: 3, name: 'Anitha R.', email: 'anitha@email.com', phone: '9876543212', city: 'Bangalore', totalBookings: 2, totalSpent: 6000, lastVisit: '2025-01-24', status: 'Regular' },
-  { id: 4, name: 'James W.', email: 'james@email.com', phone: '9876543213', city: 'USA', totalBookings: 4, totalSpent: 22500, lastVisit: '2025-01-26', status: 'VIP' },
-  { id: 5, name: 'Meena T.', email: 'meena@email.com', phone: '9876543214', city: 'Coimbatore', totalBookings: 2, totalSpent: 7000, lastVisit: '2025-01-21', status: 'Regular' },
-]
+const MOCK_CUSTOMERS = []
 
 export default function CustomersPage() {
   const [search, setSearch] = useState('')

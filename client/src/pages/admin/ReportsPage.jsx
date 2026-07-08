@@ -2,24 +2,13 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { FaDownload, FaCalendarAlt, FaRupeeSign, FaChartBar, FaUsers } from 'react-icons/fa'
 
-const MONTHLY_DATA = [
-  { month: 'Aug', bookings: 12, revenue: 28000 },
-  { month: 'Sep', bookings: 18, revenue: 38500 },
-  { month: 'Oct', bookings: 24, revenue: 54000 },
-  { month: 'Nov', bookings: 28, revenue: 62000 },
-  { month: 'Dec', bookings: 45, revenue: 112500 },
-  { month: 'Jan', bookings: 48, revenue: 125000 },
-]
+const MONTHLY_DATA = []
 
-const ROOM_DATA = [
-  { room: 'Deluxe AC Room', bookings: 52, revenue: 130000, pct: 50 },
-  { room: 'Normal AC Room', bookings: 38, revenue: 76000, pct: 36 },
-  { room: 'Non AC Room', bookings: 25, revenue: 37500, pct: 24 },
-]
+const ROOM_DATA = []
 
 export default function ReportsPage() {
   const [period, setPeriod] = useState('monthly')
-  const maxRevenue = Math.max(...MONTHLY_DATA.map((d) => d.revenue))
+  const maxRevenue = MONTHLY_DATA.length > 0 ? Math.max(...MONTHLY_DATA.map((d) => d.revenue)) : 1
 
   const totalRevenue = MONTHLY_DATA.reduce((s, m) => s + m.revenue, 0)
   const totalBookings = MONTHLY_DATA.reduce((s, m) => s + m.bookings, 0)
@@ -52,7 +41,7 @@ export default function ReportsPage() {
         {[
           { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: FaRupeeSign, color: 'bg-gold' },
           { label: 'Total Bookings', value: totalBookings, icon: FaCalendarAlt, color: 'bg-blue-500' },
-          { label: 'Avg. per Booking', value: `₹${Math.round(totalRevenue / totalBookings).toLocaleString()}`, icon: FaChartBar, color: 'bg-purple-500' },
+          { label: 'Avg. per Booking', value: `₹${totalBookings > 0 ? Math.round(totalRevenue / totalBookings).toLocaleString() : 0}`, icon: FaChartBar, color: 'bg-purple-500' },
           { label: 'Total Guests', value: Math.round(totalBookings * 2.1), icon: FaUsers, color: 'bg-green-500' },
         ].map((card, i) => {
           const Icon = card.icon

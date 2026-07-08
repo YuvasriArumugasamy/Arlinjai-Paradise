@@ -19,7 +19,9 @@ export default function ReviewsAdminPage() {
     toast.success('Review removed')
   }
 
-  const avgRating = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : '0.0'
 
   return (
     <div className="space-y-6">

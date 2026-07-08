@@ -3,14 +3,7 @@ import { motion } from 'framer-motion'
 import { FaSearch, FaFilter, FaEye, FaEdit, FaTimes, FaCalendarAlt, FaDownload } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 
-const MOCK_BOOKINGS = [
-  { id: 'AP001', guest: 'Priya S.', email: 'priya@email.com', phone: '9876543210', room: 'Deluxe AC Room', checkIn: '2025-01-20', checkOut: '2025-01-23', nights: 3, guests: 2, amount: 7500, status: 'confirmed', paymentMethod: 'pay_at_hotel', createdAt: '2025-01-15' },
-  { id: 'AP002', guest: 'Rahul K.', email: 'rahul@email.com', phone: '9876543211', room: 'Normal AC Room', checkIn: '2025-01-21', checkOut: '2025-01-22', nights: 1, guests: 2, amount: 2000, status: 'pending', paymentMethod: 'upi', createdAt: '2025-01-16' },
-  { id: 'AP003', guest: 'Anitha R.', email: 'anitha@email.com', phone: '9876543212', room: 'Non AC Room', checkIn: '2025-01-22', checkOut: '2025-01-24', nights: 2, guests: 3, amount: 3000, status: 'confirmed', paymentMethod: 'pay_at_hotel', createdAt: '2025-01-17' },
-  { id: 'AP004', guest: 'James W.', email: 'james@email.com', phone: '9876543213', room: 'Deluxe AC Room', checkIn: '2025-01-23', checkOut: '2025-01-26', nights: 3, guests: 2, amount: 7500, status: 'checked-in', paymentMethod: 'upi', createdAt: '2025-01-18' },
-  { id: 'AP005', guest: 'Meena T.', email: 'meena@email.com', phone: '9876543214', room: 'Normal AC Room', checkIn: '2025-01-19', checkOut: '2025-01-21', nights: 2, guests: 2, amount: 4000, status: 'checked-out', paymentMethod: 'pay_at_hotel', createdAt: '2025-01-14' },
-  { id: 'AP006', guest: 'Suresh P.', email: 'suresh@email.com', phone: '9876543215', room: 'Non AC Room', checkIn: '2025-01-25', checkOut: '2025-01-27', nights: 2, guests: 4, amount: 3000, status: 'cancelled', paymentMethod: 'pay_at_hotel', createdAt: '2025-01-19' },
-]
+const MOCK_BOOKINGS = [];
 
 const STATUS_STYLES = {
   confirmed: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Confirmed' },

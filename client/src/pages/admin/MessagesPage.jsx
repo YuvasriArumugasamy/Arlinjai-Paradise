@@ -3,12 +3,7 @@ import { motion } from 'framer-motion'
 import { FaReply, FaTrash, FaEnvelope, FaEnvelopeOpen, FaTimes } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 
-const MOCK_MESSAGES = [
-  { id: 1, name: 'Suresh P.', email: 'suresh@email.com', phone: '9876543215', subject: 'Booking inquiry for December', message: 'Hi, I would like to book a deluxe room for 3 nights in December. Please let me know the availability and rates.', type: 'Room Booking', read: false, createdAt: '2025-01-20T10:30:00' },
-  { id: 2, name: 'Kavitha M.', email: 'kavitha@email.com', phone: '9876543216', subject: 'Group booking query', message: 'We are a family of 6 planning to visit Kanyakumari in February. Do you have availability for 2 rooms simultaneously?', type: 'General Inquiry', read: false, createdAt: '2025-01-19T14:15:00' },
-  { id: 3, name: 'Thomas J.', email: 'thomas@email.com', phone: '9876543217', subject: 'Excellent stay feedback', message: 'We had a wonderful stay at your hotel. The staff was very cooperative and the rooms were very clean. Thank you!', type: 'Feedback', read: true, createdAt: '2025-01-18T09:00:00' },
-  { id: 4, name: 'Lakshmi N.', email: 'lakshmi@email.com', phone: '9876543218', subject: 'Early check-in request', message: 'We will be arriving at Kanyakumari at 8 AM. Is it possible to have an early check-in at 9 AM?', type: 'Room Booking', read: true, createdAt: '2025-01-17T16:45:00' },
-]
+const MOCK_MESSAGES = [];
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState(MOCK_MESSAGES)

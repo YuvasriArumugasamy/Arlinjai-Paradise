@@ -9,21 +9,15 @@ import axios from 'axios'
 import { API_BASE_URL } from '../../constants'
 
 const MOCK_STATS = {
-  totalRevenue: 125000,
-  totalBookings: 48,
-  occupancyRate: 72,
-  totalGuests: 89,
-  revenueGrowth: 12.5,
-  bookingGrowth: 8.3,
+  totalRevenue: 0,
+  totalBookings: 0,
+  occupancyRate: 0,
+  totalGuests: 0,
+  revenueGrowth: 0,
+  bookingGrowth: 0,
 }
 
-const MOCK_BOOKINGS = [
-  { id: 'AP001', guest: 'Priya S.', room: 'Deluxe AC Room', checkIn: '2025-01-20', checkOut: '2025-01-23', amount: 7500, status: 'confirmed' },
-  { id: 'AP002', guest: 'Rahul K.', room: 'Normal AC Room', checkIn: '2025-01-21', checkOut: '2025-01-22', amount: 2000, status: 'pending' },
-  { id: 'AP003', guest: 'Anitha R.', room: 'Non AC Room', checkIn: '2025-01-22', checkOut: '2025-01-24', amount: 3000, status: 'confirmed' },
-  { id: 'AP004', guest: 'James W.', room: 'Deluxe AC Room', checkIn: '2025-01-23', checkOut: '2025-01-26', amount: 7500, status: 'checked-in' },
-  { id: 'AP005', guest: 'Meena T.', room: 'Normal AC Room', checkIn: '2025-01-19', checkOut: '2025-01-21', amount: 4000, status: 'checked-out' },
-]
+const MOCK_BOOKINGS = [];
 
 const STATUS_STYLES = {
   confirmed: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Confirmed' },
