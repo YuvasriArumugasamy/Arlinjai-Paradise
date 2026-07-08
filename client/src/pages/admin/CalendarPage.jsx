@@ -150,13 +150,7 @@ export default function CalendarPage() {
           </div>
         </div>
         
-        {/* Scrollbar placeholder (visual only to match image) */}
-        <div className="h-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between px-1">
-          <div className="w-full h-2 bg-gray-200 rounded-full mx-2 flex items-center">
-            <div className="w-1/3 h-full bg-[#E5D0A1] rounded-full"></div>
-          </div>
-          <FaChevronRight className="text-gold opacity-50" size={10} />
-        </div>
+
       </div>
 
       {/* Right Sidebar: Room Allocations */}
