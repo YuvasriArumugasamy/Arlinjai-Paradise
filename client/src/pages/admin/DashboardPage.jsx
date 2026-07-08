@@ -118,10 +118,10 @@ export default function DashboardPage() {
       {/* Quick Status Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Available Rooms', value: 4, icon: FaBed, color: 'text-green-500' },
-          { label: 'Occupied Today', value: 3, icon: FaCheck, color: 'text-blue-500' },
-          { label: 'Pending Check-ins', value: 2, icon: FaClock, color: 'text-yellow-500' },
-          { label: 'Check-outs Today', value: 1, icon: FaArrowUp, color: 'text-red-500' },
+          { label: 'Available Rooms', value: 15, icon: FaBed, color: 'text-green-500' },
+          { label: 'Occupied Today', value: 0, icon: FaCheck, color: 'text-blue-500' },
+          { label: 'Pending Check-ins', value: 0, icon: FaClock, color: 'text-yellow-500' },
+          { label: 'Check-outs Today', value: 0, icon: FaArrowUp, color: 'text-red-500' },
         ].map((item, i) => {
           const Icon = item.icon
           return (
@@ -213,9 +213,9 @@ export default function DashboardPage() {
           <h3 className="font-playfair font-bold text-navy text-lg mb-5">Room Availability</h3>
           <div className="space-y-4">
             {[
-              { name: 'Deluxe AC Room', total: 3, occupied: 2 },
-              { name: 'Normal AC Room', total: 5, occupied: 3 },
-              { name: 'Non AC Room', total: 4, occupied: 2 },
+              { name: 'Deluxe AC Room (101–105)', total: 5, occupied: 0 },
+              { name: 'Normal AC Room (201, 301–305)', total: 6, occupied: 0 },
+              { name: 'Non AC Room (202–205)', total: 4, occupied: 0 },
             ].map((room) => {
               const pct = Math.round((room.occupied / room.total) * 100)
               return (
