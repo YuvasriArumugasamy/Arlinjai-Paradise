@@ -40,29 +40,7 @@ export default function CalendarPage() {
     { id: '205', name: 'Room 205', type: 'Non AC', typeColor: 'text-amber-500' },
   ]
 
-  const allocations = [
-    {
-      name: 'Santhosh Kumar',
-      type: 'DELUXE AC',
-      dates: '10 Jul - 11 Jul',
-      guests: '4 Guests',
-      phone: '9176440935',
-    },
-    {
-      name: 'Pushparaj (Kandhan)',
-      type: 'NORMAL AC',
-      dates: '10 Jul - 11 Jul',
-      guests: '3 Guests',
-      phone: '9789309629',
-    },
-    {
-      name: 'Vikash S',
-      type: 'NON AC',
-      dates: '17 Jul - 19 Jul',
-      guests: '2 Guests',
-      phone: '9790897241',
-    },
-  ]
+  const allocations = []
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-full font-poppins">
@@ -166,39 +144,49 @@ export default function CalendarPage() {
           </p>
 
           <div className="space-y-4">
-            {allocations.map((alloc, idx) => (
-              <div key={idx} className="border border-blue-100 bg-[#fbfdff] rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="text-sm font-bold text-navy">{alloc.name}</h4>
-                  <span className="text-[9px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded">{alloc.type}</span>
+            {allocations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                  <FaCalendarAlt className="text-gray-300" size={24} />
                 </div>
-                
-                <div className="space-y-1.5 mb-4">
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <FaCalendarAlt className="text-blue-400" size={10} />
-                    <span>{alloc.dates}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <FaUsers className="text-blue-400" size={10} />
-                    <span>{alloc.guests}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <FaPhoneAlt className="text-red-400" size={10} />
-                    <span>{alloc.phone}</span>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-gray-400 block mb-1">AVAILABLE ROOMS</span>
-                  <select className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs text-gray-700 outline-none">
-                    <option>-- Select a Room --</option>
-                    <option>Room 102</option>
-                    <option>Room 201</option>
-                    <option>Room 202</option>
-                  </select>
-                </div>
+                <h4 className="font-poppins font-medium text-sm text-gray-700 mb-1">All Caught Up!</h4>
+                <p className="text-xs text-gray-500">No pending room allocations at the moment.</p>
               </div>
-            ))}
+            ) : (
+              allocations.map((alloc, idx) => (
+                <div key={idx} className="border border-blue-100 bg-[#fbfdff] rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="text-sm font-bold text-navy">{alloc.name}</h4>
+                    <span className="text-[9px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded">{alloc.type}</span>
+                  </div>
+                  
+                  <div className="space-y-1.5 mb-4">
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <FaCalendarAlt className="text-blue-400" size={10} />
+                      <span>{alloc.dates}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <FaUsers className="text-blue-400" size={10} />
+                      <span>{alloc.guests}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <FaPhoneAlt className="text-red-400" size={10} />
+                      <span>{alloc.phone}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 block mb-1">AVAILABLE ROOMS</span>
+                    <select className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs text-gray-700 outline-none">
+                      <option>-- Select a Room --</option>
+                      <option>Room 102</option>
+                      <option>Room 201</option>
+                      <option>Room 202</option>
+                    </select>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
