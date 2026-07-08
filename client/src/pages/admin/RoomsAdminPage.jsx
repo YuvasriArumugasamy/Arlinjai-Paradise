@@ -128,7 +128,7 @@ export default function RoomsAdminPage() {
                   ₹{room.weekdayPrice}<span className="text-sm text-gray-500 font-poppins font-normal">/night</span>
                 </p>
                 <p className="font-poppins text-[11px] text-gray-400">
-                  (Weekday: ₹{room.weekdayPrice} | Weekend: ₹{room.weekendPrice} | Peak: ₹{room.peakPrice})
+                  (Weekday: ₹{room.weekdayPrice} | Peak: ₹{room.peakPrice})
                 </p>
               </div>
 
@@ -202,15 +202,6 @@ export default function RoomsAdminPage() {
                     type="number"
                     value={editRoom.weekdayPrice}
                     onChange={(e) => setEditRoom({ ...editRoom, weekdayPrice: Number(e.target.value) })}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-gold font-poppins text-sm text-gray-700"
-                  />
-                </div>
-                <div>
-                  <label className="block font-poppins text-sm font-semibold text-gray-700 mb-2">Weekend Price (Fri-Sun) (₹)</label>
-                  <input
-                    type="number"
-                    value={editRoom.weekendPrice}
-                    onChange={(e) => setEditRoom({ ...editRoom, weekendPrice: Number(e.target.value) })}
                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-gold font-poppins text-sm text-gray-700"
                   />
                 </div>
