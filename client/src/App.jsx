@@ -7,6 +7,7 @@ import Footer from './components/common/Footer'
 import ScrollToTop from './components/common/ScrollToTop'
 import WhatsAppButton from './components/common/WhatsAppButton'
 import PageLoader from './components/common/PageLoader'
+import { useFCM } from './hooks/useFCM'
 
 import HomePage from './pages/HomePage'
 import RoomsPage from './pages/RoomsPage'
@@ -57,6 +58,8 @@ const Layout = ({ children }) => {
 }
 
 function App() {
+  useFCM() // Initialize Firebase Cloud Messaging
+
   return (
     <>
       <Toaster

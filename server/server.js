@@ -9,6 +9,7 @@ require('dotenv').config()
 
 const connectDB = require('./config/db')
 const { errorHandler, notFound } = require('./middleware/errorMiddleware')
+const { initFirebase } = require('./config/firebase')
 
 // Route imports
 const authRoutes = require('./routes/authRoutes')
@@ -19,11 +20,15 @@ const galleryRoutes = require('./routes/galleryRoutes')
 const contactRoutes = require('./routes/contactRoutes')
 const userRoutes = require('./routes/userRoutes')
 const dashboardRoutes = require('./routes/dashboardRoutes')
+const notificationRoutes = require('./routes/notificationRoutes')
 
 const app = express()
 
 // Connect to MongoDB
 connectDB()
+
+// Initialize Firebase Admin SDK
+initFirebase()
 
 // Security middleware
 app.use(helmet({
@@ -85,6 +90,7 @@ app.use('/api/gallery', galleryRoutes)
 app.use('/api/contact', contactRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 // 404 handler
 app.use(notFound)

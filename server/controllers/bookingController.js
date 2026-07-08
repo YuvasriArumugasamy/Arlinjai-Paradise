@@ -2,6 +2,7 @@ const Booking = require('../models/Booking')
 const Room = require('../models/Room')
 const { validationResult } = require('express-validator')
 const nodemailer = require('nodemailer')
+const { sendBookingNotification } = require('./notificationController')
 
 // Email transporter
 const createTransporter = () => {
@@ -114,40 +115,46 @@ const createBooking = async (req, res, next) => {
     if (mongoose.Types.ObjectId.isValid(roomId)) {
       room = await Room.findById(roomId)
     }
+
     if (!room) {
-      // Try static lookup for frontend compatibility
+      // Static lookup for frontend string IDs (e.g. 'deluxe-ac')
       const staticRooms = {
         'deluxe-ac': { _id: 'deluxe-ac', name: 'Deluxe AC Room', price: 2500, category: 'deluxe' },
         'normal-ac': { _id: 'normal-ac', name: 'Normal AC Room', price: 2000, category: 'standard' },
-        'non-ac': { _id: 'non-ac', name: 'Non AC Room', price: 1500, category: 'budget' },
+        'non-ac':    { _id: 'non-ac',    name: 'Non AC Room',    price: 1500, category: 'budget'   },
       }
-      if (staticRooms[roomId]) {
-        const sr = staticRooms[roomId]
-        const nights = Math.max(1, Math.floor((new Date(checkOut) - new Date(checkIn)) / 86400000))
-        const totalAmount = sr.price * nights
 
-        const booking = await Booking.create({
-          guest: { name, email, phone, address },
-          room: new mongoose.Types.ObjectId('000000000000000000000001'),
-          roomSnapshot: { name: sr.name, price: sr.price, category: sr.category },
-          checkIn: new Date(checkIn),
-          checkOut: new Date(checkOut),
-          nights,
-          guests: parseInt(guests),
-          specialRequests,
-          pricing: { pricePerNight: sr.price, totalAmount, discountAmount: 0, finalAmount: totalAmount },
-          paymentMethod: paymentMethod || 'pay_at_hotel',
-          status: 'pending',
-        })
-
-        return res.status(201).json({
-          success: true,
-          message: 'Booking created successfully',
-          bookingId: booking.bookingId,
-          booking,
-        })
+      if (!staticRooms[roomId]) {
+        return res.status(404).json({ message: 'Room not found' })
       }
-      return res.status(404).json({ message: 'Room not found' })
+
+      const sr = staticRooms[roomId]
+      const nights = Math.max(1, Math.floor((new Date(checkOut) - new Date(checkIn)) / 86400000))
+      const totalAmount = sr.price * nights
+
+      const booking = await Booking.create({
+        guest: { name, email, phone, address },
+        room: new mongoose.Types.ObjectId('000000000000000000000001'),
+        roomSnapshot: { name: sr.name, price: sr.price, category: sr.category },
+        checkIn: new Date(checkIn),
+        checkOut: new Date(checkOut),
+        nights,
+        guests: parseInt(guests),
+        specialRequests,
+        pricing: { pricePerNight: sr.price, totalAmount, discountAmount: 0, finalAmount: totalAmount },
+        paymentMethod: paymentMethod || 'pay_at_hotel',
+        status: 'pending',
+      })
+
+      // Send push notification (async)
+      sendBookingNotification(booking)
+
+      return res.status(201).json({
+        success: true,
+        message: 'Booking created successfully',
+        bookingId: booking.bookingId,
+        booking,
+      })
     }
 
     if (!room.isAvailable) {
@@ -158,9 +165,8 @@ const createBooking = async (req, res, next) => {
     const checkOutDate = new Date(checkOut)
     const nights = Math.max(1, Math.floor((checkOutDate - checkInDate) / 86400000))
 
-    // Determine pricing (high season check)
     const checkInMonth = checkInDate.getMonth()
-    const isHighSeason = [11, 0].includes(checkInMonth) // Dec, Jan
+    const isHighSeason = [11, 0].includes(checkInMonth)
     const pricePerNight = isHighSeason ? room.highSeasonPrice : room.price
     const totalAmount = pricePerNight * nights
 
@@ -180,6 +186,9 @@ const createBooking = async (req, res, next) => {
 
     // Send confirmation email (async, don't block response)
     sendConfirmationEmail(booking, room)
+
+    // Send push notification (async)
+    sendBookingNotification(booking)
 
     res.status(201).json({
       success: true,
