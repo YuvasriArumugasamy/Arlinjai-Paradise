@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaTachometerAlt, FaCalendarAlt, FaBed, FaImages, FaUsers,
   FaStar, FaEnvelope, FaChartBar, FaCog, FaBars, FaTimes,
-  FaSignOutAlt, FaBell, FaChevronLeft, FaExternalLinkAlt
+  FaSignOutAlt, FaBell, FaChevronLeft, FaExternalLinkAlt, FaCalendarDay
 } from 'react-icons/fa'
 
 const navItems = [
   { path: '/admin', label: 'Dashboard', icon: FaTachometerAlt, exact: true },
   { path: '/admin/bookings', label: 'Bookings', icon: FaCalendarAlt },
+  { path: '/admin/calendar', label: 'Calendar', icon: FaCalendarDay },
   { path: '/admin/rooms', label: 'Rooms', icon: FaBed },
   { path: '/admin/gallery', label: 'Gallery', icon: FaImages },
   { path: '/admin/customers', label: 'Customers', icon: FaUsers },

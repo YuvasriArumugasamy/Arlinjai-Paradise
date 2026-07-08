@@ -22,6 +22,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import AdminLayout from './pages/admin/AdminLayout'
 import DashboardPage from './pages/admin/DashboardPage'
 import BookingsPage from './pages/admin/BookingsPage'
+import CalendarPage from './pages/admin/CalendarPage'
 import RoomsAdminPage from './pages/admin/RoomsAdminPage'
 import GalleryAdminPage from './pages/admin/GalleryAdminPage'
 import CustomersPage from './pages/admin/CustomersPage'
@@ -101,6 +102,7 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="bookings" element={<BookingsPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
             <Route path="rooms" element={<RoomsAdminPage />} />
             <Route path="gallery" element={<GalleryAdminPage />} />
             <Route path="customers" element={<CustomersPage />} />
