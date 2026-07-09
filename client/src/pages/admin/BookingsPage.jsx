@@ -278,7 +278,7 @@ export default function BookingsPage() {
                 <p className="font-poppins text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <FaUser size={10} className="text-gold" /> Guest Information
                 </p>
-                <div className="grid grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
                   {[
                     { icon: FaUser,          label: 'Full Name',   value: selectedBooking.guest },
                     { icon: FaVenusMars,     label: 'Gender',      value: selectedBooking.gender || '—' },
@@ -293,7 +293,7 @@ export default function BookingsPage() {
                       <p className="text-xs text-gray-400 flex items-center gap-1 mb-0.5">
                         {Icon && <Icon size={9} className="text-gold" />} {label}
                       </p>
-                      <p className="font-medium text-navy text-sm">{value}</p>
+                      <p className="font-medium text-navy text-sm break-words">{value}</p>
                     </div>
                   ))}
                 </div>
@@ -304,14 +304,14 @@ export default function BookingsPage() {
                 <p className="font-poppins text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <FaIdCard size={10} className="text-gold" /> ID Proof
                 </p>
-                <div className="grid grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">ID Type</p>
                     <p className="font-medium text-navy">{selectedBooking.idType || '—'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">ID Number</p>
-                    <p className="font-medium text-navy font-mono">{selectedBooking.idNumber || '—'}</p>
+                    <p className="font-medium text-navy break-all font-mono">{selectedBooking.idNumber || '—'}</p>
                   </div>
                 </div>
               </div>
@@ -321,7 +321,7 @@ export default function BookingsPage() {
                 <p className="font-poppins text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <FaBed size={10} className="text-gold" /> Stay Details
                 </p>
-                <div className="grid grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
                   {[
                     { label: 'Room Type',  value: selectedBooking.room },
                     { label: 'Guests',     value: selectedBooking.guests },
@@ -334,7 +334,7 @@ export default function BookingsPage() {
                       <p className="text-xs text-gray-400 mb-0.5 flex items-center gap-1">
                         <FaCalendarAlt size={9} className="text-gold" /> {label}
                       </p>
-                      <p className="font-medium text-navy">{value}</p>
+                      <p className="font-medium text-navy break-words">{value}</p>
                     </div>
                   ))}
                 </div>
@@ -345,7 +345,7 @@ export default function BookingsPage() {
                 <p className="font-poppins text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <FaMoneyBillWave size={10} className="text-gold" /> Payment
                 </p>
-                <div className="grid grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">Total Amount</p>
                     <p className="font-bold text-gold text-lg">₹{(selectedBooking.amount || 0).toLocaleString()}</p>
@@ -359,7 +359,7 @@ export default function BookingsPage() {
                   {selectedBooking.specialRequests && (
                     <div className="col-span-2">
                       <p className="text-xs text-gray-400 mb-0.5">Special Requests</p>
-                      <p className="font-medium text-navy">{selectedBooking.specialRequests}</p>
+                      <p className="font-medium text-navy break-words">{selectedBooking.specialRequests}</p>
                     </div>
                   )}
                 </div>
