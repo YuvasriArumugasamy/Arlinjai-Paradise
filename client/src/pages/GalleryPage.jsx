@@ -6,6 +6,15 @@ import { GALLERY_IMAGES } from '../constants'
 
 const CATEGORIES = ['all', 'exterior', 'rooms', 'interior', 'nearby']
 
+// Load gallery — admin additions from localStorage take priority
+const loadGalleryImages = () => {
+  try {
+    const saved = localStorage.getItem('arlinjai_gallery_images')
+    if (saved) return JSON.parse(saved)
+  } catch {}
+  return GALLERY_IMAGES
+}
+
 /* ── Arrow button with hover-preview thumbnail ── */
 function ArrowBtn({ direction, onClick, previewSrc, previewTitle }) {
   const [hovered, setHovered] = useState(false)
@@ -132,9 +141,12 @@ export default function GalleryPage() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [lightboxIndex, setLightboxIndex] = useState(null)
 
+  // Load from localStorage (admin additions) or fall back to constants
+  const allImages = loadGalleryImages()
+
   const filtered = activeCategory === 'all'
-    ? GALLERY_IMAGES
-    : GALLERY_IMAGES.filter((img) => img.category === activeCategory)
+    ? allImages
+    : allImages.filter((img) => img.category === activeCategory)
 
   const openLightbox = (index) => setLightboxIndex(index)
   const closeLightbox = () => setLightboxIndex(null)
