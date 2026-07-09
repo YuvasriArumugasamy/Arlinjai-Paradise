@@ -15,9 +15,47 @@ const MOCK_STATS = {
   totalGuests: 0,
   revenueGrowth: 0,
   bookingGrowth: 0,
+  availableRooms: 15,
+  checkInsToday: 0,
+  checkOutsToday: 0,
+  currentlyCheckedIn: 0,
 }
 
 const MOCK_BOOKINGS = [];
+
+// Calculate stats from localStorage bookings (offline fallback)
+function calcLocalStats() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const today = new Date(); today.setHours(0,0,0,0)
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
+
+    const active = raw.filter(b => b.status !== 'cancelled')
+    const thisMonth = active.filter(b => new Date(b.createdAt) >= startOfMonth)
+
+    const totalRevenue = thisMonth.reduce((s, b) => s + (b.amount || 0), 0)
+    const totalBookings = thisMonth.length
+    const totalGuests = thisMonth.reduce((s, b) => s + (b.guests || 0), 0)
+    const currentlyCheckedIn = active.filter(b => b.status === 'checked-in').length
+    const checkInsToday = active.filter(b => {
+      const d = new Date(b.checkIn)
+      return d >= today && d < tomorrow && (b.status === 'confirmed' || b.status === 'pending')
+    }).length
+    const checkOutsToday = active.filter(b => {
+      const d = new Date(b.checkOut)
+      return d >= today && d < tomorrow && b.status === 'checked-in'
+    }).length
+
+    return {
+      totalRevenue, totalBookings, totalGuests,
+      currentlyCheckedIn, checkInsToday, checkOutsToday,
+      availableRooms: 15 - currentlyCheckedIn,
+      revenueGrowth: 0, bookingGrowth: 0,
+    }
+  } catch { return null }
+}
 
 const STATUS_STYLES = {
   confirmed: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Confirmed' },
@@ -61,6 +99,56 @@ function StatCard({ title, value, prefix, suffix, growth, icon: Icon, color, del
 export default function DashboardPage() {
   const [stats, setStats] = useState(MOCK_STATS)
   const [bookings, setBookings] = useState(MOCK_BOOKINGS)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      const token = localStorage.getItem('token')
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      try {
+        const [statsRes, bookingsRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/dashboard/stats`, { headers }),
+          axios.get(`${API_BASE_URL}/dashboard/recent-bookings`, { headers }),
+        ])
+        setStats({ ...MOCK_STATS, ...statsRes.data.stats })
+        // Map backend booking shape to dashboard table shape
+        const mapped = (bookingsRes.data.bookings || []).map(b => ({
+          id: b.bookingId || b._id,
+          guest: b.guest?.name || b.guest || '—',
+          room: b.roomSnapshot?.name || b.room?.name || '—',
+          checkIn: b.checkIn,
+          checkOut: b.checkOut,
+          amount: b.pricing?.finalAmount || 0,
+          status: b.status,
+        }))
+        setBookings(mapped)
+      } catch {
+        // Fallback: use localStorage bookings
+        const localStats = calcLocalStats()
+        if (localStats) setStats(prev => ({ ...prev, ...localStats }))
+        const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+        const mapped = raw
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 10)
+          .map(b => ({
+            id: b.id,
+            guest: b.guest || '—',
+            room: b.room || '—',
+            checkIn: b.checkIn,
+            checkOut: b.checkOut,
+            amount: b.amount || 0,
+            status: b.status || 'pending',
+          }))
+        setBookings(mapped)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchDashboard()
+    // Refresh every 60 seconds
+    const interval = setInterval(fetchDashboard, 60000)
+    return () => clearInterval(interval)
+  }, [])
 
   const today = new Date().toLocaleDateString('en-IN', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -118,10 +206,10 @@ export default function DashboardPage() {
       {/* Quick Status Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Available Rooms', value: 15, icon: FaBed, color: 'text-green-500' },
-          { label: 'Occupied Today', value: 0, icon: FaCheck, color: 'text-blue-500' },
-          { label: 'Pending Check-ins', value: 0, icon: FaClock, color: 'text-yellow-500' },
-          { label: 'Check-outs Today', value: 0, icon: FaArrowUp, color: 'text-red-500' },
+          { label: 'Available Rooms', value: stats.availableRooms ?? 15, icon: FaBed, color: 'text-green-500' },
+          { label: 'Occupied Today', value: stats.currentlyCheckedIn ?? 0, icon: FaCheck, color: 'text-blue-500' },
+          { label: 'Pending Check-ins', value: stats.checkInsToday ?? 0, icon: FaClock, color: 'text-yellow-500' },
+          { label: 'Check-outs Today', value: stats.checkOutsToday ?? 0, icon: FaArrowUp, color: 'text-red-500' },
         ].map((item, i) => {
           const Icon = item.icon
           return (
@@ -167,7 +255,25 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {bookings.map((booking) => {
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-10 text-center">
+                    <div className="flex items-center justify-center gap-2 text-gray-400 font-poppins text-sm">
+                      <svg className="animate-spin h-4 w-4 text-gold" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                      Loading bookings...
+                    </div>
+                  </td>
+                </tr>
+              ) : bookings.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-10 text-center">
+                    <p className="font-poppins text-sm text-gray-400">No bookings yet</p>
+                  </td>
+                </tr>
+              ) : bookings.map((booking) => {
                 const status = STATUS_STYLES[booking.status] || STATUS_STYLES.pending
                 return (
                   <tr key={booking.id} className="hover:bg-lightbg transition-colors">
