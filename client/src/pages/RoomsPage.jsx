@@ -8,6 +8,7 @@ import {
 import Breadcrumb from '../components/common/Breadcrumb'
 import { ROOMS } from '../constants'
 import { StarButtonLink } from '../components/common/StarButton'
+import useSEO from '../hooks/useSEO'
 
 const CATEGORIES = [
   { value: 'all', label: 'All Rooms' },
@@ -24,6 +25,11 @@ const PRICE_RANGES = [
 ]
 
 export default function RoomsPage() {
+  useSEO({
+    title: 'Rooms & Suites',
+    description: 'Explore our luxury, standard, and budget-friendly AC & Non-AC rooms in Kanyakumari. Select the perfect room for your comfortable stay at Arlinjai Paradise.',
+    keywords: 'Arlinjai Paradise rooms, luxury AC rooms, normal AC rooms, Non-AC rooms Kanyakumari, budget hotel rooms'
+  })
   const [searchParams] = useSearchParams()
   const [category, setCategory] = useState('all')
   const [priceRange, setPriceRange] = useState('all')

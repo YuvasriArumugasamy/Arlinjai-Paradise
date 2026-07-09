@@ -46,7 +46,14 @@ function StepIndicator({ currentStep }) {
   )
 }
 
+import useSEO from '../hooks/useSEO'
+
 export default function BookingPage() {
+  useSEO({
+    title: 'Book Your Stay',
+    description: 'Book your luxury stay at Arlinjai Paradise Hotel Kanyakumari. Safe, comfortable, family-friendly hotel. Book directly online for best rates.',
+    keywords: 'Book hotel room Kanyakumari, online hotel booking, stay in Kanyakumari, reserve room'
+  })
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)

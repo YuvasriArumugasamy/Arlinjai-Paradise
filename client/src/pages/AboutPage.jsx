@@ -103,7 +103,14 @@ function StatsBar() {
   )
 }
 
+import useSEO from '../hooks/useSEO'
+
 export default function AboutPage() {
+  useSEO({
+    title: 'About Us',
+    description: 'Learn more about Arlinjai Paradise Hotel in Kanyakumari. Our history, location, hospitality, values, and dedication to offering a pleasant stay.',
+    keywords: 'About Arlinjai Paradise, hotel history, Kanyakumari hotel management, luxury hospitality'
+  })
   return (
     <div style={{ minHeight: '100vh', background: '#f8f7f4' }}>
 

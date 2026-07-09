@@ -32,7 +32,14 @@ const inputStyle = {
   boxSizing: 'border-box',
 }
 
+import useSEO from '../hooks/useSEO'
+
 export default function ContactPage() {
+  useSEO({
+    title: 'Contact Us',
+    description: 'Get in touch with Arlinjai Paradise Hotel Kanyakumari. Reach out for direct bookings, queries, feedback, or customer assistance.',
+    keywords: 'Contact Arlinjai Paradise, hotel phone number, Kanyakumari hotel email, reach hotel'
+  })
   const [form, setForm] = useState({ name: '', phone: '', email: '', subject: '', message: '' })
   const [loading, setLoading] = useState(false)
   const [focused, setFocused] = useState('')
