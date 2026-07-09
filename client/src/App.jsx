@@ -17,6 +17,7 @@ import ExplorePage from './pages/ExplorePage'
 import AboutPage from './pages/AboutPage'
 import ContactPage from './pages/ContactPage'
 import BookingPage from './pages/BookingPage'
+import ManageBookingPage from './pages/ManageBookingPage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 
@@ -99,6 +100,7 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/booking" element={<BookingPage />} />
+          <Route path="/manage-booking" element={<ManageBookingPage />} />
           <Route path="/login" element={<LoginPage />} />
 
           {/* Admin Routes */}
