@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FaSave, FaHotel, FaLock, FaBell, FaEnvelope, FaCalendarAlt } from 'react-icons/fa'
+import { FaSave, FaHotel, FaLock, FaBell, FaEnvelope, FaCalendarAlt, FaEye, FaEyeSlash } from 'react-icons/fa'
 import toast from 'react-hot-toast'
-import { HOTEL_INFO } from '../../constants'
+import axios from 'axios'
+import { HOTEL_INFO, API_BASE_URL } from '../../constants'
 
 const TABS = [
   { id: 'general', label: 'General', icon: FaHotel },
@@ -54,6 +55,8 @@ export default function SettingsPage() {
     confirmPassword: '',
   })
 
+  const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false })
+
   const [blockedRooms, setBlockedRooms] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('blockedRooms') || '[]')
@@ -85,6 +88,33 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     toast.success('Settings saved successfully')
+  }
+
+  const handleChangePassword = async () => {
+    if (!settings.currentPassword) {
+      toast.error('Please enter your current password')
+      return
+    }
+    if (!settings.newPassword || settings.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters')
+      return
+    }
+    if (settings.newPassword !== settings.confirmPassword) {
+      toast.error('New passwords do not match')
+      return
+    }
+    try {
+      const token = localStorage.getItem('token')
+      await axios.put(
+        `${API_BASE_URL}/auth/change-password`,
+        { currentPassword: settings.currentPassword, newPassword: settings.newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      toast.success('Password changed successfully!')
+      setSettings(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }))
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to change password')
+    }
   }
 
   const handleBlockRoom = (e) => {
@@ -322,33 +352,71 @@ export default function SettingsPage() {
                 Change Password
               </h3>
               <div className="space-y-4 max-w-sm">
+                {/* Current Password */}
                 <div>
                   <label className="label-text">Current Password</label>
-                  <input
-                    type="password"
-                    value={settings.currentPassword}
-                    onChange={(e) => setSettings({ ...settings, currentPassword: e.target.value })}
-                    className="input-field"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPass.current ? 'text' : 'password'}
+                      value={settings.currentPassword}
+                      onChange={(e) => setSettings({ ...settings, currentPassword: e.target.value })}
+                      placeholder="Enter current password"
+                      className="input-field pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(p => ({ ...p, current: !p.current }))}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-navy transition-colors"
+                    >
+                      {showPass.current ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+                    </button>
+                  </div>
                 </div>
+                {/* New Password */}
                 <div>
                   <label className="label-text">New Password</label>
-                  <input
-                    type="password"
-                    value={settings.newPassword}
-                    onChange={(e) => setSettings({ ...settings, newPassword: e.target.value })}
-                    className="input-field"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPass.new ? 'text' : 'password'}
+                      value={settings.newPassword}
+                      onChange={(e) => setSettings({ ...settings, newPassword: e.target.value })}
+                      placeholder="Min. 6 characters"
+                      className="input-field pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(p => ({ ...p, new: !p.new }))}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-navy transition-colors"
+                    >
+                      {showPass.new ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+                    </button>
+                  </div>
                 </div>
+                {/* Confirm Password */}
                 <div>
                   <label className="label-text">Confirm New Password</label>
-                  <input
-                    type="password"
-                    value={settings.confirmPassword}
-                    onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })}
-                    className="input-field"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPass.confirm ? 'text' : 'password'}
+                      value={settings.confirmPassword}
+                      onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })}
+                      placeholder="Re-enter new password"
+                      className="input-field pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(p => ({ ...p, confirm: !p.confirm }))}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-navy transition-colors"
+                    >
+                      {showPass.confirm ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+                    </button>
+                  </div>
                 </div>
+              </div>
+              <div className="mt-6 pt-5 border-t border-gray-100">
+                <button onClick={handleChangePassword} className="btn-gold flex items-center gap-2 px-8 py-3">
+                  <FaLock size={12} /> Update Password
+                </button>
               </div>
             </div>
           )}
@@ -468,7 +536,7 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {activeTab !== 'blocking' && (
+          {activeTab !== 'blocking' && activeTab !== 'security' && (
             <div className="mt-8 pt-5 border-t border-gray-100">
               <button onClick={handleSave} className="btn-gold flex items-center gap-2 px-8 py-3">
                 <FaSave size={14} /> Save Changes
