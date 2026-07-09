@@ -40,47 +40,10 @@ const fmt = (dateStr) =>
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
   })
 
-const fmtTimeIn = (dateStr) => {
-  const d = new Date(dateStr)
-  if (isNaN(d.getTime())) return '—'
-  let timeStr = '12:00 PM'
-  if (dateStr && dateStr.includes('T')) {
-    const timePart = dateStr.split('T')[1]
-    if (timePart) {
-      const parts = timePart.split(':')
-      const h = parts[0]
-      const m = parts[1]
-      if (h && m) {
-        const hr = parseInt(h)
-        const ampm = hr >= 12 ? 'PM' : 'AM'
-        const displayHr = hr % 12 || 12
-        timeStr = `${displayHr}:${m.substring(0, 2)} ${ampm}`
-      }
-    }
-  }
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) + ` (${timeStr})`
-}
-
-const fmtTimeOut = (dateStr) => {
-  const d = new Date(dateStr)
-  if (isNaN(d.getTime())) return '—'
-  let timeStr = '11:00 AM'
-  if (dateStr && dateStr.includes('T')) {
-    const timePart = dateStr.split('T')[1]
-    if (timePart) {
-      const parts = timePart.split(':')
-      const h = parts[0]
-      const m = parts[1]
-      if (h && m) {
-        const hr = parseInt(h)
-        const ampm = hr >= 12 ? 'PM' : 'AM'
-        const displayHr = hr % 12 || 12
-        timeStr = `${displayHr}:${m.substring(0, 2)} ${ampm}`
-      }
-    }
-  }
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) + ` (${timeStr})`
-}
+const fmtTime = (dateStr, timeStr) =>
+  new Date(dateStr).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  }) + ` (${timeStr || '12:00 PM'})`
 
 export default function ManageBookingPage() {
   const [bookingIdInput, setBookingIdInput] = useState('')
@@ -124,7 +87,9 @@ export default function ManageBookingPage() {
             guest: { name: local.guest, phone: local.phone, email: local.email },
             roomSnapshot: { name: local.room },
             checkIn: local.checkIn,
+            checkInTime: local.checkInTime,
             checkOut: local.checkOut,
+            checkOutTime: local.checkOutTime,
             nights: local.nights,
             guests: local.guests,
             pricing: { finalAmount: local.amount },
@@ -351,12 +316,12 @@ export default function ManageBookingPage() {
                   <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5">
                     <div>
                       <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Check-In</p>
-                      <p className="font-bold text-gray-900 font-poppins text-sm">{fmtTimeIn(booking.checkIn)}</p>
+                      <p className="font-bold text-gray-900 font-poppins text-sm">{fmtTime(booking.checkIn, booking.checkInTime)}</p>
                     </div>
                     <div>
                       <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Check-Out</p>
                       <p className="font-bold text-gray-900 font-poppins text-sm">
-                        {fmtTimeOut(booking.checkOut)}
+                        {new Date(booking.checkOut).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} ({booking.checkOutTime || '11:00 AM'})
                       </p>
                     </div>
                   </div>

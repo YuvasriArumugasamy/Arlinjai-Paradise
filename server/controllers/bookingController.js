@@ -107,7 +107,7 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Validation failed', errors: errors.array() })
     }
 
-    const { roomId, checkIn, checkOut, guests, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber } = req.body
+    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber } = req.body
 
     // Find room
     let room = null
@@ -137,7 +137,9 @@ const createBooking = async (req, res, next) => {
         room: new mongoose.Types.ObjectId('000000000000000000000001'),
         roomSnapshot: { name: sr.name, price: sr.price, category: sr.category },
         checkIn: new Date(checkIn),
+        checkInTime: checkInTime || '12:00 PM',
         checkOut: new Date(checkOut),
+        checkOutTime: checkOutTime || '11:00 AM',
         nights,
         guests: parseInt(guests),
         specialRequests,
@@ -175,7 +177,9 @@ const createBooking = async (req, res, next) => {
       room: room._id,
       roomSnapshot: { name: room.name, price: pricePerNight, category: room.category },
       checkIn: checkInDate,
+      checkInTime: checkInTime || '12:00 PM',
       checkOut: checkOutDate,
+      checkOutTime: checkOutTime || '11:00 AM',
       nights,
       guests: parseInt(guests),
       specialRequests,

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaCheck, FaUser, FaEnvelope, FaPhoneAlt, FaBed,
   FaCalendarAlt, FaUsers, FaArrowRight, FaArrowLeft,
-  FaVenusMars, FaBirthdayCake, FaIdCard
+  FaVenusMars, FaBirthdayCake, FaIdCard, FaClock
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import axios from 'axios'
@@ -71,8 +71,8 @@ export default function BookingPage() {
     roomId: searchParams.get('roomType') || '',
     checkIn: searchParams.get('checkIn') || today,
     checkOut: searchParams.get('checkOut') || '',
-    checkInTime: '12:00',
-    checkOutTime: '11:00',
+    checkInTime: '',
+    checkOutTime: '',
     guests: parseInt(searchParams.get('guests') || '2'),
     name: '',
     gender: '',
@@ -105,80 +105,48 @@ export default function BookingPage() {
     <div>
       <h2 className="font-playfair text-2xl font-bold text-navy mb-6">Select Your Room</h2>
 
-      {/* Dates, Times & Guests */}
-      <div className="bg-white rounded-sm shadow-card p-6 mb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="label-text flex items-center gap-2">
-              <FaCalendarAlt size={11} className="text-gold" />
-              Check In *
-            </label>
-            <input
-              type="date"
-              value={bookingData.checkIn}
-              min={today}
-              onChange={(e) => updateBooking('checkIn', e.target.value)}
-              className="input-field"
-            />
-          </div>
-          <div>
-            <label className="label-text flex items-center gap-2">
-              <FaCalendarAlt size={11} className="text-gold" />
-              Check Out *
-            </label>
-            <input
-              type="date"
-              value={bookingData.checkOut}
-              min={bookingData.checkIn || today}
-              onChange={(e) => updateBooking('checkOut', e.target.value)}
-              className="input-field"
-            />
-          </div>
-          <div>
-            <label className="label-text flex items-center gap-2">
-              <FaUsers size={11} className="text-gold" />
-              Guests
-            </label>
-            <select
-              value={bookingData.guests}
-              onChange={(e) => updateBooking('guests', parseInt(e.target.value))}
-              className="select-field"
-            >
-              {[1, 2, 3, 4].map((n) => (
-                <option key={n} value={n}>{n} Guest{n > 1 ? 's' : ''}</option>
-              ))}
-            </select>
-          </div>
+      {/* Dates & Guests */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-white rounded-sm shadow-card p-6">
+        <div>
+          <label className="label-text flex items-center gap-2">
+            <FaCalendarAlt size={11} className="text-gold" />
+            Check In *
+          </label>
+          <input
+            type="date"
+            value={bookingData.checkIn}
+            min={today}
+            onChange={(e) => updateBooking('checkIn', e.target.value)}
+            className="input-field"
+          />
         </div>
-
-        {/* Time Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-          <div>
-            <label className="label-text flex items-center gap-2">
-              <FaCalendarAlt size={11} className="text-gold" />
-              Check-In Time
-              <span className="font-poppins text-[10px] text-gray-400 font-normal">(Standard: 12:00 PM)</span>
-            </label>
-            <input
-              type="time"
-              value={bookingData.checkInTime}
-              onChange={(e) => updateBooking('checkInTime', e.target.value)}
-              className="input-field"
-            />
-          </div>
-          <div>
-            <label className="label-text flex items-center gap-2">
-              <FaCalendarAlt size={11} className="text-gold" />
-              Check-Out Time
-              <span className="font-poppins text-[10px] text-gray-400 font-normal">(Standard: 11:00 AM)</span>
-            </label>
-            <input
-              type="time"
-              value={bookingData.checkOutTime}
-              onChange={(e) => updateBooking('checkOutTime', e.target.value)}
-              className="input-field"
-            />
-          </div>
+        <div>
+          <label className="label-text flex items-center gap-2">
+            <FaCalendarAlt size={11} className="text-gold" />
+            Check Out *
+          </label>
+          <input
+            type="date"
+            value={bookingData.checkOut}
+            min={bookingData.checkIn || today}
+            onChange={(e) => updateBooking('checkOut', e.target.value)}
+            className="input-field"
+          />
+        </div>
+        <div>
+          <label className="label-text flex items-center gap-2">
+            <FaUsers size={11} className="text-gold" />
+            Guests
+          </label>
+          <select
+            value={bookingData.guests}
+            onChange={(e) => updateBooking('guests', parseInt(e.target.value))}
+            className="select-field"
+          >
+            {[1, 2, 3, 4].map((n) => (
+              <option key={n} value={n}>{n} Guest{n > 1 ? 's' : ''}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -412,6 +380,33 @@ export default function BookingPage() {
             />
           </div>
 
+          {/* Expected Check-in and Check-out Times */}
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaClock size={11} className="text-gold" /> Expected Check-in Time *
+            </label>
+            <input
+              type="time"
+              value={bookingData.checkInTime}
+              onChange={(e) => updateBooking('checkInTime', e.target.value)}
+              className="input-field"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaClock size={11} className="text-gold" /> Expected Check-out Time *
+            </label>
+            <input
+              type="time"
+              value={bookingData.checkOutTime}
+              onChange={(e) => updateBooking('checkOutTime', e.target.value)}
+              className="input-field"
+              required
+            />
+          </div>
+
           {/* Special Requests */}
           <div className="sm:col-span-2">
             <label className="label-text">Special Requests</label>
@@ -457,6 +452,14 @@ export default function BookingPage() {
               toast.error('Please enter your ID number')
               return
             }
+            if (!bookingData.checkInTime) {
+              toast.error('Please enter expected check-in time')
+              return
+            }
+            if (!bookingData.checkOutTime) {
+              toast.error('Please enter expected check-out time')
+              return
+            }
             goToStep(2)
           }}
           className="btn-gold flex items-center gap-2 px-8 py-3.5"
@@ -493,9 +496,7 @@ export default function BookingPage() {
           <div className="space-y-3 font-poppins text-sm">
             {[
               { label: 'Check In', value: new Date(bookingData.checkIn).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) },
-              { label: 'Check-In Time', value: bookingData.checkInTime ? (() => { const [h, m] = bookingData.checkInTime.split(':'); const hr = parseInt(h); return `${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}` })() : '12:00 PM' },
               { label: 'Check Out', value: new Date(bookingData.checkOut).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) },
-              { label: 'Check-Out Time', value: bookingData.checkOutTime ? (() => { const [h, m] = bookingData.checkOutTime.split(':'); const hr = parseInt(h); return `${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}` })() : '11:00 AM' },
               { label: 'Duration', value: `${nights} Night${nights > 1 ? 's' : ''}` },
               { label: 'Guests', value: `${bookingData.guests} Guest${bookingData.guests > 1 ? 's' : ''}` },
             ].map((item) => (
@@ -523,6 +524,8 @@ export default function BookingPage() {
               { label: 'Date of Birth', value: bookingData.dob ? new Date(bookingData.dob).toLocaleDateString('en-IN') : '' },
               { label: 'Email', value: bookingData.email },
               { label: 'Phone', value: bookingData.phone },
+              { label: 'Expected Check-in Time', value: bookingData.checkInTime },
+              { label: 'Expected Check-out Time', value: bookingData.checkOutTime },
               { label: 'ID Proof', value: bookingData.idType ? `${bookingData.idType} — ${bookingData.idNumber}` : 'Not provided' },
               { label: 'Special Requests', value: bookingData.specialRequests || 'None' },
             ].map((item) => (
@@ -572,17 +575,8 @@ export default function BookingPage() {
         <button
           onClick={async () => {
             setLoading(true)
-              // Combine Date and Time
-              const checkInDateTime = `${bookingData.checkIn}T${bookingData.checkInTime || '12:00'}`
-              const checkOutDateTime = `${bookingData.checkOut}T${bookingData.checkOutTime || '11:00'}`
-
-              const payload = {
-                ...bookingData,
-                checkIn: checkInDateTime,
-                checkOut: checkOutDateTime,
-              }
-
-              const res = await axios.post(`${API_BASE_URL}/bookings`, payload)
+            try {
+              const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData)
               const newBookingId = res.data.bookingId || 'AP' + String(Date.now()).slice(-6)
               setBookingId(newBookingId)
 
@@ -599,8 +593,10 @@ export default function BookingPage() {
                 idNumber: bookingData.idNumber,
                 address: bookingData.address,
                 room: selectedRoom?.name || bookingData.roomId,
-                checkIn: checkInDateTime,
-                checkOut: checkOutDateTime,
+                checkIn: bookingData.checkIn,
+                checkInTime: bookingData.checkInTime,
+                checkOut: bookingData.checkOut,
+                checkOutTime: bookingData.checkOutTime,
                 nights,
                 guests: bookingData.guests,
                 amount: totalPrice,
@@ -617,8 +613,6 @@ export default function BookingPage() {
               // Backend down — save locally with offline ID
               const offlineId = 'AP' + String(Date.now()).slice(-6)
               setBookingId(offlineId)
-              const checkInDateTime = `${bookingData.checkIn}T${bookingData.checkInTime || '12:00'}`
-              const checkOutDateTime = `${bookingData.checkOut}T${bookingData.checkOutTime || '11:00'}`
               const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
               savedBookings.unshift({
                 id: offlineId,
@@ -631,8 +625,10 @@ export default function BookingPage() {
                 idNumber: bookingData.idNumber,
                 address: bookingData.address,
                 room: selectedRoom?.name || bookingData.roomId,
-                checkIn: checkInDateTime,
-                checkOut: checkOutDateTime,
+                checkIn: bookingData.checkIn,
+                checkInTime: bookingData.checkInTime,
+                checkOut: bookingData.checkOut,
+                checkOutTime: bookingData.checkOutTime,
                 nights,
                 guests: bookingData.guests,
                 amount: totalPrice,
@@ -693,17 +689,11 @@ export default function BookingPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Check In</span>
-            <span className="text-navy font-medium">
-              {new Date(bookingData.checkIn).toLocaleDateString('en-IN')}{' '}
-              {bookingData.checkInTime ? (() => { const [h, m] = bookingData.checkInTime.split(':'); const hr = parseInt(h); return `(${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'})` })() : '(12:00 PM)'}
-            </span>
+            <span className="text-navy font-medium">{new Date(bookingData.checkIn).toLocaleDateString('en-IN')}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Check Out</span>
-            <span className="text-navy font-medium">
-              {new Date(bookingData.checkOut).toLocaleDateString('en-IN')}{' '}
-              {bookingData.checkOutTime ? (() => { const [h, m] = bookingData.checkOutTime.split(':'); const hr = parseInt(h); return `(${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'})` })() : '(11:00 AM)'}
-            </span>
+            <span className="text-navy font-medium">{new Date(bookingData.checkOut).toLocaleDateString('en-IN')}</span>
           </div>
           <div className="flex justify-between border-t pt-3">
             <span className="text-gray-500 font-semibold">Total</span>

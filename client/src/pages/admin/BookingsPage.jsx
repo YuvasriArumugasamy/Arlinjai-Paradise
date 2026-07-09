@@ -29,46 +29,6 @@ const saveBookings = (bookings) => {
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN') : '—'
 
-const formatTimeIn = (dateStr) => {
-  if (!dateStr) return '12:00 PM'
-  const str = String(dateStr)
-  if (str.includes('T')) {
-    const timePart = str.split('T')[1]
-    if (timePart) {
-      const parts = timePart.split(':')
-      const h = parts[0]
-      const m = parts[1]
-      if (h && m) {
-        const hr = parseInt(h)
-        const ampm = hr >= 12 ? 'PM' : 'AM'
-        const displayHr = hr % 12 || 12
-        return `${displayHr}:${m.substring(0, 2)} ${ampm}`
-      }
-    }
-  }
-  return '12:00 PM'
-}
-
-const formatTimeOut = (dateStr) => {
-  if (!dateStr) return '11:00 AM'
-  const str = String(dateStr)
-  if (str.includes('T')) {
-    const timePart = str.split('T')[1]
-    if (timePart) {
-      const parts = timePart.split(':')
-      const h = parts[0]
-      const m = parts[1]
-      if (h && m) {
-        const hr = parseInt(h)
-        const ampm = hr >= 12 ? 'PM' : 'AM'
-        const displayHr = hr % 12 || 12
-        return `${displayHr}:${m.substring(0, 2)} ${ampm}`
-      }
-    }
-  }
-  return '11:00 AM'
-}
-
 const getAge = (dob) => {
   if (!dob) return null
   const today = new Date()
@@ -359,8 +319,8 @@ export default function BookingsPage() {
                   {[
                     { label: 'Room Type',  value: selectedBooking.room },
                     { label: 'Guests',     value: selectedBooking.guests },
-                    { label: 'Check In',   value: `${fmt(selectedBooking.checkIn)} (${formatTimeIn(selectedBooking.checkIn)})` },
-                    { label: 'Check Out',  value: `${fmt(selectedBooking.checkOut)} (${formatTimeOut(selectedBooking.checkOut)})` },
+                    { label: 'Check In',   value: `${fmt(selectedBooking.checkIn)} (${selectedBooking.checkInTime || '12:00 PM'})` },
+                    { label: 'Check Out',  value: `${fmt(selectedBooking.checkOut)} (${selectedBooking.checkOutTime || '11:00 AM'})` },
                     { label: 'Nights',     value: selectedBooking.nights },
                     { label: 'Booked On',  value: fmt(selectedBooking.createdAt) },
                   ].map(({ label, value }) => (
