@@ -1,17 +1,147 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaDownload, FaCalendarAlt, FaRupeeSign, FaChartBar, FaUsers } from 'react-icons/fa'
+import axios from 'axios'
+import { API_BASE_URL } from '../../constants'
 
-const MONTHLY_DATA = []
+// ── Derive all report data from localStorage bookings ──────────────────────
+function calcReportsFromLocal(bookings) {
+  const active = bookings.filter((b) => b.status !== 'cancelled')
 
-const ROOM_DATA = []
+  // Monthly Revenue & Bookings (last 6 months)
+  const monthlyMap = {}
+  const now = new Date()
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const key = d.toLocaleString('en-IN', { month: 'short' }) + ' ' + d.getFullYear()
+    monthlyMap[key] = { month: d.toLocaleString('en-IN', { month: 'short' }), revenue: 0, bookings: 0 }
+  }
+  active.forEach((b) => {
+    const d = new Date(b.createdAt || b.checkIn)
+    const key = d.toLocaleString('en-IN', { month: 'short' }) + ' ' + d.getFullYear()
+    if (monthlyMap[key]) {
+      monthlyMap[key].revenue += b.amount || b.pricing?.finalAmount || 0
+      monthlyMap[key].bookings += 1
+    }
+  })
+  const monthlyData = Object.values(monthlyMap)
+
+  // Revenue by Room Type
+  const roomMap = {}
+  active.forEach((b) => {
+    const room = b.room || b.roomSnapshot?.name || 'Other'
+    if (!roomMap[room]) roomMap[room] = { room, revenue: 0, bookings: 0 }
+    roomMap[room].revenue += b.amount || b.pricing?.finalAmount || 0
+    roomMap[room].bookings += 1
+  })
+  const totalRoomRevenue = Object.values(roomMap).reduce((s, r) => s + r.revenue, 0)
+  const roomData = Object.values(roomMap).map((r) => ({
+    ...r,
+    pct: totalRoomRevenue > 0 ? Math.round((r.revenue / totalRoomRevenue) * 100) : 0,
+  })).sort((a, b) => b.revenue - a.revenue)
+
+  // Status Distribution
+  const statusMap = { confirmed: 0, 'checked-in': 0, 'checked-out': 0, pending: 0, cancelled: 0 }
+  bookings.forEach((b) => {
+    const s = b.status || 'pending'
+    if (statusMap[s] !== undefined) statusMap[s]++
+    else statusMap.pending++
+  })
+  const total = bookings.length || 1
+  const statusData = [
+    { label: 'Confirmed',    count: statusMap.confirmed,      color: 'bg-blue-500',   pct: Math.round(statusMap.confirmed / total * 100) },
+    { label: 'Checked In',  count: statusMap['checked-in'],  color: 'bg-green-500',  pct: Math.round(statusMap['checked-in'] / total * 100) },
+    { label: 'Checked Out', count: statusMap['checked-out'], color: 'bg-gray-400',   pct: Math.round(statusMap['checked-out'] / total * 100) },
+    { label: 'Pending',     count: statusMap.pending,        color: 'bg-yellow-400', pct: Math.round(statusMap.pending / total * 100) },
+    { label: 'Cancelled',   count: statusMap.cancelled,      color: 'bg-red-400',    pct: Math.round(statusMap.cancelled / total * 100) },
+  ]
+
+  const totalRevenue = active.reduce((s, b) => s + (b.amount || b.pricing?.finalAmount || 0), 0)
+  const totalBookings = active.length
+  const totalGuests = active.reduce((s, b) => s + (b.guests || 1), 0)
+
+  return { monthlyData, roomData, statusData, totalRevenue, totalBookings, totalGuests }
+}
 
 export default function ReportsPage() {
   const [period, setPeriod] = useState('monthly')
-  const maxRevenue = MONTHLY_DATA.length > 0 ? Math.max(...MONTHLY_DATA.map((d) => d.revenue)) : 1
+  const [loading, setLoading] = useState(true)
+  const [monthlyData, setMonthlyData] = useState([])
+  const [roomData, setRoomData] = useState([])
+  const [statusData, setStatusData] = useState([])
+  const [totalRevenue, setTotalRevenue] = useState(0)
+  const [totalBookings, setTotalBookings] = useState(0)
+  const [totalGuests, setTotalGuests] = useState(0)
 
-  const totalRevenue = MONTHLY_DATA.reduce((s, m) => s + m.revenue, 0)
-  const totalBookings = MONTHLY_DATA.reduce((s, m) => s + m.bookings, 0)
+  useEffect(() => {
+    const fetchReports = async () => {
+      const token = localStorage.getItem('token')
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      try {
+        // Try API first
+        const [chartRes, bookingsRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/dashboard/revenue-chart`, { headers }),
+          axios.get(`${API_BASE_URL}/dashboard/recent-bookings`, { headers }),
+        ])
+
+        // Monthly chart data from API
+        const apiMonthly = (chartRes.data.data || []).map((d) => ({
+          month: d.month,
+          revenue: d.revenue || 0,
+          bookings: d.bookings || 0,
+        }))
+        setMonthlyData(apiMonthly)
+
+        // Derive room/status from bookings API
+        const apiBkgs = bookingsRes.data.bookings || []
+        const mapped = apiBkgs.map((b) => ({
+          amount: b.pricing?.finalAmount || 0,
+          room: b.roomSnapshot?.name || b.room?.name || 'Other',
+          status: b.status || 'pending',
+          guests: b.guests || 1,
+          createdAt: b.createdAt,
+        }))
+        const calc = calcReportsFromLocal(mapped)
+        setRoomData(calc.roomData)
+        setStatusData(calc.statusData)
+        setTotalRevenue(calc.totalRevenue)
+        setTotalBookings(calc.totalBookings)
+        setTotalGuests(calc.totalGuests)
+      } catch {
+        // Fallback: localStorage
+        const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+        const calc = calcReportsFromLocal(raw)
+        setMonthlyData(calc.monthlyData)
+        setRoomData(calc.roomData)
+        setStatusData(calc.statusData)
+        setTotalRevenue(calc.totalRevenue)
+        setTotalBookings(calc.totalBookings)
+        setTotalGuests(calc.totalGuests)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchReports()
+  }, [period])
+
+  const maxRevenue = monthlyData.length > 0 ? Math.max(...monthlyData.map((d) => d.revenue), 1) : 1
+  const avgPerBooking = totalBookings > 0 ? Math.round(totalRevenue / totalBookings) : 0
+
+  // Export CSV
+  const handleExport = () => {
+    const rows = [
+      ['Month', 'Revenue', 'Bookings'],
+      ...monthlyData.map((d) => [d.month, d.revenue, d.bookings]),
+    ]
+    const csv = rows.map((r) => r.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `arlinjai-report-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="space-y-6">
@@ -30,7 +160,7 @@ export default function ReportsPage() {
             <option value="quarterly">Quarterly</option>
             <option value="yearly">Yearly</option>
           </select>
-          <button className="btn-gold flex items-center gap-2 text-sm px-4 py-2.5">
+          <button onClick={handleExport} className="btn-gold flex items-center gap-2 text-sm px-4 py-2.5">
             <FaDownload size={12} /> Export
           </button>
         </div>
@@ -39,10 +169,10 @@ export default function ReportsPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {[
-          { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: FaRupeeSign, color: 'bg-gold' },
-          { label: 'Total Bookings', value: totalBookings, icon: FaCalendarAlt, color: 'bg-blue-500' },
-          { label: 'Avg. per Booking', value: `₹${totalBookings > 0 ? Math.round(totalRevenue / totalBookings).toLocaleString() : 0}`, icon: FaChartBar, color: 'bg-purple-500' },
-          { label: 'Total Guests', value: Math.round(totalBookings * 2.1), icon: FaUsers, color: 'bg-green-500' },
+          { label: 'Total Revenue',    value: `₹${totalRevenue.toLocaleString()}`, icon: FaRupeeSign,  color: 'bg-gold' },
+          { label: 'Total Bookings',   value: totalBookings,                        icon: FaCalendarAlt, color: 'bg-blue-500' },
+          { label: 'Avg. per Booking', value: `₹${avgPerBooking.toLocaleString()}`, icon: FaChartBar,   color: 'bg-purple-500' },
+          { label: 'Total Guests',     value: totalGuests,                           icon: FaUsers,      color: 'bg-green-500' },
         ].map((card, i) => {
           const Icon = card.icon
           return (
@@ -67,7 +197,7 @@ export default function ReportsPage() {
         })}
       </div>
 
-      {/* Revenue Chart */}
+      {/* Monthly Revenue & Bookings Chart */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -75,29 +205,42 @@ export default function ReportsPage() {
         className="bg-white rounded-xl shadow-card p-6"
       >
         <h3 className="font-playfair font-bold text-navy text-lg mb-6">Monthly Revenue & Bookings</h3>
-        <div className="flex items-end gap-3 h-48 overflow-x-auto">
-          {MONTHLY_DATA.map((data) => {
-            const heightPct = (data.revenue / maxRevenue) * 100
-            return (
-              <div key={data.month} className="flex flex-col items-center gap-2 flex-1 min-w-12">
-                <p className="font-poppins text-xs text-gray-500 text-center">
-                  ₹{(data.revenue / 1000).toFixed(0)}k
-                </p>
-                <div
-                  className="w-full bg-gold rounded-t-sm transition-all duration-500 hover:bg-gold-dark relative group"
-                  style={{ height: `${heightPct}%`, minHeight: '8px' }}
-                >
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-navy text-white text-xs 
-                                 font-poppins px-2 py-1 rounded opacity-0 group-hover:opacity-100 
-                                 transition-opacity whitespace-nowrap">
-                    {data.bookings} bookings
+        {loading ? (
+          <div className="h-48 flex items-center justify-center">
+            <svg className="animate-spin h-6 w-6 text-gold" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+          </div>
+        ) : monthlyData.every((d) => d.revenue === 0) ? (
+          <div className="h-48 flex items-center justify-center">
+            <p className="font-poppins text-sm text-gray-400">No revenue data yet</p>
+          </div>
+        ) : (
+          <div className="flex items-end gap-3 h-48 overflow-x-auto">
+            {monthlyData.map((data) => {
+              const heightPct = maxRevenue > 0 ? (data.revenue / maxRevenue) * 100 : 0
+              return (
+                <div key={data.month} className="flex flex-col items-center gap-2 flex-1 min-w-12">
+                  <p className="font-poppins text-xs text-gray-500 text-center">
+                    {data.revenue > 0 ? `₹${(data.revenue / 1000).toFixed(0)}k` : ''}
+                  </p>
+                  <div
+                    className="w-full bg-gold rounded-t-sm transition-all duration-500 hover:bg-opacity-80 relative group cursor-pointer"
+                    style={{ height: `${Math.max(heightPct, data.revenue > 0 ? 4 : 0)}%`, minHeight: data.revenue > 0 ? '8px' : '0' }}
+                  >
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-navy text-white text-xs
+                                   font-poppins px-2 py-1 rounded opacity-0 group-hover:opacity-100
+                                   transition-opacity whitespace-nowrap z-10">
+                      {data.bookings} bookings · ₹{data.revenue.toLocaleString()}
+                    </div>
                   </div>
+                  <p className="font-poppins text-xs text-gray-600 font-medium">{data.month}</p>
                 </div>
-                <p className="font-poppins text-xs text-gray-600 font-medium">{data.month}</p>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </motion.div>
 
       {/* Revenue by Room Type */}
@@ -108,27 +251,31 @@ export default function ReportsPage() {
         className="bg-white rounded-xl shadow-card p-6"
       >
         <h3 className="font-playfair font-bold text-navy text-lg mb-6">Revenue by Room Type</h3>
-        <div className="space-y-5">
-          {ROOM_DATA.map((room) => (
-            <div key={room.room}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-poppins text-sm font-medium text-navy">{room.room}</span>
-                <div className="flex items-center gap-4">
-                  <span className="font-poppins text-xs text-gray-500">{room.bookings} bookings</span>
-                  <span className="font-poppins text-sm font-bold text-gold">₹{room.revenue.toLocaleString()}</span>
+        {roomData.length === 0 ? (
+          <p className="font-poppins text-sm text-gray-400 text-center py-4">No room data yet</p>
+        ) : (
+          <div className="space-y-5">
+            {roomData.map((room) => (
+              <div key={room.room}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-poppins text-sm font-medium text-navy">{room.room}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="font-poppins text-xs text-gray-500">{room.bookings} bookings</span>
+                    <span className="font-poppins text-sm font-bold text-gold">₹{room.revenue.toLocaleString()}</span>
+                  </div>
+                </div>
+                <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${room.pct}%` }}
+                    transition={{ duration: 0.8, delay: 0.6 }}
+                    className="h-full bg-gold rounded-full"
+                  />
                 </div>
               </div>
-              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${room.pct}%` }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-                  className="h-full bg-gold rounded-full"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* Booking Status Distribution */}
@@ -139,24 +286,22 @@ export default function ReportsPage() {
         className="bg-white rounded-xl shadow-card p-6"
       >
         <h3 className="font-playfair font-bold text-navy text-lg mb-6">Booking Status Distribution</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {[
-            { label: 'Confirmed', count: 28, color: 'bg-blue-500', pct: 58 },
-            { label: 'Checked In', count: 6, color: 'bg-green-500', pct: 13 },
-            { label: 'Checked Out', count: 10, color: 'bg-gray-400', pct: 21 },
-            { label: 'Pending', count: 2, color: 'bg-yellow-400', pct: 4 },
-            { label: 'Cancelled', count: 2, color: 'bg-red-400', pct: 4 },
-          ].map((s) => (
-            <div key={s.label} className="text-center">
-              <div className={`w-16 h-16 ${s.color} rounded-full flex items-center justify-center 
-                             mx-auto mb-2 text-white font-bold font-poppins text-lg`}>
-                {s.pct}%
+        {statusData.length === 0 || statusData.every((s) => s.count === 0) ? (
+          <p className="font-poppins text-sm text-gray-400 text-center py-4">No booking data yet</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {statusData.map((s) => (
+              <div key={s.label} className="text-center">
+                <div className={`w-16 h-16 ${s.color} rounded-full flex items-center justify-center
+                               mx-auto mb-2 text-white font-bold font-poppins text-lg`}>
+                  {s.pct}%
+                </div>
+                <p className="font-poppins text-xs font-medium text-navy">{s.label}</p>
+                <p className="font-poppins text-xs text-gray-500">{s.count} bookings</p>
               </div>
-              <p className="font-poppins text-xs font-medium text-navy">{s.label}</p>
-              <p className="font-poppins text-xs text-gray-500">{s.count} bookings</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </motion.div>
     </div>
   )
