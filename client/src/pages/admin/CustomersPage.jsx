@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FaSearch, FaUser, FaPhoneAlt, FaEnvelope, FaCalendarAlt } from 'react-icons/fa'
+import { FaUser, FaPhoneAlt, FaEnvelope, FaCalendarAlt } from 'react-icons/fa'
+import SearchBox from '../../components/common/SearchBox'
 
 const MOCK_CUSTOMERS = []
 
@@ -37,16 +38,11 @@ export default function CustomersPage() {
 
       {/* Search */}
       <div className="bg-white rounded-xl shadow-card p-4">
-        <div className="relative">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-          <input
-            type="text"
-            placeholder="Search customers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input-field pl-9 text-sm"
-          />
-        </div>
+        <SearchBox
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search customers by name or email..."
+        />
       </div>
 
       {/* Table */}

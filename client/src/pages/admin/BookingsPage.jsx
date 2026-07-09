@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FaSearch, FaFilter, FaEye, FaEdit, FaTimes, FaCalendarAlt, FaDownload } from 'react-icons/fa'
+import { FaFilter, FaEye, FaEdit, FaTimes, FaCalendarAlt, FaDownload } from 'react-icons/fa'
 import toast from 'react-hot-toast'
+import SearchBox from '../../components/common/SearchBox'
 
 const MOCK_BOOKINGS = [];
 
@@ -49,14 +50,11 @@ export default function BookingsPage() {
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-card p-4 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-          <input
-            type="text"
-            placeholder="Search by guest name, booking ID, or email..."
+        <div className="flex-1">
+          <SearchBox
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input-field pl-9 text-sm"
+            placeholder="Search by guest name, booking ID, or email..."
           />
         </div>
         <div className="flex items-center gap-2">
