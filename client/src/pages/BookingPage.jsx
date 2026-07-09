@@ -99,7 +99,7 @@ export default function BookingPage() {
     setBookingData((prev) => ({ ...prev, [field]: value }))
 
   // Step 0: Room Selection
-  const Step0 = () => (
+  const renderStep0 = () => (
     <div>
       <h2 className="font-playfair text-2xl font-bold text-navy mb-6">Select Your Room</h2>
 
@@ -214,7 +214,7 @@ export default function BookingPage() {
   )
 
   // Step 1: Guest Details
-  const Step1 = () => {
+  const renderStep1 = () => {
     // Calculate age from DOB
     const getAge = (dob) => {
       if (!dob) return null
@@ -434,7 +434,7 @@ export default function BookingPage() {
   )}
 
   // Step 2: Review
-  const Step2 = () => (
+  const renderStep2 = () => (
     <div>
       <h2 className="font-playfair text-2xl font-bold text-navy mb-6">Review Your Booking</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -620,7 +620,7 @@ export default function BookingPage() {
   )
 
   // Step 3: Confirmation
-  const Step3 = () => (
+  const renderStep3 = () => (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -670,9 +670,6 @@ export default function BookingPage() {
     </motion.div>
   )
 
-  const stepComponents = [Step0, Step1, Step2, Step3]
-  const CurrentStep = stepComponents[step]
-
   return (
     <div className="min-h-screen bg-lightbg">
       {/* Header */}
@@ -703,7 +700,10 @@ export default function BookingPage() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <CurrentStep />
+            {step === 0 && renderStep0()}
+            {step === 1 && renderStep1()}
+            {step === 2 && renderStep2()}
+            {step === 3 && renderStep3()}
           </motion.div>
         </AnimatePresence>
       </div>
