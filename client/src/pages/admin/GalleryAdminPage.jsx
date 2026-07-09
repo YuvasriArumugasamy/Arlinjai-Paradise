@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { FaTrash, FaUpload, FaPlus, FaTimes, FaImage } from 'react-icons/fa'
+import { FaTrash, FaUpload, FaPlus, FaTimes, FaImage, FaCheckCircle } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { GALLERY_IMAGES } from '../../constants'
 
@@ -10,7 +10,59 @@ export default function GalleryAdminPage() {
   const [images, setImages] = useState(GALLERY_IMAGES)
   const [showUpload, setShowUpload] = useState(false)
   const [newImage, setNewImage] = useState({ title: '', category: 'rooms', url: '' })
+  const [previewUrl, setPreviewUrl] = useState('')
+  const [isDragging, setIsDragging] = useState(false)
   const fileRef = useRef(null)
+
+  // Read file → base64 preview (no backend needed)
+  const processFile = (file) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are allowed.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large. Max 5MB allowed.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const dataUrl = ev.target.result
+      setPreviewUrl(dataUrl)
+      setNewImage((prev) => ({ ...prev, url: dataUrl }))
+      toast.success('Image loaded! Fill in the title and save.')
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleFileChange = (e) => processFile(e.target.files?.[0])
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    processFile(e.dataTransfer.files?.[0])
+  }
+
+  const handleAdd = () => {
+    if (!newImage.url) {
+      toast.error('Please upload or enter an image URL')
+      return
+    }
+    if (!newImage.title.trim()) {
+      toast.error('Please enter an image title')
+      return
+    }
+    setImages((prev) => [{ ...newImage, id: Date.now() }, ...prev])
+    toast.success('Image added to gallery!')
+    closeModal()
+  }
+
+  const closeModal = () => {
+    setShowUpload(false)
+    setNewImage({ title: '', category: 'rooms', url: '' })
+    setPreviewUrl('')
+    if (fileRef.current) fileRef.current.value = ''
+  }
 
   const handleDelete = (id) => {
     if (window.confirm('Delete this image?')) {
@@ -19,19 +71,9 @@ export default function GalleryAdminPage() {
     }
   }
 
-  const handleAdd = () => {
-    if (!newImage.title || !newImage.url) {
-      toast.error('Please fill in all fields')
-      return
-    }
-    setImages((prev) => [...prev, { ...newImage, id: Date.now() }])
-    toast.success('Image added to gallery')
-    setShowUpload(false)
-    setNewImage({ title: '', category: 'rooms', url: '' })
-  }
-
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-playfair text-2xl font-bold text-navy">Gallery Management</h2>
@@ -52,7 +94,7 @@ export default function GalleryAdminPage() {
             key={img.id}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.05 }}
+            transition={{ delay: i * 0.03 }}
             className="relative group bg-white rounded-xl overflow-hidden shadow-card"
           >
             <img
@@ -60,11 +102,11 @@ export default function GalleryAdminPage() {
               alt={img.title}
               className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div className="absolute inset-0 bg-navy bg-opacity-0 group-hover:bg-opacity-60 
+            <div className="absolute inset-0 bg-navy bg-opacity-0 group-hover:bg-opacity-60
                            transition-all duration-300 flex items-center justify-center gap-2">
               <button
                 onClick={() => handleDelete(img.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white 
+                className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white
                            p-2 rounded-full hover:bg-red-600"
               >
                 <FaTrash size={12} />
@@ -79,11 +121,11 @@ export default function GalleryAdminPage() {
           </motion.div>
         ))}
 
-        {/* Upload Card */}
+        {/* Upload placeholder card */}
         <button
           onClick={() => setShowUpload(true)}
-          className="border-2 border-dashed border-gray-200 rounded-xl h-40 flex flex-col items-center 
-                     justify-center gap-2 hover:border-gold hover:bg-gold hover:bg-opacity-5 
+          className="border-2 border-dashed border-gray-200 rounded-xl h-40 flex flex-col items-center
+                     justify-center gap-2 hover:border-gold hover:bg-gold hover:bg-opacity-5
                      transition-all duration-200 group"
         >
           <FaPlus size={20} className="text-gray-300 group-hover:text-gold transition-colors" />
@@ -101,21 +143,43 @@ export default function GalleryAdminPage() {
           >
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h3 className="font-playfair font-bold text-navy text-lg">Add Gallery Image</h3>
-              <button onClick={() => setShowUpload(false)} className="text-gray-400 hover:text-navy">
+              <button onClick={closeModal} className="text-gray-400 hover:text-navy">
                 <FaTimes size={18} />
               </button>
             </div>
+
             <div className="p-6 space-y-4">
-              {/* Image URL or Upload */}
+              {/* Drop zone */}
               <div
-                className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center 
-                            hover:border-gold cursor-pointer transition-colors"
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                  ${isDragging ? 'border-gold bg-gold bg-opacity-5' : 'border-gray-200 hover:border-gold'}`}
                 onClick={() => fileRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
               >
-                <FaImage size={32} className="mx-auto text-gray-300 mb-3" />
-                <p className="font-poppins text-sm text-gray-500">Click to upload or drag & drop</p>
-                <p className="font-poppins text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</p>
-                <input ref={fileRef} type="file" className="hidden" accept="image/*" />
+                {previewUrl ? (
+                  <div className="relative">
+                    <img src={previewUrl} alt="Preview" className="w-full h-36 object-cover rounded-lg" />
+                    <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                      <FaCheckCircle size={14} />
+                    </div>
+                    <p className="font-poppins text-xs text-gray-500 mt-2">Click to change image</p>
+                  </div>
+                ) : (
+                  <>
+                    <FaImage size={32} className="mx-auto text-gray-300 mb-3" />
+                    <p className="font-poppins text-sm text-gray-500">Click to upload or drag & drop</p>
+                    <p className="font-poppins text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</p>
+                  </>
+                )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
               </div>
 
               <div className="text-center font-poppins text-xs text-gray-400">— OR enter image URL —</div>
@@ -124,15 +188,20 @@ export default function GalleryAdminPage() {
                 <label className="label-text">Image URL</label>
                 <input
                   type="url"
-                  value={newImage.url}
-                  onChange={(e) => setNewImage({ ...newImage, url: e.target.value })}
+                  value={previewUrl ? '' : newImage.url}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setNewImage((prev) => ({ ...prev, url: val }))
+                    setPreviewUrl('')
+                  }}
                   placeholder="https://example.com/image.jpg"
                   className="input-field"
                 />
               </div>
 
-              {newImage.url && (
-                <img src={newImage.url} alt="Preview" className="w-full h-32 object-cover rounded" />
+              {/* URL preview (when no file selected) */}
+              {!previewUrl && newImage.url && (
+                <img src={newImage.url} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
               )}
 
               <div>
@@ -140,16 +209,17 @@ export default function GalleryAdminPage() {
                 <input
                   type="text"
                   value={newImage.title}
-                  onChange={(e) => setNewImage({ ...newImage, title: e.target.value })}
+                  onChange={(e) => setNewImage((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="e.g. Hotel Lobby"
                   className="input-field"
                 />
               </div>
+
               <div>
                 <label className="label-text">Category</label>
                 <select
                   value={newImage.category}
-                  onChange={(e) => setNewImage({ ...newImage, category: e.target.value })}
+                  onChange={(e) => setNewImage((prev) => ({ ...prev, category: e.target.value }))}
                   className="select-field"
                 >
                   {CATEGORIES.map((c) => (
@@ -159,10 +229,13 @@ export default function GalleryAdminPage() {
               </div>
 
               <div className="flex gap-3">
-                <button onClick={handleAdd} className="btn-gold flex-1 py-3 flex items-center justify-center gap-2">
+                <button
+                  onClick={handleAdd}
+                  className="btn-gold flex-1 py-3 flex items-center justify-center gap-2"
+                >
                   <FaUpload size={12} /> Add to Gallery
                 </button>
-                <button onClick={() => setShowUpload(false)} className="btn-outline-gold flex-1 py-3">
+                <button onClick={closeModal} className="btn-outline-gold flex-1 py-3">
                   Cancel
                 </button>
               </div>
