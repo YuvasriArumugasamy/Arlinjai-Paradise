@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -58,8 +58,20 @@ export default function BookingPage() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [paymentLoading, setPaymentLoading] = useState(false)
   const [bookingId, setBookingId] = useState(null)
   const formRef = useRef(null)
+
+  // Load Razorpay script on mount
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    document.body.appendChild(script)
+    return () => {
+      document.body.removeChild(script)
+    }
+  }, [])
 
   const scrollToForm = () => {
     if (formRef.current) {
@@ -548,8 +560,8 @@ export default function BookingPage() {
             <h4 className="font-poppins font-semibold text-navy text-sm mb-3">Payment Method</h4>
             <div className="space-y-2">
               {[
-                { id: 'pay_at_hotel', label: 'Pay at Hotel (Cash/UPI)', desc: 'No advance payment required' },
-                { id: 'upi', label: 'UPI Transfer', desc: 'Pay via UPI to confirm booking' },
+                { id: 'pay_at_hotel', label: '🏨 Pay at Hotel (Cash/UPI)', desc: 'No advance payment required. Pay on arrival.' },
+                { id: 'razorpay', label: '💳 Pay Online via Razorpay', desc: 'Secure online payment — Cards, UPI, Net Banking, Wallets' },
               ].map((pm) => (
                 <label
                   key={pm.id}
@@ -581,88 +593,164 @@ export default function BookingPage() {
         </button>
         <button
           onClick={async () => {
-            setLoading(true)
-            try {
-              const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData)
-              const newBookingId = res.data.bookingId || 'AP' + String(Date.now()).slice(-6)
-              setBookingId(newBookingId)
+            // ── Helper: save booking data and advance to confirmation ──
+            const finalizeBooking = async (paymentDetails = {}) => {
+              setLoading(true)
+              try {
+                const payload = { ...bookingData, ...paymentDetails }
+                const res = await axios.post(`${API_BASE_URL}/bookings`, payload)
+                const newBookingId = res.data.bookingId || 'AP' + String(Date.now()).slice(-6)
+                setBookingId(newBookingId)
 
-              // Save to localStorage for admin panel
-              const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-              const newBooking = {
-                id: newBookingId,
-                guest: bookingData.name,
-                gender: bookingData.gender,
-                dob: bookingData.dob,
-                email: bookingData.email,
-                phone: bookingData.phone,
-                idType: bookingData.idType,
-                idNumber: bookingData.idNumber,
-                address: bookingData.address,
-                room: selectedRoom?.name || bookingData.roomId,
-                checkIn: bookingData.checkIn,
-                checkInTime: bookingData.checkInTime,
-                checkOut: bookingData.checkOut,
-                checkOutTime: bookingData.checkOutTime,
-                nights,
-                guests: bookingData.guests,
-                amount: totalPrice,
-                paymentMethod: bookingData.paymentMethod,
-                specialRequests: bookingData.specialRequests,
-                status: 'pending',
-                createdAt: new Date().toISOString(),
+                const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+                savedBookings.unshift({
+                  id: newBookingId,
+                  guest: bookingData.name,
+                  gender: bookingData.gender,
+                  dob: bookingData.dob,
+                  email: bookingData.email,
+                  phone: bookingData.phone,
+                  idType: bookingData.idType,
+                  idNumber: bookingData.idNumber,
+                  address: bookingData.address,
+                  room: selectedRoom?.name || bookingData.roomId,
+                  checkIn: bookingData.checkIn,
+                  checkInTime: bookingData.checkInTime,
+                  checkOut: bookingData.checkOut,
+                  checkOutTime: bookingData.checkOutTime,
+                  nights,
+                  guests: bookingData.guests,
+                  amount: totalPrice,
+                  paymentMethod: bookingData.paymentMethod,
+                  specialRequests: bookingData.specialRequests,
+                  status: paymentDetails.razorpay_payment_id ? 'confirmed' : 'pending',
+                  razorpayPaymentId: paymentDetails.razorpay_payment_id || null,
+                  createdAt: new Date().toISOString(),
+                })
+                localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
+                goToStep(3)
+              } catch {
+                const offlineId = 'AP' + String(Date.now()).slice(-6)
+                setBookingId(offlineId)
+                const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+                savedBookings.unshift({
+                  id: offlineId,
+                  guest: bookingData.name,
+                  gender: bookingData.gender,
+                  dob: bookingData.dob,
+                  email: bookingData.email,
+                  phone: bookingData.phone,
+                  idType: bookingData.idType,
+                  idNumber: bookingData.idNumber,
+                  address: bookingData.address,
+                  room: selectedRoom?.name || bookingData.roomId,
+                  checkIn: bookingData.checkIn,
+                  checkInTime: bookingData.checkInTime,
+                  checkOut: bookingData.checkOut,
+                  checkOutTime: bookingData.checkOutTime,
+                  nights,
+                  guests: bookingData.guests,
+                  amount: totalPrice,
+                  paymentMethod: bookingData.paymentMethod,
+                  specialRequests: bookingData.specialRequests,
+                  status: paymentDetails.razorpay_payment_id ? 'confirmed' : 'pending',
+                  razorpayPaymentId: paymentDetails.razorpay_payment_id || null,
+                  createdAt: new Date().toISOString(),
+                })
+                localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
+                goToStep(3)
+              } finally {
+                setLoading(false)
               }
-              savedBookings.unshift(newBooking)
-              localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
-
-              goToStep(3)
-            } catch {
-              // Backend down — save locally with offline ID
-              const offlineId = 'AP' + String(Date.now()).slice(-6)
-              setBookingId(offlineId)
-              const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-              savedBookings.unshift({
-                id: offlineId,
-                guest: bookingData.name,
-                gender: bookingData.gender,
-                dob: bookingData.dob,
-                email: bookingData.email,
-                phone: bookingData.phone,
-                idType: bookingData.idType,
-                idNumber: bookingData.idNumber,
-                address: bookingData.address,
-                room: selectedRoom?.name || bookingData.roomId,
-                checkIn: bookingData.checkIn,
-                checkInTime: bookingData.checkInTime,
-                checkOut: bookingData.checkOut,
-                checkOutTime: bookingData.checkOutTime,
-                nights,
-                guests: bookingData.guests,
-                amount: totalPrice,
-                paymentMethod: bookingData.paymentMethod,
-                specialRequests: bookingData.specialRequests,
-                status: 'pending',
-                createdAt: new Date().toISOString(),
-              })
-              localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
-              goToStep(3)
-            } finally {
-              setLoading(false)
             }
+
+            // ── Razorpay Online Payment Flow ──────────────────────────
+            if (bookingData.paymentMethod === 'razorpay') {
+              if (!window.Razorpay) {
+                toast.error('Payment gateway not loaded. Please refresh and try again.')
+                return
+              }
+              setPaymentLoading(true)
+              try {
+                const orderRes = await axios.post(`${API_BASE_URL}/payments/create-order`, {
+                  amount: totalPrice,
+                  currency: 'INR',
+                  receipt: `booking_${Date.now()}`,
+                  notes: {
+                    name: bookingData.name,
+                    email: bookingData.email,
+                    phone: bookingData.phone,
+                    room: selectedRoom?.name || bookingData.roomId,
+                  },
+                })
+
+                const { orderId, amount: orderAmount, currency, keyId } = orderRes.data
+
+                const options = {
+                  key: keyId,
+                  amount: orderAmount,
+                  currency,
+                  name: 'Arlinjai Paradise',
+                  description: `Room Booking — ${selectedRoom?.name || bookingData.roomId}`,
+                  image: '/logo.png',
+                  order_id: orderId,
+                  prefill: {
+                    name: bookingData.name,
+                    email: bookingData.email,
+                    contact: bookingData.phone,
+                  },
+                  theme: { color: '#C9A96E' },
+                  modal: {
+                    ondismiss: () => {
+                      setPaymentLoading(false)
+                      toast.error('Payment cancelled. Your booking was not confirmed.')
+                    },
+                  },
+                  handler: async (response) => {
+                    try {
+                      // Verify signature on server
+                      await axios.post(`${API_BASE_URL}/payments/verify`, {
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                      })
+                      toast.success('Payment successful! 🎉')
+                      await finalizeBooking({
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                      })
+                    } catch {
+                      toast.error('Payment verification failed. Please contact support.')
+                      setPaymentLoading(false)
+                    }
+                  },
+                }
+
+                const rzp = new window.Razorpay(options)
+                rzp.open()
+              } catch (err) {
+                toast.error(err?.response?.data?.message || 'Could not initiate payment. Try again.')
+                setPaymentLoading(false)
+              }
+              return
+            }
+
+            // ── Pay at Hotel flow ─────────────────────────────────────
+            await finalizeBooking()
           }}
-          disabled={loading}
+          disabled={loading || paymentLoading}
           className="btn-gold flex items-center gap-2 px-8 py-3.5"
         >
-          {loading ? (
+          {(loading || paymentLoading) ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Confirming...
+              {paymentLoading ? 'Opening Payment...' : 'Confirming...'}
             </span>
           ) : (
-            <>Confirm Booking <FaCheck size={14} /></>
+            <>{bookingData.paymentMethod === 'razorpay' ? '💳 Pay Now' : 'Confirm Booking'} <FaCheck size={14} /></>
           )}
         </button>
       </div>
@@ -705,6 +793,12 @@ export default function BookingPage() {
           <div className="flex justify-between border-t pt-3">
             <span className="text-gray-500 font-semibold">Total</span>
             <span className="text-gold font-bold text-lg">₹{totalPrice.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">Payment</span>
+            <span className={`font-medium text-xs px-2 py-0.5 rounded-full ${bookingData.paymentMethod === 'razorpay' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+              {bookingData.paymentMethod === 'razorpay' ? '✅ Paid Online' : '🏨 Pay at Hotel'}
+            </span>
           </div>
         </div>
       </div>

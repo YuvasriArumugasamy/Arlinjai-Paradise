@@ -21,6 +21,7 @@ const contactRoutes = require('./routes/contactRoutes')
 const userRoutes = require('./routes/userRoutes')
 const dashboardRoutes = require('./routes/dashboardRoutes')
 const notificationRoutes = require('./routes/notificationRoutes')
+const paymentRoutes = require('./routes/paymentRoutes')
 
 const app = express()
 
@@ -91,6 +92,7 @@ app.use('/api/contact', contactRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/payments', paymentRoutes)
 
 // 404 handler
 app.use(notFound)
