@@ -1,18 +1,42 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaTrash, FaUpload, FaPlus, FaTimes, FaImage, FaCheckCircle } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { GALLERY_IMAGES } from '../../constants'
 
 const CATEGORIES = ['exterior', 'rooms', 'interior', 'nearby']
+const STORAGE_KEY = 'arlinjai_gallery_images'
+
+// Load from localStorage or fall back to default
+const loadImages = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) return JSON.parse(saved)
+  } catch {}
+  return GALLERY_IMAGES
+}
+
+// Save to localStorage
+const saveImages = (images) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(images))
+  } catch {
+    console.warn('localStorage save failed (storage full?)')
+  }
+}
 
 export default function GalleryAdminPage() {
-  const [images, setImages] = useState(GALLERY_IMAGES)
+  const [images, setImages] = useState(loadImages)
   const [showUpload, setShowUpload] = useState(false)
   const [newImage, setNewImage] = useState({ title: '', category: 'rooms', url: '' })
   const [previewUrl, setPreviewUrl] = useState('')
   const [isDragging, setIsDragging] = useState(false)
   const fileRef = useRef(null)
+
+  // Auto-save to localStorage whenever images change
+  useEffect(() => {
+    saveImages(images)
+  }, [images])
 
   // Read file → base64 preview (no backend needed)
   const processFile = (file) => {
