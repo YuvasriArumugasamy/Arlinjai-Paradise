@@ -1,27 +1,38 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { FaChevronLeft, FaChevronRight, FaThumbtack, FaCalendarAlt, FaUsers, FaPhoneAlt } from 'react-icons/fa'
 
+const DAY_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+const toDateStr = (date) => date.toISOString().split('T')[0]
+const todayStr = toDateStr(new Date())
+
 export default function CalendarPage() {
-  const [startDate, setStartDate] = useState('2026-07-07')
+  const [startDate, setStartDate] = useState(todayStr)
   const [selectedRoomType, setSelectedRoomType] = useState('All')
 
-  // Generate 14 days starting from Wed 08 Jul (dummy data to match image)
-  const days = [
-    { day: 'WED', date: '08 Jul', active: true },
-    { day: 'THU', date: '09 Jul' },
-    { day: 'FRI', date: '10 Jul' },
-    { day: 'SAT', date: '11 Jul' },
-    { day: 'SUN', date: '12 Jul' },
-    { day: 'MON', date: '13 Jul' },
-    { day: 'TUE', date: '14 Jul' },
-    { day: 'WED', date: '15 Jul' },
-    { day: 'THU', date: '16 Jul' },
-    { day: 'FRI', date: '17 Jul' },
-    { day: 'SAT', date: '18 Jul' },
-    { day: 'SUN', date: '19 Jul' },
-    { day: 'MON', date: '20 Jul' },
-    { day: 'TUE', date: '21 Jul' },
-  ]
+  // Generate 14 days dynamically from startDate
+  const days = useMemo(() => {
+    const base = new Date(startDate + 'T00:00:00')
+    return Array.from({ length: 14 }, (_, i) => {
+      const d = new Date(base)
+      d.setDate(base.getDate() + i)
+      return {
+        day: DAY_NAMES[d.getDay()],
+        date: `${String(d.getDate()).padStart(2, '0')} ${MONTH_NAMES[d.getMonth()]}`,
+        dateStr: toDateStr(d),
+        isToday: toDateStr(d) === todayStr,
+      }
+    })
+  }, [startDate])
+
+  const navigate14 = (dir) => {
+    const base = new Date(startDate + 'T00:00:00')
+    base.setDate(base.getDate() + dir * 14)
+    setStartDate(toDateStr(base))
+  }
+
+  const goToToday = () => setStartDate(todayStr)
 
   const rooms = [
     { id: '101', name: 'Room 101', type: 'Deluxe AC', typeColor: 'text-blue-500' },
@@ -56,13 +67,22 @@ export default function CalendarPage() {
         {/* Toolbar */}
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+            <button
+              onClick={() => navigate14(-1)}
+              className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50"
+            >
               <FaChevronLeft size={10} /> Prev 14 Days
             </button>
-            <button className="px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+            <button
+              onClick={goToToday}
+              className="px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50"
+            >
               Today
             </button>
-            <button className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">
+            <button
+              onClick={() => navigate14(1)}
+              className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50"
+            >
               Next 14 Days <FaChevronRight size={10} />
             </button>
           </div>
@@ -103,9 +123,9 @@ export default function CalendarPage() {
             {/* Days Header */}
             <div className="flex flex-1">
               {days.map((d, i) => (
-                <div key={i} className={`flex-1 min-w-[70px] flex flex-col items-center justify-center p-2 border-r border-gray-100 ${d.active ? 'border-t-2 border-t-gold' : ''}`}>
-                  <span className={`text-[10px] font-bold ${d.active ? 'text-gold' : 'text-gray-400'}`}>{d.day}</span>
-                  <span className={`text-xs font-semibold ${d.active ? 'text-navy' : 'text-gray-700'}`}>{d.date}</span>
+                <div key={i} className={`flex-1 min-w-[70px] flex flex-col items-center justify-center p-2 border-r border-gray-100 ${d.isToday ? 'border-t-2 border-t-gold' : ''}`}>
+                  <span className={`text-[10px] font-bold ${d.isToday ? 'text-gold' : 'text-gray-400'}`}>{d.day}</span>
+                  <span className={`text-xs font-semibold ${d.isToday ? 'text-navy' : 'text-gray-700'}`}>{d.date}</span>
                 </div>
               ))}
             </div>
