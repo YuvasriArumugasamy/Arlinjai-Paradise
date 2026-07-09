@@ -1,48 +1,95 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FaSearch, FaFilter, FaEye, FaEdit, FaTimes, FaCalendarAlt, FaDownload } from 'react-icons/fa'
+import {
+  FaSearch, FaFilter, FaEye, FaTimes, FaDownload,
+  FaUser, FaPhoneAlt, FaEnvelope, FaBed, FaCalendarAlt,
+  FaIdCard, FaVenusMars, FaBirthdayCake, FaMoneyBillWave
+} from 'react-icons/fa'
 import toast from 'react-hot-toast'
 
-const MOCK_BOOKINGS = [];
-
 const STATUS_STYLES = {
-  confirmed: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Confirmed' },
-  pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Pending' },
-  'checked-in': { bg: 'bg-green-100', text: 'text-green-700', label: 'Checked In' },
-  'checked-out': { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Checked Out' },
-  cancelled: { bg: 'bg-red-100', text: 'text-red-700', label: 'Cancelled' },
+  confirmed:    { bg: 'bg-blue-100',   text: 'text-blue-700',   label: 'Confirmed' },
+  pending:      { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Pending' },
+  'checked-in': { bg: 'bg-green-100',  text: 'text-green-700',  label: 'Checked In' },
+  'checked-out':{ bg: 'bg-gray-100',   text: 'text-gray-600',   label: 'Checked Out' },
+  cancelled:    { bg: 'bg-red-100',    text: 'text-red-700',    label: 'Cancelled' },
 }
 
 const STATUS_OPTIONS = ['all', 'pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled']
 
+const loadBookings = () => {
+  try {
+    return JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+  } catch { return [] }
+}
+
+const saveBookings = (bookings) => {
+  localStorage.setItem('arlinjai_bookings', JSON.stringify(bookings))
+}
+
+const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN') : '—'
+
+const getAge = (dob) => {
+  if (!dob) return null
+  const today = new Date()
+  const b = new Date(dob)
+  let age = today.getFullYear() - b.getFullYear()
+  if (today.getMonth() - b.getMonth() < 0 ||
+     (today.getMonth() - b.getMonth() === 0 && today.getDate() < b.getDate())) age--
+  return age
+}
+
 export default function BookingsPage() {
-  const [bookings, setBookings] = useState(MOCK_BOOKINGS)
+  const [bookings, setBookings] = useState(loadBookings)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedBooking, setSelectedBooking] = useState(null)
 
   const filtered = bookings.filter((b) => {
-    const matchSearch = b.guest.toLowerCase().includes(search.toLowerCase()) ||
-      b.id.toLowerCase().includes(search.toLowerCase()) ||
-      b.email.toLowerCase().includes(search.toLowerCase())
+    const q = search.toLowerCase()
+    const matchSearch = !q ||
+      (b.guest || '').toLowerCase().includes(q) ||
+      (b.id || '').toLowerCase().includes(q) ||
+      (b.email || '').toLowerCase().includes(q) ||
+      (b.phone || '').includes(q)
     const matchStatus = statusFilter === 'all' || b.status === statusFilter
     return matchSearch && matchStatus
   })
 
   const updateStatus = (id, newStatus) => {
-    setBookings((prev) => prev.map((b) => b.id === id ? { ...b, status: newStatus } : b))
-    toast.success(`Booking ${id} status updated to ${newStatus}`)
-    setSelectedBooking(null)
+    const updated = bookings.map((b) => b.id === id ? { ...b, status: newStatus } : b)
+    setBookings(updated)
+    saveBookings(updated)
+    if (selectedBooking?.id === id) setSelectedBooking({ ...selectedBooking, status: newStatus })
+    toast.success(`Status updated to ${newStatus}`)
+  }
+
+  const exportCSV = () => {
+    const headers = ['ID', 'Guest', 'Gender', 'DOB', 'Phone', 'Email', 'ID Type', 'ID Number',
+      'Room', 'Check In', 'Check Out', 'Nights', 'Guests', 'Amount', 'Payment', 'Status', 'Booked On']
+    const rows = bookings.map((b) => [
+      b.id, b.guest, b.gender || '', b.dob || '', b.phone, b.email,
+      b.idType || '', b.idNumber || '', b.room,
+      fmt(b.checkIn), fmt(b.checkOut), b.nights, b.guests,
+      b.amount, b.paymentMethod, b.status, fmt(b.createdAt),
+    ])
+    const csv = [headers, ...rows].map((r) => r.map((v) => `"${v}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url
+    a.download = `bookings_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click(); URL.revokeObjectURL(url)
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-playfair text-2xl font-bold text-navy">Bookings</h2>
           <p className="font-poppins text-sm text-gray-500">{filtered.length} bookings found</p>
         </div>
-        <button className="flex items-center gap-2 btn-gold text-sm px-4 py-2.5">
+        <button onClick={exportCSV} className="flex items-center gap-2 btn-gold text-sm px-4 py-2.5">
           <FaDownload size={12} /> Export CSV
         </button>
       </div>
@@ -53,7 +100,7 @@ export default function BookingsPage() {
           <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
           <input
             type="text"
-            placeholder="Search by guest name, booking ID, or email..."
+            placeholder="Search by guest name, booking ID, phone or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="input-field pl-9 text-sm"
@@ -61,11 +108,7 @@ export default function BookingsPage() {
         </div>
         <div className="flex items-center gap-2">
           <FaFilter size={14} className="text-gray-400" />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="select-field text-sm w-36"
-          >
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="select-field text-sm w-36">
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s} className="capitalize">{s === 'all' ? 'All Status' : s}</option>
             ))}
@@ -79,7 +122,7 @@ export default function BookingsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100 bg-lightbg">
-                {['ID', 'Guest', 'Room', 'Check In', 'Check Out', 'Nights', 'Amount', 'Status', 'Actions'].map((h) => (
+                {['ID', 'Guest Details', 'Contact', 'Demographics', 'ID Proof', 'Address', 'Room', 'Dates', 'Stay', 'Amount', 'Payment', 'Special Requests', 'Status', 'Actions'].map((h) => (
                   <th key={h} className="text-left px-4 py-3 font-poppins text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {h}
                   </th>
@@ -90,37 +133,50 @@ export default function BookingsPage() {
               {filtered.map((booking, i) => {
                 const st = STATUS_STYLES[booking.status] || STATUS_STYLES.pending
                 return (
-                  <motion.tr
-                    key={booking.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="hover:bg-lightbg transition-colors"
-                  >
-                    <td className="px-4 py-3.5 font-poppins text-sm font-semibold text-gold">{booking.id}</td>
+                  <motion.tr key={booking.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.03 }} className="hover:bg-lightbg transition-colors">
+                    <td className="px-4 py-3.5 font-poppins text-sm font-semibold text-gold whitespace-nowrap">{booking.id}</td>
                     <td className="px-4 py-3.5">
-                      <p className="font-poppins text-sm font-medium text-navy">{booking.guest}</p>
-                      <p className="font-poppins text-xs text-gray-500">{booking.email}</p>
+                      <p className="font-poppins text-sm font-medium text-navy whitespace-nowrap">{booking.guest}</p>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <p className="font-poppins text-sm text-gray-600 whitespace-nowrap">{booking.phone || '—'}</p>
+                      <p className="font-poppins text-xs text-gray-500 whitespace-nowrap">{booking.email}</p>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <p className="font-poppins text-sm text-gray-600 whitespace-nowrap">{booking.gender || '—'}</p>
+                      <p className="font-poppins text-xs text-gray-500 whitespace-nowrap">{booking.dob ? `${fmt(booking.dob)} (Age: ${getAge(booking.dob)})` : '—'}</p>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <p className="font-poppins text-sm text-gray-600 whitespace-nowrap">{booking.idType || '—'}</p>
+                      <p className="font-poppins text-xs text-gray-500 whitespace-nowrap font-mono">{booking.idNumber || '—'}</p>
+                    </td>
+                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 min-w-[200px]">
+                      {booking.address || '—'}
                     </td>
                     <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 whitespace-nowrap">{booking.room}</td>
-                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 whitespace-nowrap">
-                      {new Date(booking.checkIn).toLocaleDateString('en-IN')}
+                    <td className="px-4 py-3.5">
+                      <p className="font-poppins text-sm text-gray-600 whitespace-nowrap">In: {fmt(booking.checkIn)}</p>
+                      <p className="font-poppins text-xs text-gray-500 whitespace-nowrap">Out: {fmt(booking.checkOut)}</p>
                     </td>
-                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 whitespace-nowrap">
-                      {new Date(booking.checkOut).toLocaleDateString('en-IN')}
+                    <td className="px-4 py-3.5">
+                      <p className="font-poppins text-sm text-gray-600 whitespace-nowrap">{booking.nights} Night(s)</p>
+                      <p className="font-poppins text-xs text-gray-500 whitespace-nowrap">{booking.guests || 2} Guest(s)</p>
                     </td>
-                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 text-center">{booking.nights}</td>
-                    <td className="px-4 py-3.5 font-poppins text-sm font-bold text-navy">₹{booking.amount.toLocaleString()}</td>
+                    <td className="px-4 py-3.5 font-poppins text-sm font-bold text-navy whitespace-nowrap">₹{(booking.amount || 0).toLocaleString()}</td>
+                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 whitespace-nowrap capitalize">
+                      {booking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel' : (booking.paymentMethod || '—')}
+                    </td>
+                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 min-w-[200px]">
+                      {booking.specialRequests || '—'}
+                    </td>
                     <td className="px-4 py-3.5">
                       <span className={`font-poppins text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${st.bg} ${st.text}`}>
                         {st.label}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <button
-                        onClick={() => setSelectedBooking(booking)}
-                        className="text-gold hover:text-gold-dark transition-colors p-1"
-                      >
+                      <button onClick={() => setSelectedBooking(booking)} className="text-gold hover:text-gold-dark transition-colors p-1">
                         <FaEye size={15} />
                       </button>
                     </td>
@@ -132,58 +188,140 @@ export default function BookingsPage() {
         </div>
         {filtered.length === 0 && (
           <div className="text-center py-16 font-poppins text-gray-500">
-            No bookings found matching your criteria
+            {bookings.length === 0 ? 'No bookings yet. Bookings will appear here after guests complete the booking form.' : 'No bookings found matching your criteria'}
           </div>
         )}
       </div>
 
-      {/* Booking Detail Modal */}
+      {/* Full Guest Detail Modal */}
       {selectedBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-xl shadow-2xl w-full max-w-lg"
-          >
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h3 className="font-playfair font-bold text-navy text-lg">Booking #{selectedBooking.id}</h3>
-              <button onClick={() => setSelectedBooking(null)} className="text-gray-400 hover:text-navy">
-                <FaTimes size={18} />
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4 font-poppins text-sm">
-                {[
-                  { label: 'Guest Name', value: selectedBooking.guest },
-                  { label: 'Email', value: selectedBooking.email },
-                  { label: 'Phone', value: selectedBooking.phone },
-                  { label: 'Room', value: selectedBooking.room },
-                  { label: 'Check In', value: new Date(selectedBooking.checkIn).toLocaleDateString('en-IN') },
-                  { label: 'Check Out', value: new Date(selectedBooking.checkOut).toLocaleDateString('en-IN') },
-                  { label: 'Nights', value: selectedBooking.nights },
-                  { label: 'Guests', value: selectedBooking.guests },
-                  { label: 'Amount', value: `₹${selectedBooking.amount.toLocaleString()}` },
-                  { label: 'Payment', value: selectedBooking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel' : 'UPI' },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <p className="text-xs text-gray-500">{item.label}</p>
-                    <p className="font-medium text-navy">{item.value}</p>
-                  </div>
-                ))}
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col"
+            style={{ maxHeight: '90vh' }}>
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0 bg-navy rounded-t-xl">
+              <div>
+                <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider">Booking ID</p>
+                <h3 className="font-playfair font-bold text-gold text-xl">{selectedBooking.id}</h3>
               </div>
+              <div className="flex items-center gap-3">
+                <span className={`font-poppins text-xs font-medium px-3 py-1 rounded-full
+                  ${STATUS_STYLES[selectedBooking.status]?.bg} ${STATUS_STYLES[selectedBooking.status]?.text}`}>
+                  {STATUS_STYLES[selectedBooking.status]?.label}
+                </span>
+                <button onClick={() => setSelectedBooking(null)} className="text-gray-400 hover:text-white transition-colors">
+                  <FaTimes size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto flex-1 p-6 space-y-5">
+
+              {/* Guest Info */}
+              <div>
+                <p className="font-poppins text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <FaUser size={10} className="text-gold" /> Guest Information
+                </p>
+                <div className="grid grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
+                  {[
+                    { icon: FaUser,          label: 'Full Name',   value: selectedBooking.guest },
+                    { icon: FaVenusMars,     label: 'Gender',      value: selectedBooking.gender || '—' },
+                    { icon: FaBirthdayCake,  label: 'Date of Birth', value: selectedBooking.dob
+                      ? `${fmt(selectedBooking.dob)} (Age: ${getAge(selectedBooking.dob)})`
+                      : '—' },
+                    { icon: FaPhoneAlt,      label: 'Phone',       value: selectedBooking.phone },
+                    { icon: FaEnvelope,      label: 'Email',       value: selectedBooking.email },
+                    { icon: null,            label: 'Address',     value: selectedBooking.address || '—' },
+                  ].map(({ icon: Icon, label, value }) => (
+                    <div key={label}>
+                      <p className="text-xs text-gray-400 flex items-center gap-1 mb-0.5">
+                        {Icon && <Icon size={9} className="text-gold" />} {label}
+                      </p>
+                      <p className="font-medium text-navy text-sm">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ID Proof */}
+              <div>
+                <p className="font-poppins text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <FaIdCard size={10} className="text-gold" /> ID Proof
+                </p>
+                <div className="grid grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">ID Type</p>
+                    <p className="font-medium text-navy">{selectedBooking.idType || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">ID Number</p>
+                    <p className="font-medium text-navy font-mono">{selectedBooking.idNumber || '—'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stay Details */}
+              <div>
+                <p className="font-poppins text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <FaBed size={10} className="text-gold" /> Stay Details
+                </p>
+                <div className="grid grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
+                  {[
+                    { label: 'Room Type',  value: selectedBooking.room },
+                    { label: 'Guests',     value: selectedBooking.guests },
+                    { label: 'Check In',   value: `${fmt(selectedBooking.checkIn)} (12:00 PM)` },
+                    { label: 'Check Out',  value: `${fmt(selectedBooking.checkOut)} (11:00 AM)` },
+                    { label: 'Nights',     value: selectedBooking.nights },
+                    { label: 'Booked On',  value: fmt(selectedBooking.createdAt) },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-xs text-gray-400 mb-0.5 flex items-center gap-1">
+                        <FaCalendarAlt size={9} className="text-gold" /> {label}
+                      </p>
+                      <p className="font-medium text-navy">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Payment */}
+              <div>
+                <p className="font-poppins text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <FaMoneyBillWave size={10} className="text-gold" /> Payment
+                </p>
+                <div className="grid grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Total Amount</p>
+                    <p className="font-bold text-gold text-lg">₹{(selectedBooking.amount || 0).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Payment Method</p>
+                    <p className="font-medium text-navy capitalize">
+                      {selectedBooking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel' : selectedBooking.paymentMethod}
+                    </p>
+                  </div>
+                  {selectedBooking.specialRequests && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-gray-400 mb-0.5">Special Requests</p>
+                      <p className="font-medium text-navy">{selectedBooking.specialRequests}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Update Status */}
               <div className="border-t pt-4">
-                <p className="font-poppins text-sm font-medium text-gray-700 mb-2">Update Status</p>
+                <p className="font-poppins text-sm font-semibold text-gray-700 mb-2">Update Status</p>
                 <div className="flex flex-wrap gap-2">
                   {['confirmed', 'checked-in', 'checked-out', 'cancelled'].map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => updateStatus(selectedBooking.id, s)}
-                      className={`font-poppins text-xs px-3 py-1.5 rounded-full border transition-colors capitalize
+                    <button key={s} onClick={() => updateStatus(selectedBooking.id, s)}
+                      className={`font-poppins text-xs px-4 py-1.5 rounded-full border transition-colors capitalize
                         ${selectedBooking.status === s
                           ? 'bg-gold text-white border-gold'
-                          : 'border-gray-200 text-gray-600 hover:border-gold hover:text-gold'
-                        }`}
-                    >
+                          : 'border-gray-200 text-gray-600 hover:border-gold hover:text-gold'}`}>
                       {s}
                     </button>
                   ))}

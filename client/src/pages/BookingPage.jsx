@@ -538,10 +538,64 @@ export default function BookingPage() {
             setLoading(true)
             try {
               const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData)
-              setBookingId(res.data.bookingId || 'AP' + Date.now())
+              const newBookingId = res.data.bookingId || 'AP' + String(Date.now()).slice(-6)
+              setBookingId(newBookingId)
+
+              // Save to localStorage for admin panel
+              const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+              const newBooking = {
+                id: newBookingId,
+                guest: bookingData.name,
+                gender: bookingData.gender,
+                dob: bookingData.dob,
+                email: bookingData.email,
+                phone: bookingData.phone,
+                idType: bookingData.idType,
+                idNumber: bookingData.idNumber,
+                address: bookingData.address,
+                room: selectedRoom?.name || bookingData.roomId,
+                checkIn: bookingData.checkIn,
+                checkOut: bookingData.checkOut,
+                nights,
+                guests: bookingData.guests,
+                amount: totalPrice,
+                paymentMethod: bookingData.paymentMethod,
+                specialRequests: bookingData.specialRequests,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+              }
+              savedBookings.unshift(newBooking)
+              localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
+
               goToStep(3)
             } catch {
-              toast.error('Booking failed. Please try again or call us.')
+              // Backend down — save locally with offline ID
+              const offlineId = 'AP' + String(Date.now()).slice(-6)
+              setBookingId(offlineId)
+              const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+              savedBookings.unshift({
+                id: offlineId,
+                guest: bookingData.name,
+                gender: bookingData.gender,
+                dob: bookingData.dob,
+                email: bookingData.email,
+                phone: bookingData.phone,
+                idType: bookingData.idType,
+                idNumber: bookingData.idNumber,
+                address: bookingData.address,
+                room: selectedRoom?.name || bookingData.roomId,
+                checkIn: bookingData.checkIn,
+                checkOut: bookingData.checkOut,
+                nights,
+                guests: bookingData.guests,
+                amount: totalPrice,
+                paymentMethod: bookingData.paymentMethod,
+                specialRequests: bookingData.specialRequests,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+              })
+              localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
+              goToStep(3)
             } finally {
               setLoading(false)
             }
