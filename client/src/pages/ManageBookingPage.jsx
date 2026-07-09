@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  FaCheckCircle, FaClock, FaTimesCircle,
+  FaSearch, FaCheckCircle, FaClock, FaTimesCircle,
   FaBed, FaCalendarAlt, FaUsers, FaPhoneAlt, FaPrint,
   FaStar, FaWhatsapp, FaArrowRight
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import Breadcrumb from '../components/common/Breadcrumb'
-import SearchBox from '../components/common/SearchBox'
 import { HOTEL_INFO, API_BASE_URL } from '../constants'
 import axios from 'axios'
 
@@ -168,13 +167,18 @@ export default function ManageBookingPage() {
           className="bg-white rounded-xl shadow-card p-6"
         >
           <div className="flex gap-3">
-            <SearchBox
-              value={bookingIdInput}
-              onChange={(e) => setBookingIdInput(e.target.value)}
-              onSearch={handleFind}
-              placeholder="Paste your Booking ID here... e.g. AP000001"
-              className="flex-1"
-            />
+            <div className="flex-1 relative">
+              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gold" size={14} />
+              <input
+                type="text"
+                value={bookingIdInput}
+                onChange={(e) => setBookingIdInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleFind()}
+                placeholder="Paste your Booking ID here..."
+                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg font-poppins text-sm
+                           focus:outline-none focus:border-gold transition-colors"
+              />
+            </div>
             <button
               onClick={handleFind}
               disabled={loading}
@@ -185,7 +189,8 @@ export default function ManageBookingPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                 </svg>
-              ) : 'Find'}
+              ) : <FaSearch size={13} />}
+              Find Booking
             </button>
           </div>
           <p className="font-poppins text-xs text-gray-400 mt-2">
