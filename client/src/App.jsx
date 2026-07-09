@@ -29,7 +29,6 @@ import RoomsAdminPage from './pages/admin/RoomsAdminPage'
 import GalleryAdminPage from './pages/admin/GalleryAdminPage'
 import CustomersPage from './pages/admin/CustomersPage'
 import ReviewsAdminPage from './pages/admin/ReviewsAdminPage'
-import MessagesPage from './pages/admin/MessagesPage'
 import ReportsPage from './pages/admin/ReportsPage'
 import SettingsPage from './pages/admin/SettingsPage'
 
@@ -112,7 +111,6 @@ function App() {
             <Route path="gallery" element={<GalleryAdminPage />} />
             <Route path="customers" element={<CustomersPage />} />
             <Route path="reviews" element={<ReviewsAdminPage />} />
-            <Route path="messages" element={<MessagesPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>

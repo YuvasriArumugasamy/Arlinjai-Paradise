@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaTachometerAlt, FaCalendarAlt, FaBed, FaImages, FaUsers,
-  FaStar, FaEnvelope, FaChartBar, FaCog, FaBars, FaTimes,
+  FaStar, FaChartBar, FaCog, FaBars, FaTimes,
   FaSignOutAlt, FaBell, FaChevronLeft, FaExternalLinkAlt, FaCalendarDay
 } from 'react-icons/fa'
 
@@ -15,7 +15,6 @@ const navItems = [
   { path: '/admin/gallery', label: 'Gallery', icon: FaImages },
   { path: '/admin/customers', label: 'Customers', icon: FaUsers },
   { path: '/admin/reviews', label: 'Reviews', icon: FaStar },
-  { path: '/admin/messages', label: 'Messages', icon: FaEnvelope },
   { path: '/admin/reports', label: 'Reports', icon: FaChartBar },
   { path: '/admin/settings', label: 'Settings', icon: FaCog },
 ]
