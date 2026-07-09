@@ -472,8 +472,24 @@ export default function ManageBookingPage() {
       {/* Print Styles */}
       <style>{`
         @media print {
-          body > *:not(.print-card) { display: none !important; }
-          .print-card { display: block !important; box-shadow: none !important; }
+          body * {
+            visibility: hidden;
+          }
+          .print-card, .print-card * {
+            visibility: visible;
+          }
+          .print-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0 !important;
+            box-shadow: none !important;
+          }
+          /* Hide the print button itself during printing */
+          .print-card button {
+            display: none !important;
+          }
         }
       `}</style>
     </div>
