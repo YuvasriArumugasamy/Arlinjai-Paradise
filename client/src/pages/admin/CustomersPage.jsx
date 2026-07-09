@@ -169,7 +169,7 @@ export default function CustomersPage() {
 
       {/* ── DESKTOP TABLE (md and above) ──────────────────────── */}
       {!loading && (
-        <div className="hidden md:block bg-white rounded-xl shadow-card overflow-hidden">
+        <div className="hidden lg:block bg-white rounded-xl shadow-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -241,7 +241,7 @@ export default function CustomersPage() {
 
       {/* ── MOBILE CARDS (below md) ──────────────────────────────── */}
       {!loading && (
-        <div className="md:hidden space-y-4">
+        <div className="lg:hidden space-y-4">
           {filtered.length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
               <FaUser className="text-gray-200 mx-auto mb-3" size={32} />
