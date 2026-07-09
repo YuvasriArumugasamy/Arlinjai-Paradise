@@ -114,7 +114,9 @@ export default function BookingPage() {
   }
 
   const nights = getNights()
-  const totalPrice = selectedRoom ? selectedRoom.price * nights : 0
+  const basePrice = selectedRoom ? selectedRoom.price * nights : 0
+  const gstAmount = Math.round(basePrice * 0.12)
+  const totalPrice = basePrice + gstAmount
 
   const updateBooking = (field, value) =>
     setBookingData((prev) => ({ ...prev, [field]: value }))
@@ -524,11 +526,21 @@ export default function BookingPage() {
                 <span className="text-navy font-medium">{item.value}</span>
               </div>
             ))}
-            <div className="border-t border-gray-100 pt-3 flex justify-between">
-              <span className="text-gray-500">
-                ₹{selectedRoom?.price.toLocaleString()} × {nights} night{nights > 1 ? 's' : ''}
-              </span>
-              <span className="font-bold text-gold text-lg">₹{totalPrice.toLocaleString()}</span>
+            <div className="border-t border-gray-100 pt-3 space-y-2">
+              <div className="flex justify-between font-poppins text-sm">
+                <span className="text-gray-500">
+                  ₹{selectedRoom?.price.toLocaleString()} × {nights} night{nights > 1 ? 's' : ''}
+                </span>
+                <span className="text-navy">₹{basePrice.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between font-poppins text-sm">
+                <span className="text-gray-500">GST (12%)</span>
+                <span className="text-navy">₹{gstAmount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between font-poppins text-sm border-t pt-2">
+                <span className="font-bold text-navy">Total (incl. GST)</span>
+                <span className="font-bold text-gold text-lg">₹{totalPrice.toLocaleString()}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -773,7 +785,15 @@ export default function BookingPage() {
             <span className="text-navy font-medium">{new Date(bookingData.checkOut).toLocaleDateString('en-IN')}</span>
           </div>
           <div className="flex justify-between border-t pt-3">
-            <span className="text-gray-500 font-semibold">Total</span>
+            <span className="text-gray-500">Room Charges</span>
+            <span className="text-navy font-medium">₹{basePrice.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">GST (12%)</span>
+            <span className="text-navy font-medium">₹{gstAmount.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between border-t pt-3">
+            <span className="text-gray-500 font-bold">Total Paid</span>
             <span className="text-gold font-bold text-lg">₹{totalPrice.toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
