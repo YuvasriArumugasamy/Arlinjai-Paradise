@@ -371,19 +371,19 @@ export default function RoomsPage() {
                               <span className="font-poppins text-sm text-gray-500">/night</span>
                             </div>
                           </div>
-                          <div className="flex gap-2 w-full sm:w-auto">
+                          <div className="flex gap-2">
                             <Link
                               to={`/rooms/${room.slug}`}
-                              className="btn-outline-gold text-sm px-4 py-2 flex-1 sm:flex-none text-center"
+                              className="btn-outline-gold text-xs px-3 py-1.5 text-center"
                             >
                               Details
                             </Link>
                             <StarButtonLink
                               to={`/booking?roomType=${room.id}`}
-                              className="text-sm px-4 py-2 inline-flex items-center justify-center gap-1.5 flex-1 sm:flex-none"
+                              className="text-xs px-3 py-1.5 inline-flex items-center gap-1"
                             >
                               Book Now
-                              <FaArrowRight size={12} />
+                              <FaArrowRight size={10} />
                             </StarButtonLink>
                           </div>
                         </div>
