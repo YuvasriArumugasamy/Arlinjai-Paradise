@@ -247,134 +247,122 @@ export default function ManageBookingPage() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-4"
             >
-              {/* Status Banner */}
-              <div
-                className="rounded-xl p-4 flex items-center gap-3 border"
-                style={{
-                  background: statusCfg?.bg,
-                  borderColor: statusCfg?.color + '44',
-                }}
-              >
-                <StatusIcon size={22} style={{ color: statusCfg?.color, flexShrink: 0 }} />
-                <div>
-                  <p className="font-poppins font-bold text-sm" style={{ color: statusCfg?.color }}>
-                    {statusCfg?.label}
-                  </p>
-                  <p className="font-poppins text-xs text-gray-500">
-                    {booking.status === 'confirmed'
-                      ? 'Your booking has been confirmed! Please show your Booking ID at reception.'
-                      : booking.status === 'pending'
-                      ? 'Your booking is pending confirmation. We will contact you shortly.'
-                      : booking.status === 'checked-in'
-                      ? 'Welcome! You are currently checked in.'
-                      : booking.status === 'checked-out'
-                      ? 'Thank you for staying with us!'
-                      : booking.status === 'cancelled'
-                      ? 'This booking has been cancelled.'
-                      : ''}
-                  </p>
-                </div>
-              </div>
-
-              {/* Details Card */}
-              <div className="bg-white rounded-xl shadow-card overflow-hidden print-card">
-
-                {/* Booking ID Header */}
-                <div className="bg-navy px-6 py-4 flex items-center justify-between">
+              {/* Details Card / Receipt */}
+              <div className="bg-white rounded-xl shadow-card overflow-hidden print-card border border-gray-100">
+                
+                {/* Status Banner (Inside Receipt for Print) */}
+                <div
+                  className="px-6 py-5 flex items-center gap-4 border-b border-gray-100"
+                  style={{ background: statusCfg?.bg || '#f9fafb' }}
+                >
+                  <div
+                    className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: statusCfg?.color || '#9ca3af' }}
+                  >
+                    <StatusIcon className="text-white" size={20} />
+                  </div>
                   <div>
-                    <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider">Booking ID</p>
-                    <p className="font-playfair text-xl font-bold text-gold">{booking.bookingId}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-poppins text-xs text-gray-400">Arlinjai Paradise</p>
-                    <p className="font-poppins text-xs text-gray-500">Kanyakumari</p>
+                    <h3 className="font-semibold text-lg leading-tight mb-1" style={{ color: statusCfg?.color || '#4b5563' }}>
+                      {statusCfg?.label}
+                    </h3>
+                    <p className="text-sm opacity-90" style={{ color: statusCfg?.color || '#6b7280' }}>
+                      {booking.status === 'confirmed'
+                        ? 'Your booking has been confirmed! Please show your Booking ID at reception.'
+                        : booking.status === 'pending'
+                        ? 'Your booking is pending confirmation. We will contact you shortly.'
+                        : booking.status === 'checked-in'
+                        ? 'Welcome! You are currently checked in.'
+                        : booking.status === 'checked-out'
+                        ? 'Thank you for staying with us!'
+                        : booking.status === 'cancelled'
+                        ? 'This booking has been cancelled.'
+                        : ''}
+                    </p>
                   </div>
                 </div>
 
-                <div className="p-6 space-y-5">
-                  {/* Guest + Room */}
-                  <div className="grid grid-cols-2 gap-4">
+                {/* Booking ID */}
+                <div className="px-6 py-5 flex items-center gap-3">
+                  <p className="font-poppins text-xs font-semibold text-gray-400 uppercase tracking-wider">Booking ID</p>
+                  <div className="bg-gray-100 px-3 py-1 rounded font-bold text-gray-700 font-mono tracking-wider text-sm">
+                    {booking.bookingId || booking.id}
+                  </div>
+                </div>
+
+                <div className="px-6 pb-6 space-y-4">
+                  {/* Row 1 */}
+                  <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5">
                     <div>
-                      <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider mb-1">Guest Name</p>
-                      <p className="font-poppins font-semibold text-navy text-sm">{booking.guest?.name}</p>
+                      <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Guest Name</p>
+                      <p className="font-playfair font-bold text-gray-900">{booking.guest?.name || booking.guest}</p>
                     </div>
                     <div>
-                      <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                        <FaPhoneAlt size={9} /> Phone
-                      </p>
-                      <p className="font-poppins font-semibold text-navy text-sm">{booking.guest?.phone}</p>
+                      <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Phone</p>
+                      <p className="font-bold text-gray-900 font-poppins text-sm">{booking.guest?.phone || booking.phone}</p>
                     </div>
+                  </div>
+
+                  {/* Row 2 */}
+                  <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5">
                     <div className="col-span-2">
-                      <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                        <FaBed size={9} /> Room Type
-                      </p>
-                      <p className="font-poppins font-semibold text-navy text-sm">{booking.roomSnapshot?.name}</p>
+                      <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Room Type</p>
+                      <p className="font-playfair font-bold text-gray-900">{booking.roomSnapshot?.name || booking.room}</p>
                     </div>
                   </div>
 
-                  <div className="h-px bg-gray-100" />
-
-                  {/* Dates */}
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Row 3 */}
+                  <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5">
                     <div>
-                      <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                        <FaCalendarAlt size={9} /> Check In
-                      </p>
-                      <p className="font-poppins font-semibold text-navy text-sm">{fmtTime(booking.checkIn)}</p>
+                      <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Check-In</p>
+                      <p className="font-bold text-gray-900 font-poppins text-sm">{fmtTime(booking.checkIn)}</p>
                     </div>
                     <div>
-                      <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                        <FaCalendarAlt size={9} /> Check Out
-                      </p>
-                      <p className="font-poppins font-semibold text-navy text-sm">
-                        {new Date(booking.checkOut).toLocaleDateString('en-IN', {
-                          day: 'numeric', month: 'short', year: 'numeric',
-                        })} (11:00 AM)
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider mb-1">Nights</p>
-                      <p className="font-poppins font-semibold text-navy text-sm">{booking.nights || nights}</p>
-                    </div>
-                    <div>
-                      <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                        <FaUsers size={9} /> Rooms × Guests
-                      </p>
-                      <p className="font-poppins font-semibold text-navy text-sm">1 × {booking.guests}</p>
-                    </div>
-                    <div>
-                      <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider mb-1">Booked On</p>
-                      <p className="font-poppins font-semibold text-navy text-sm">{fmt(booking.createdAt)}</p>
-                    </div>
-                    <div>
-                      <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider mb-1">Payment</p>
-                      <p className="font-poppins font-semibold text-navy text-sm capitalize">
-                        {booking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel' : booking.paymentMethod}
+                      <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Check-Out</p>
+                      <p className="font-bold text-gray-900 font-poppins text-sm">
+                        {new Date(booking.checkOut).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} (11:00 AM)
                       </p>
                     </div>
                   </div>
 
-                  <div className="h-px bg-gray-100" />
+                  {/* Row 4 */}
+                  <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5">
+                    <div>
+                      <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Nights</p>
+                      <p className="font-bold text-gray-900 font-poppins text-sm">{booking.nights || nights}</p>
+                    </div>
+                    <div>
+                      <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Rooms × Guests</p>
+                      <p className="font-bold text-gray-900 font-poppins text-sm">1 × {booking.guests}</p>
+                    </div>
+                  </div>
+
+                  {/* Row 5 */}
+                  <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5">
+                    <div className="col-span-2">
+                      <p className="font-poppins text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Booked On</p>
+                      <p className="font-bold text-gray-900 font-poppins text-sm">{fmt(booking.createdAt)}</p>
+                    </div>
+                  </div>
 
                   {/* Pricing */}
-                  <div className="space-y-2 font-poppins text-sm">
-                    <div className="flex justify-between text-gray-500">
-                      <span>Room Charges ({booking.nights || nights} Night{nights > 1 ? 's' : ''})</span>
-                      <span>₹{baseAmount.toLocaleString()}</span>
+                  <div className="border-t border-gray-100 pt-6 mt-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-xs text-gray-500 font-medium">Room Charges ({booking.nights || nights} Nights)</p>
+                      <p className="text-xs text-gray-600 font-medium">₹{baseAmount.toLocaleString()}</p>
                     </div>
-                    <div className="flex justify-between text-gray-500">
-                      <span>GST (12%)</span>
-                      <span>₹{gst.toLocaleString()}</span>
+                    <div className="flex justify-between items-center mb-4">
+                      <p className="text-xs text-gray-500 font-medium">GST (12%)</p>
+                      <p className="text-xs text-gray-600 font-medium">₹{gst.toLocaleString()}</p>
                     </div>
-                    <div className="flex justify-between font-bold text-base border-t border-gray-100 pt-2">
-                      <span className="text-navy">Total Amount</span>
-                      <span className="text-gold">₹{totalWithGst.toLocaleString()}</span>
+                    <div className="flex justify-between items-end">
+                      <p className="font-bold text-gray-900 font-poppins text-sm">Total Amount</p>
+                      <p className="font-playfair font-bold text-gold text-2xl">₹{totalWithGst.toLocaleString()}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Print Button */}
-                <div className="px-6 pb-6">
+                {/* Print Button (Hidden in Print) */}
+                <div className="bg-gray-50 border-t border-gray-100 px-6 py-4">
                   <button
                     onClick={handlePrint}
                     className="w-full flex items-center justify-center gap-2 bg-navy text-white
