@@ -457,28 +457,289 @@ export default function ManageBookingPage() {
           )}
         </AnimatePresence>
 
+        {/* Printable Invoice (Hidden on Screen, Visible on Print) */}
+        {booking && (
+          <div className="printable-invoice">
+            {/* Header with Logo and Hotel Info */}
+            <div className="invoice-header">
+              <div className="hotel-logo-section">
+                <h1 className="hotel-title">ARLINJAI PARADISE</h1>
+                <p className="hotel-tagline">FOR A PLEASANT STAY</p>
+              </div>
+              <div className="hotel-contact-section">
+                <p><strong>Arlinjai Paradise Hotel</strong></p>
+                <p>No. 5/69, Beach Road, Kanyakumari – 629702</p>
+                <p>Phone: +91 94862 71234, 04652 271234</p>
+                <p>Email: booking@arlinjaiparadise.com</p>
+                <p>GSTIN: 33ARLINJAI1234Z5</p>
+              </div>
+            </div>
+
+            {/* Divider Line */}
+            <div className="invoice-divider"></div>
+
+            {/* Invoice Metadata and Bill To */}
+            <div className="invoice-meta-row">
+              <div className="bill-to">
+                <h3 className="section-title">BILL TO</h3>
+                <p className="guest-name">{booking.guest?.name || booking.guest}</p>
+                <p>Phone: {booking.guest?.phone || booking.phone}</p>
+                <p>Email: {booking.guest?.email || booking.email}</p>
+              </div>
+              <div className="invoice-details">
+                <h3 className="section-title">RECEIPT DETAILS</h3>
+                <p><strong>Receipt No:</strong> INV-{booking.bookingId || booking.id}</p>
+                <p><strong>Date:</strong> {new Date(booking.createdAt || Date.now()).toLocaleDateString('en-IN')}</p>
+                <p><strong>Status:</strong> <span className="status-badge" style={{ backgroundColor: statusCfg?.bg, color: statusCfg?.color }}>{statusCfg?.label}</span></p>
+                <p><strong>Payment:</strong> {booking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel (Cash/UPI)' : 'UPI Transfer'}</p>
+              </div>
+            </div>
+
+            {/* Booking Details Table */}
+            <table className="invoice-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th className="text-center">Check-In / Check-Out</th>
+                  <th className="text-center">Guests</th>
+                  <th className="text-center">Rate/Night</th>
+                  <th className="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong>Room Charge ({booking.roomSnapshot?.name || booking.room})</strong>
+                    <p className="nights-desc">{booking.nights || nights} Night(s)</p>
+                  </td>
+                  <td className="text-center">
+                    <div>{new Date(booking.checkIn).toLocaleDateString('en-IN')} ({booking.checkInTime || '12:00 PM'})</div>
+                    <div>{new Date(booking.checkOut).toLocaleDateString('en-IN')} ({booking.checkOutTime || '11:00 AM'})</div>
+                  </td>
+                  <td className="text-center">1 Room × {booking.guests} Guests</td>
+                  <td className="text-center">₹{baseAmount ? Math.round(baseAmount / (booking.nights || nights || 1)).toLocaleString() : 0}</td>
+                  <td className="text-right">₹{baseAmount.toLocaleString()}</td>
+                </tr>
+                <tr className="subtotal-row">
+                  <td colSpan="3"></td>
+                  <td className="text-right font-medium">Subtotal</td>
+                  <td className="text-right font-medium">₹{baseAmount.toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td colSpan="3"></td>
+                  <td className="text-right text-gray-500">GST (12%)</td>
+                  <td className="text-right text-gray-500">₹{gst.toLocaleString()}</td>
+                </tr>
+                <tr className="total-row">
+                  <td colSpan="3"></td>
+                  <td className="text-right font-bold">Total Amount</td>
+                  <td className="text-right font-bold text-gold">₹{totalWithGst.toLocaleString()}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Footer Section */}
+            <div className="invoice-footer">
+              <div className="terms">
+                <h4>Terms & Conditions</h4>
+                <p>1. Please present a valid government-issued ID upon arrival.</p>
+                <p>2. Standard Check-in is 12:00 PM and Check-out is 11:00 AM.</p>
+                <p>3. Guests are responsible for any damage caused to hotel property.</p>
+              </div>
+              <div className="signature-section">
+                <p className="signature-title">Authorized Signature</p>
+                <div className="signature-line">
+                  <span className="signature-font">Arlinjai Paradise</span>
+                </div>
+                <p className="signature-date">{new Date().toLocaleDateString('en-IN')}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* Print Styles */}
       <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .print-card, .print-card * {
-            visibility: visible;
-          }
-          .print-card {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0 !important;
-            box-shadow: none !important;
-          }
-          /* Hide the print button itself during printing */
-          .print-card button {
+        @media screen {
+          .printable-invoice {
             display: none !important;
+          }
+        }
+        @media print {
+          /* Hide all screen elements */
+          body * {
+            visibility: hidden !important;
+          }
+          /* Show only the printable invoice card */
+          .printable-invoice, .printable-invoice * {
+            visibility: visible !important;
+          }
+          .printable-invoice {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            background: #ffffff !important;
+            color: #333333 !important;
+            font-family: 'Poppins', sans-serif !important;
+          }
+          .invoice-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            margin-bottom: 25px !important;
+          }
+          .hotel-logo-section .hotel-title {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 24px !important;
+            font-weight: 800 !important;
+            color: #08111F !important;
+            margin: 0 !important;
+          }
+          .hotel-logo-section .hotel-tagline {
+            font-size: 9px !important;
+            letter-spacing: 3px !important;
+            color: #C9A227 !important;
+            margin: 3px 0 0 0 !important;
+            text-transform: uppercase !important;
+            font-weight: 600 !important;
+          }
+          .hotel-contact-section {
+            text-align: right !important;
+            font-size: 11px !important;
+            color: #555555 !important;
+            line-height: 1.5 !important;
+          }
+          .invoice-divider {
+            height: 2px !important;
+            background: linear-gradient(90deg, #08111F, #C9A227, #08111F) !important;
+            margin-bottom: 25px !important;
+          }
+          .invoice-meta-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            margin-bottom: 25px !important;
+          }
+          .bill-to, .invoice-details {
+            width: 48% !important;
+          }
+          .section-title {
+            font-size: 10px !important;
+            letter-spacing: 2px !important;
+            color: #C9A227 !important;
+            border-bottom: 1px solid #eeeeee !important;
+            padding-bottom: 5px !important;
+            margin-bottom: 10px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+          }
+          .bill-to p, .invoice-details p {
+            font-size: 12px !important;
+            color: #444444 !important;
+            margin: 3px 0 !important;
+          }
+          .bill-to .guest-name {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            color: #08111F !important;
+            margin-bottom: 5px !important;
+          }
+          .status-badge {
+            padding: 2px 8px !important;
+            border-radius: 9999px !important;
+            font-size: 10px !important;
+            font-weight: 600 !important;
+          }
+          .invoice-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin-bottom: 30px !important;
+          }
+          .invoice-table th {
+            background: #08111F !important;
+            color: #ffffff !important;
+            font-size: 11px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            padding: 8px 12px !important;
+            font-weight: 600 !important;
+            text-align: left !important;
+          }
+          .invoice-table td {
+            padding: 12px !important;
+            border-bottom: 1px solid #eeeeee !important;
+            font-size: 12px !important;
+            color: #444444 !important;
+          }
+          .nights-desc {
+            font-size: 10px !important;
+            color: #777777 !important;
+            margin: 2px 0 0 0 !important;
+          }
+          .text-center { text-align: center !important; }
+          .text-right { text-align: right !important; }
+          .font-medium { font-weight: 500 !important; }
+          .font-bold { font-weight: 700 !important; }
+          .text-gold { color: #C9A227 !important; }
+          .subtotal-row td {
+            border-top: 1px solid #dddddd !important;
+            padding-top: 12px !important;
+          }
+          .total-row td {
+            font-size: 14px !important;
+            color: #08111F !important;
+            border-bottom: double 3px #C9A227 !important;
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
+          }
+          .invoice-footer {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-end !important;
+            margin-top: 40px !important;
+          }
+          .terms {
+            width: 60% !important;
+          }
+          .terms h4 {
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            color: #08111F !important;
+            margin: 0 0 8px 0 !important;
+          }
+          .terms p {
+            font-size: 10px !important;
+            color: #666666 !important;
+            margin: 3px 0 !important;
+            line-height: 1.4 !important;
+          }
+          .signature-section {
+            text-align: center !important;
+            width: 35% !important;
+          }
+          .signature-title {
+            font-size: 11px !important;
+            color: #555555 !important;
+            margin-bottom: 10px !important;
+          }
+          .signature-line {
+            border-bottom: 1px solid #cccccc !important;
+            padding-bottom: 5px !important;
+            margin-bottom: 5px !important;
+          }
+          .signature-font {
+            font-family: 'Brush Script MT', cursive, sans-serif !important;
+            font-size: 18px !important;
+            color: #08111F !important;
+            font-style: italic !important;
+          }
+          .signature-date {
+            font-size: 10px !important;
+            color: #777777 !important;
           }
         }
       `}</style>
