@@ -74,8 +74,30 @@ export default function ManageBookingPage() {
     } catch {
       // Try demo fallback
       const demo = DEMO_BOOKINGS.find((b) => b.bookingId === id)
-      if (demo) { setBooking(demo) }
-      else { setNotFound(true) }
+      if (demo) { 
+        setBooking(demo) 
+      } else { 
+        // Try localStorage (offline bookings)
+        const localBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+        const local = localBookings.find(b => b.id === id)
+        if (local) {
+          setBooking({
+            bookingId: local.id,
+            status: local.status || 'pending',
+            guest: { name: local.guest, phone: local.phone, email: local.email },
+            roomSnapshot: { name: local.room },
+            checkIn: local.checkIn,
+            checkOut: local.checkOut,
+            nights: local.nights,
+            guests: local.guests,
+            pricing: { finalAmount: local.amount },
+            createdAt: local.createdAt,
+            paymentMethod: local.paymentMethod,
+          })
+        } else {
+          setNotFound(true) 
+        }
+      }
     } finally {
       setLoading(false)
     }
