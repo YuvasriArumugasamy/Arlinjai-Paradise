@@ -116,8 +116,8 @@ export default function BookingsPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-card overflow-hidden">
+      {/* Desktop Table View (Hidden on small screens) */}
+      <div className="hidden md:block bg-white rounded-xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -181,7 +181,67 @@ export default function BookingsPage() {
         </div>
         {filtered.length === 0 && (
           <div className="text-center py-16 font-poppins text-gray-500">
-            {bookings.length === 0 ? 'No bookings yet. Bookings will appear here after guests complete the booking form.' : 'No bookings found matching your criteria'}
+            {bookings.length === 0 ? 'No bookings yet.' : 'No bookings found matching your criteria'}
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Card View (Hidden on medium screens and up) */}
+      <div className="md:hidden space-y-4">
+        {filtered.map((booking, i) => {
+          const st = STATUS_STYLES[booking.status] || STATUS_STYLES.pending
+          return (
+            <motion.div
+              key={booking.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03 }}
+              className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setSelectedBooking(booking)}
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <p className="font-poppins text-xs text-gray-500 mb-0.5">Booking ID</p>
+                  <p className="font-poppins font-bold text-gold text-sm">{booking.id}</p>
+                </div>
+                <span className={`font-poppins text-[10px] font-semibold px-2.5 py-1 rounded-full ${st.bg} ${st.text}`}>
+                  {st.label}
+                </span>
+              </div>
+              
+              <div className="space-y-2.5 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-lightbg flex items-center justify-center flex-shrink-0">
+                    <FaUser className="text-gray-400" size={10} />
+                  </div>
+                  <p className="font-poppins text-sm font-medium text-navy truncate">{booking.guest}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-lightbg flex items-center justify-center flex-shrink-0">
+                    <FaBed className="text-gray-400" size={10} />
+                  </div>
+                  <p className="font-poppins text-sm text-gray-600 truncate">{booking.room}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-lightbg flex items-center justify-center flex-shrink-0">
+                    <FaCalendarAlt className="text-gray-400" size={10} />
+                  </div>
+                  <p className="font-poppins text-xs text-gray-500">
+                    {fmt(booking.checkIn)} <span className="text-gray-300 mx-1">→</span> {fmt(booking.checkOut)}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                <p className="font-poppins text-xs text-gray-500">{booking.nights} Night(s)</p>
+                <p className="font-poppins text-sm font-bold text-navy">₹{(booking.amount || 0).toLocaleString()}</p>
+              </div>
+            </motion.div>
+          )
+        })}
+        {filtered.length === 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center font-poppins text-gray-500 text-sm">
+            {bookings.length === 0 ? 'No bookings yet.' : 'No bookings found matching your criteria'}
           </div>
         )}
       </div>
