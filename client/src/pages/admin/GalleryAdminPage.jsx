@@ -139,16 +139,17 @@ export default function GalleryAdminPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-xl shadow-2xl w-full max-w-md"
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col"
+            style={{ maxHeight: '90vh' }}
           >
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 flex-shrink-0">
               <h3 className="font-playfair font-bold text-navy text-lg">Add Gallery Image</h3>
               <button onClick={closeModal} className="text-gray-400 hover:text-navy">
                 <FaTimes size={18} />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
               {/* Drop zone */}
               <div
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
@@ -228,7 +229,7 @@ export default function GalleryAdminPage() {
                 </select>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-2 sticky bottom-0 bg-white pb-1">
                 <button
                   onClick={handleAdd}
                   className="btn-gold flex-1 py-3 flex items-center justify-center gap-2"
