@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FaSave, FaHotel, FaLock, FaBell, FaEnvelope, FaCalendarAlt, FaEye, FaEyeSlash } from 'react-icons/fa'
+import { FaSave, FaHotel, FaLock, FaBell, FaCalendarAlt, FaEye, FaEyeSlash } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import axios from 'axios'
 import { HOTEL_INFO, API_BASE_URL } from '../../constants'
@@ -9,7 +9,6 @@ const TABS = [
   { id: 'general', label: 'General', icon: FaHotel },
   { id: 'blocking', label: 'Room Blocking', icon: FaCalendarAlt },
   { id: 'notifications', label: 'Notifications', icon: FaBell },
-  { id: 'email', label: 'Email', icon: FaEnvelope },
   { id: 'security', label: 'Security', icon: FaLock },
 ]
 
@@ -312,36 +311,6 @@ export default function SettingsPage() {
                   </button>
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Email Config */}
-          {activeTab === 'email' && (
-            <div className="space-y-5">
-              <h3 className="font-playfair font-bold text-navy text-lg border-b border-gray-100 pb-4">
-                Email Configuration (SMTP)
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="label-text">SMTP Host</label>
-                  <input type="text" value={settings.smtpHost} onChange={(e) => setSettings({ ...settings, smtpHost: e.target.value })} className="input-field" />
-                </div>
-                <div>
-                  <label className="label-text">SMTP Port</label>
-                  <input type="text" value={settings.smtpPort} onChange={(e) => setSettings({ ...settings, smtpPort: e.target.value })} className="input-field" />
-                </div>
-                <div>
-                  <label className="label-text">SMTP Username</label>
-                  <input type="email" value={settings.smtpUser} onChange={(e) => setSettings({ ...settings, smtpUser: e.target.value })} placeholder="your@email.com" className="input-field" />
-                </div>
-                <div>
-                  <label className="label-text">SMTP Password</label>
-                  <input type="password" value={settings.smtpPass} onChange={(e) => setSettings({ ...settings, smtpPass: e.target.value })} placeholder="App password" className="input-field" />
-                </div>
-              </div>
-              <p className="font-poppins text-xs text-gray-500 bg-blue-50 border border-blue-200 p-3 rounded">
-                💡 For Gmail, use App Passwords (not your regular Gmail password). Enable 2FA and create an App Password in your Google Account settings.
-              </p>
             </div>
           )}
 
