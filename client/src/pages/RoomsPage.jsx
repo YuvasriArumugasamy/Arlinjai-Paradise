@@ -362,27 +362,27 @@ export default function RoomsPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 mt-4 border-t border-gray-100 gap-3">
                           <div>
                             <div className="flex items-baseline gap-1">
-                              <span className="font-playfair text-3xl font-bold text-gold">
+                              <span className="font-playfair text-2xl font-bold text-gold">
                                 ₹{room.price.toLocaleString()}
                               </span>
                               <span className="font-poppins text-sm text-gray-500">/night</span>
                             </div>
                           </div>
-                          <div className="flex gap-3">
+                          <div className="flex gap-2 w-full sm:w-auto">
                             <Link
                               to={`/rooms/${room.slug}`}
-                              className="btn-outline-gold text-sm px-4 py-2"
+                              className="btn-outline-gold text-sm px-4 py-2 flex-1 sm:flex-none text-center"
                             >
                               Details
                             </Link>
                             <StarButtonLink
                               to={`/booking?roomType=${room.id}`}
-                              className="text-sm px-5 py-2 inline-flex items-center gap-1.5"
+                              className="text-sm px-4 py-2 inline-flex items-center justify-center gap-1.5 flex-1 sm:flex-none"
                             >
-                              Book
+                              Book Now
                               <FaArrowRight size={12} />
                             </StarButtonLink>
                           </div>
