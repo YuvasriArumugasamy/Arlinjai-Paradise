@@ -656,7 +656,7 @@ export default function BookingPage() {
             setPaymentLoading(true)
 
             const rzpOptions = {
-              key: 'rzp_test_TBQFlwkgpJUzzm',
+              key: 'rzp_test_TBQl2GSohl5ZkT',
               amount: totalPrice * 100, // paise
               currency: 'INR',
               name: 'Arlinjai Paradise',
@@ -673,6 +673,27 @@ export default function BookingPage() {
                 checkOut: bookingData.checkOut,
               },
               theme: { color: '#C9A96E' },
+              method: {
+                upi: true,
+                card: true,
+                netbanking: true,
+                wallet: true,
+                upi_intent: true,
+              },
+              config: {
+                display: {
+                  blocks: {
+                    upi_block: {
+                      name: 'Pay via UPI / QR Code',
+                      instruments: [
+                        { method: 'upi', flows: ['qr', 'collect', 'intent'] },
+                      ],
+                    },
+                  },
+                  sequence: ['block.upi_block'],
+                  preferences: { show_default_blocks: true },
+                },
+              },
               modal: {
                 ondismiss: () => {
                   setPaymentLoading(false)
