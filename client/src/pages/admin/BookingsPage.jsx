@@ -145,10 +145,9 @@ export default function BookingsPage() {
                       {booking.id}
                     </td>
                     <td className="px-3 py-3">
-                      <p className="font-poppins text-sm font-medium text-navy whitespace-nowrap">{booking.guest}</p>
-                      <p className="font-poppins text-xs text-gray-500 whitespace-nowrap">{booking.email}</p>
+                      <p className="font-poppins text-sm font-medium text-navy">{booking.guest}</p>
                     </td>
-                    <td className="px-3 py-3 font-poppins text-sm text-gray-600 whitespace-nowrap">
+                    <td className="px-3 py-3 font-poppins text-sm text-gray-600">
                       {booking.room}
                     </td>
                     <td className="px-3 py-3 font-poppins text-sm text-gray-600 whitespace-nowrap">
