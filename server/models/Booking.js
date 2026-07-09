@@ -17,6 +17,8 @@ const bookingSchema = new mongoose.Schema(
       },
       phone: { type: String, required: true, trim: true },
       address: { type: String, trim: true },
+      gender: { type: String, enum: ['Male', 'Female', 'Other'], default: null },
+      dob: { type: Date, default: null },
     },
     room: {
       type: mongoose.Schema.Types.ObjectId,
@@ -98,7 +100,7 @@ const bookingSchema = new mongoose.Schema(
 bookingSchema.pre('save', async function (next) {
   if (!this.bookingId) {
     const count = await mongoose.model('Booking').countDocuments()
-    this.bookingId = `AP${String(count + 1).padStart(4, '0')}`
+    this.bookingId = `AP${String(count + 1).padStart(6, '0')}`
   }
   next()
 })

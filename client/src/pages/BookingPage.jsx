@@ -3,7 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaCheck, FaUser, FaEnvelope, FaPhoneAlt, FaBed,
-  FaCalendarAlt, FaUsers, FaArrowRight, FaArrowLeft
+  FaCalendarAlt, FaUsers, FaArrowRight, FaArrowLeft,
+  FaVenusMars, FaBirthdayCake
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import axios from 'axios'
@@ -72,6 +73,8 @@ export default function BookingPage() {
     checkOut: searchParams.get('checkOut') || '',
     guests: parseInt(searchParams.get('guests') || '2'),
     name: '',
+    gender: '',
+    dob: '',
     email: '',
     phone: '',
     address: '',
@@ -209,11 +212,26 @@ export default function BookingPage() {
   )
 
   // Step 1: Guest Details
-  const Step1 = () => (
+  const Step1 = () => {
+    // Calculate age from DOB
+    const getAge = (dob) => {
+      if (!dob) return null
+      const today = new Date()
+      const birth = new Date(dob)
+      let age = today.getFullYear() - birth.getFullYear()
+      const m = today.getMonth() - birth.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+      return age
+    }
+    const age = getAge(bookingData.dob)
+
+    return (
     <div>
       <h2 className="font-playfair text-2xl font-bold text-navy mb-6">Your Details</h2>
       <div className="bg-white rounded-sm shadow-card p-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+          {/* Full Name */}
           <div>
             <label className="label-text flex items-center gap-2">
               <FaUser size={11} className="text-gold" /> Full Name *
@@ -227,6 +245,57 @@ export default function BookingPage() {
               required
             />
           </div>
+
+          {/* Gender */}
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaVenusMars size={11} className="text-gold" /> Gender *
+            </label>
+            <div className="flex gap-3 mt-1">
+              {['Male', 'Female', 'Other'].map((g) => (
+                <label
+                  key={g}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-sm border cursor-pointer
+                    font-poppins text-sm font-medium transition-colors
+                    ${bookingData.gender === g
+                      ? 'border-gold bg-gold bg-opacity-10 text-gold'
+                      : 'border-gray-200 text-gray-500 hover:border-gold'}`}
+                >
+                  <input
+                    type="radio"
+                    name="gender"
+                    value={g}
+                    checked={bookingData.gender === g}
+                    onChange={() => updateBooking('gender', g)}
+                    className="hidden"
+                  />
+                  {g === 'Male' ? '♂' : g === 'Female' ? '♀' : '⚧'} {g}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Date of Birth */}
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaBirthdayCake size={11} className="text-gold" /> Date of Birth *
+            </label>
+            <input
+              type="date"
+              value={bookingData.dob}
+              max={today}
+              onChange={(e) => updateBooking('dob', e.target.value)}
+              className="input-field"
+              required
+            />
+            {age !== null && (
+              <p className={`font-poppins text-xs mt-1 ${age < 18 ? 'text-red-500' : 'text-green-600'}`}>
+                Age: {age} years {age < 18 ? '— Must be 18+ to book' : '✓'}
+              </p>
+            )}
+          </div>
+
+          {/* Phone */}
           <div>
             <label className="label-text flex items-center gap-2">
               <FaPhoneAlt size={11} className="text-gold" /> Phone Number *
@@ -240,6 +309,8 @@ export default function BookingPage() {
               required
             />
           </div>
+
+          {/* Email */}
           <div className="sm:col-span-2">
             <label className="label-text flex items-center gap-2">
               <FaEnvelope size={11} className="text-gold" /> Email Address *
@@ -253,6 +324,8 @@ export default function BookingPage() {
               required
             />
           </div>
+
+          {/* Address */}
           <div className="sm:col-span-2">
             <label className="label-text">Address</label>
             <textarea
@@ -263,6 +336,8 @@ export default function BookingPage() {
               className="input-field resize-none"
             />
           </div>
+
+          {/* Special Requests */}
           <div className="sm:col-span-2">
             <label className="label-text">Special Requests</label>
             <textarea
@@ -283,7 +358,20 @@ export default function BookingPage() {
         <button
           onClick={() => {
             if (!bookingData.name || !bookingData.email || !bookingData.phone) {
-              toast.error('Please fill in all required fields')
+              toast.error('Please fill in name, email and phone')
+              return
+            }
+            if (!bookingData.gender) {
+              toast.error('Please select your gender')
+              return
+            }
+            if (!bookingData.dob) {
+              toast.error('Please enter your date of birth')
+              return
+            }
+            const age = getAge(bookingData.dob)
+            if (age < 18) {
+              toast.error('You must be 18 or older to make a booking')
               return
             }
             goToStep(2)
@@ -294,7 +382,7 @@ export default function BookingPage() {
         </button>
       </div>
     </div>
-  )
+  )}
 
   // Step 2: Review
   const Step2 = () => (
@@ -346,6 +434,8 @@ export default function BookingPage() {
           <div className="space-y-3 font-poppins text-sm">
             {[
               { label: 'Name', value: bookingData.name },
+              { label: 'Gender', value: bookingData.gender },
+              { label: 'Date of Birth', value: bookingData.dob ? new Date(bookingData.dob).toLocaleDateString('en-IN') : '' },
               { label: 'Email', value: bookingData.email },
               { label: 'Phone', value: bookingData.phone },
               { label: 'Special Requests', value: bookingData.specialRequests || 'None' },
@@ -397,8 +487,7 @@ export default function BookingPage() {
           onClick={async () => {
             setLoading(true)
             try {
-              const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData)
-              setBookingId(res.data.bookingId || 'AP' + Date.now())
+              const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData)              setBookingId(res.data.bookingId || 'AP' + Date.now())
               goToStep(3)
             } catch {
               toast.error('Booking failed. Please try again or call us.')
