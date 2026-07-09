@@ -48,10 +48,10 @@ export default function CalendarPage() {
   const allocations = []
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full font-poppins">
+    <div className="flex flex-col gap-6 font-poppins">
       
-      {/* Main Calendar Area */}
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col overflow-hidden">
+      {/* Main Calendar Card — full width */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col overflow-hidden">
         
         {/* Toolbar */}
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -92,8 +92,8 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Grid Area */}
-        <div className="flex-1 overflow-auto scrollbar-hide">
+        {/* Grid Area — scrollable horizontally, full vertical */}
+        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '540px' }}>
           <div className="min-w-[1000px] border-b border-gray-100 flex">
             {/* Rooms Header */}
             <div className="w-48 flex-shrink-0 border-r border-gray-100 p-3 bg-gray-50 flex items-end">
@@ -139,14 +139,14 @@ export default function CalendarPage() {
             ))}
           </div>
         </div>
-        
+        {/* end Grid Area */}
 
       </div>
+      {/* end Calendar Card */}
 
-      {/* Right Sidebar: Room Allocations */}
-      <div className="w-full lg:w-80 flex-shrink-0">
-        <div className="bg-white rounded-xl shadow-sm border border-gold border-opacity-30 p-5 h-full">
-          <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-3">
+      {/* Room Allocations — below calendar, full width */}
+      <div className="bg-white rounded-xl shadow-sm border border-gold border-opacity-30 p-5">
+        <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-3">
             <FaThumbtack className="text-red-500" />
             <h3 className="font-playfair font-bold text-navy text-lg">Room Allocations</h3>
           </div>
@@ -201,8 +201,8 @@ export default function CalendarPage() {
             )}
           </div>
         </div>
-      </div>
-      
+      {/* end Room Allocations */}
+
     </div>
   )
 }
