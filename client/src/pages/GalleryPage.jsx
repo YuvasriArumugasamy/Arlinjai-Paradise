@@ -14,14 +14,9 @@ const loadGalleryImages = () => {
       const parsed = JSON.parse(saved)
       return parsed.map(img => {
         if (img.url && (img.url.endsWith('.jpeg') || img.url.endsWith('.jpg') || img.url.endsWith('.png')) && !img.url.startsWith('data:')) {
-          // Convert extension to .webp
+          // Only replace the last extension with .webp
           const lastDot = img.url.lastIndexOf('.')
-          const urlWithoutExt = img.url.substring(0, lastDot)
-          if (urlWithoutExt.toLowerCase().endsWith('.jpg')) {
-            const innerDot = urlWithoutExt.lastIndexOf('.')
-            return { ...img, url: urlWithoutExt.substring(0, innerDot) + '.webp' }
-          }
-          return { ...img, url: urlWithoutExt + '.webp' }
+          return { ...img, url: img.url.substring(0, lastDot) + '.webp' }
         }
         return img
       })

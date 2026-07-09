@@ -7,10 +7,10 @@ import { StarButtonLink } from './StarButton'
 
 const navLinks = [
   { label: 'Home', path: '/' },
+  { label: 'About Us', path: '/about' },
   { label: 'Rooms', path: '/rooms' },
   { label: 'Gallery', path: '/gallery' },
   { label: 'Explore Kanyakumari', path: '/explore' },
-  { label: 'About Us', path: '/about' },
   { label: 'Contact Us', path: '/contact' },
   { label: 'Manage Booking', path: '/manage-booking' },
 ]
