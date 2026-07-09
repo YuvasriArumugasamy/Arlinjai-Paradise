@@ -122,8 +122,8 @@ export default function BookingsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100 bg-lightbg">
-                {['ID', 'Guest', 'Room', 'Check In', 'Check Out', 'Nights', 'Amount', 'Status', 'Actions'].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 font-poppins text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                {['ID', 'Guest', 'Room', 'Dates', 'Amount', 'Status', 'Actions'].map((h) => (
+                  <th key={h} className="text-left px-3 py-3 font-poppins text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -141,34 +141,29 @@ export default function BookingsPage() {
                     className="hover:bg-gray-50 transition-colors cursor-pointer group"
                     onClick={() => setSelectedBooking(booking)}
                   >
-                    <td className="px-4 py-3.5 font-poppins text-sm font-semibold text-gold whitespace-nowrap">
+                    <td className="px-3 py-3 font-poppins text-sm font-semibold text-gold whitespace-nowrap">
                       {booking.id}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-3">
                       <p className="font-poppins text-sm font-medium text-navy whitespace-nowrap">{booking.guest}</p>
                       <p className="font-poppins text-xs text-gray-500 whitespace-nowrap">{booking.email}</p>
                     </td>
-                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 whitespace-nowrap">
+                    <td className="px-3 py-3 font-poppins text-sm text-gray-600 whitespace-nowrap">
                       {booking.room}
                     </td>
-                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 whitespace-nowrap">
-                      {fmt(booking.checkIn)}
+                    <td className="px-3 py-3 font-poppins text-sm text-gray-600 whitespace-nowrap">
+                      <div>{fmt(booking.checkIn)} - {fmt(booking.checkOut)}</div>
+                      <div className="text-xs text-gray-400">{booking.nights} Night(s)</div>
                     </td>
-                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 whitespace-nowrap">
-                      {fmt(booking.checkOut)}
-                    </td>
-                    <td className="px-4 py-3.5 font-poppins text-sm text-gray-600 text-center">
-                      {booking.nights}
-                    </td>
-                    <td className="px-4 py-3.5 font-poppins text-sm font-bold text-navy whitespace-nowrap">
+                    <td className="px-3 py-3 font-poppins text-sm font-bold text-navy whitespace-nowrap">
                       ₹{(booking.amount || 0).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-3">
                       <span className={`font-poppins text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${st.bg} ${st.text}`}>
                         {st.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-3">
                       <button className="text-gray-400 group-hover:text-gold transition-colors p-1" title="View Details">
                         <FaEye size={16} />
                       </button>
