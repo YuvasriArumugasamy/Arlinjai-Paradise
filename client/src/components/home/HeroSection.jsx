@@ -31,7 +31,7 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('/ChatGPT Image Jul 5, 2026, 12_17_46 PM.png')`,
+          backgroundImage: `url('/ChatGPT Image Jul 5, 2026, 12_17_46 PM.webp')`,
         }}
       />
       {/* Overlay - stronger for better text clarity */}
@@ -48,7 +48,7 @@ export default function HeroSection() {
           className="mb-6"
         >
           <img
-            src="/Elegant monogram with seaside emblem.png"
+            src="/Elegant monogram with seaside emblem.webp"
             alt="Arlinjai Paradise Logo"
             className="w-20 h-20 md:w-24 md:h-24 object-contain rounded-full border-2 border-gold shadow-lg mx-auto"
           />

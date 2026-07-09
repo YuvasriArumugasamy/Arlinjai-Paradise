@@ -54,7 +54,7 @@ export default function Navbar() {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
               <img
-                src="/Elegant monogram with seaside emblem.png"
+                src="/Elegant monogram with seaside emblem.webp"
                 alt="Arlinjai Paradise Logo"
                 className="w-10 h-10 lg:w-12 lg:h-12 object-contain rounded-full border-2 border-gold"
               />

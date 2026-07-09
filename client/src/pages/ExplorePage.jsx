@@ -20,7 +20,7 @@ export default function ExplorePage() {
       <div
         className="relative py-24 md:py-32"
         style={{
-          backgroundImage: `linear-gradient(rgba(8,17,31,0.75), rgba(8,17,31,0.75)), url('/Screenshot 2026-07-05 100133.png')`,
+          backgroundImage: `linear-gradient(rgba(8,17,31,0.75), rgba(8,17,31,0.75)), url('/Screenshot 2026-07-05 100133.webp')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

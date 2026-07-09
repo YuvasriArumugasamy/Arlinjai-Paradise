@@ -117,7 +117,7 @@ export default function AboutPage() {
       {/* ── Hero Header ── */}
       <div style={{
         position: 'relative',
-        backgroundImage: `linear-gradient(rgba(8,17,31,0.76), rgba(8,17,31,0.76)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.jpeg')`,
+        backgroundImage: `linear-gradient(rgba(8,17,31,0.76), rgba(8,17,31,0.76)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.webp')`,
         backgroundSize: 'cover', backgroundPosition: 'center',
         padding: '140px 0 80px', textAlign: 'center', overflow: 'hidden',
       }}>
@@ -126,7 +126,7 @@ export default function AboutPage() {
           position: 'absolute', right: 48, top: '50%', transform: 'translateY(-50%)',
           opacity: 0.08, pointerEvents: 'none',
         }}>
-          <img src="/Elegant monogram with seaside emblem.png" alt=""
+          <img src="/Elegant monogram with seaside emblem.webp" alt=""
             style={{ width: 160, height: 160, objectFit: 'contain',
               filter: 'brightness(0) invert(1)' }} />
           <p style={{ fontFamily: 'Playfair Display,serif', color: '#fff',
@@ -203,7 +203,7 @@ export default function AboutPage() {
             <motion.div {...fadeUp(0.2)} style={{ position: 'relative' }}>
               <div style={{ borderRadius: 14, overflow: 'hidden',
                 boxShadow: '0 12px 48px rgba(0,0,0,0.16)' }}>
-                <img src="/B791C280-016C-4109-AD3A-787851527299.JPG.jpeg"
+                <img src="/B791C280-016C-4109-AD3A-787851527299.JPG.webp"
                   alt="Arlinjai Paradise Hotel"
                   style={{ width: '100%', height: 380, objectFit: 'cover', display: 'block' }} />
               </div>
@@ -296,7 +296,7 @@ export default function AboutPage() {
             <motion.div {...fadeUp(0.1)}
               style={{ borderRadius: 14, overflow: 'hidden',
                 boxShadow: '0 12px 48px rgba(0,0,0,0.14)' }}>
-              <img src="/Screenshot 2026-07-04 223125.png"
+              <img src="/Screenshot 2026-07-04 223125.webp"
                 alt="Our Promise"
                 style={{ width: '100%', height: 420, objectFit: 'cover', display: 'block' }} />
             </motion.div>

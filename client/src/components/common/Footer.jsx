@@ -28,7 +28,7 @@ export default function Footer() {
           <div className="flex flex-col items-start text-left">
             <div className="flex items-center gap-3 mb-4">
               <img
-                src="/Elegant monogram with seaside emblem.png"
+                src="/Elegant monogram with seaside emblem.webp"
                 alt="Arlinjai Paradise Logo"
                 className="w-12 h-12 object-contain rounded-full border-2 border-gold bg-white"
               />

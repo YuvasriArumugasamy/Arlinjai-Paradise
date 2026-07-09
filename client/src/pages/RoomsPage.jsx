@@ -61,7 +61,7 @@ export default function RoomsPage() {
           minHeight: '340px',
           display: 'flex',
           alignItems: 'center',
-          backgroundImage: `url('/Screenshot 2026-07-04 223125.png')`,
+          backgroundImage: `url('/Screenshot 2026-07-04 223125.webp')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

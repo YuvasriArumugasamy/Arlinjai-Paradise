@@ -43,7 +43,7 @@ export function useFCM() {
           if (Notification.permission === 'granted') {
             new Notification(title || 'Arlinjai Paradise', {
               body: body || 'You have a new notification.',
-              icon: '/Elegant monogram with seaside emblem.png',
+              icon: '/Elegant monogram with seaside emblem.webp',
             })
           }
         })

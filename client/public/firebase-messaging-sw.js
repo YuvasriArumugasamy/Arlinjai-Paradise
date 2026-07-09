@@ -24,8 +24,8 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(title || 'Arlinjai Paradise', {
     body:  body  || 'You have a new notification.',
-    icon:  icon  || '/Elegant monogram with seaside emblem.png',
-    badge: '/Elegant monogram with seaside emblem.png',
+    icon:  icon  || '/Elegant monogram with seaside emblem.webp',
+    badge: '/Elegant monogram with seaside emblem.webp',
     data:  payload.data || {},
   })
 })

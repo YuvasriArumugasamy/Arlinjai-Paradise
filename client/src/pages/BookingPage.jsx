@@ -726,7 +726,7 @@ export default function BookingPage() {
       <div
         className="py-20"
         style={{
-          backgroundImage: `linear-gradient(rgba(8,17,31,0.85), rgba(8,17,31,0.85)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.jpeg')`,
+          backgroundImage: `linear-gradient(rgba(8,17,31,0.85), rgba(8,17,31,0.85)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.webp')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
