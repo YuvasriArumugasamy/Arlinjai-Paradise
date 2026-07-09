@@ -537,7 +537,8 @@ export default function BookingPage() {
           onClick={async () => {
             setLoading(true)
             try {
-              const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData)              setBookingId(res.data.bookingId || 'AP' + Date.now())
+              const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData)
+              setBookingId(res.data.bookingId || 'AP' + Date.now())
               goToStep(3)
             } catch {
               toast.error('Booking failed. Please try again or call us.')
