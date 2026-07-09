@@ -139,17 +139,19 @@ export default function GalleryAdminPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col"
-            style={{ maxHeight: '90vh' }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md"
+            style={{ height: 'min(90vh, 680px)', display: 'flex', flexDirection: 'column' }}
           >
-            <div className="flex items-center justify-between p-6 border-b border-gray-100 flex-shrink-0">
+            {/* Fixed Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
               <h3 className="font-playfair font-bold text-navy text-lg">Add Gallery Image</h3>
               <button onClick={closeModal} className="text-gray-400 hover:text-navy">
                 <FaTimes size={18} />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 overflow-y-auto flex-1">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
               {/* Drop zone */}
               <div
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
@@ -229,18 +231,22 @@ export default function GalleryAdminPage() {
                 </select>
               </div>
 
-              <div className="flex gap-3 pt-2 sticky bottom-0 bg-white pb-1">
-                <button
-                  onClick={handleAdd}
-                  className="btn-gold flex-1 py-3 flex items-center justify-center gap-2"
-                >
-                  <FaUpload size={12} /> Add to Gallery
-                </button>
-                <button onClick={closeModal} className="btn-outline-gold flex-1 py-3">
-                  Cancel
-                </button>
-              </div>
             </div>
+            {/* end scrollable content */}
+
+            {/* Fixed Footer Buttons — always visible */}
+            <div className="px-6 py-4 border-t border-gray-100 flex-shrink-0 flex gap-3 bg-white rounded-b-xl">
+              <button
+                onClick={handleAdd}
+                className="btn-gold flex-1 py-3 flex items-center justify-center gap-2"
+              >
+                <FaUpload size={12} /> Add to Gallery
+              </button>
+              <button onClick={closeModal} className="btn-outline-gold flex-1 py-3">
+                Cancel
+              </button>
+            </div>
+
           </motion.div>
         </div>
       )}
