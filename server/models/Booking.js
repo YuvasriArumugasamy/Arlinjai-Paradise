@@ -19,6 +19,8 @@ const bookingSchema = new mongoose.Schema(
       address: { type: String, trim: true },
       gender: { type: String, enum: ['Male', 'Female', 'Other'], default: null },
       dob: { type: Date, default: null },
+      idType: { type: String, trim: true, default: null },
+      idNumber: { type: String, trim: true, default: null },
     },
     room: {
       type: mongoose.Schema.Types.ObjectId,

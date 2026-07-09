@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaCheck, FaUser, FaEnvelope, FaPhoneAlt, FaBed,
   FaCalendarAlt, FaUsers, FaArrowRight, FaArrowLeft,
-  FaVenusMars, FaBirthdayCake
+  FaVenusMars, FaBirthdayCake, FaIdCard
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import axios from 'axios'
@@ -78,6 +78,8 @@ export default function BookingPage() {
     email: '',
     phone: '',
     address: '',
+    idType: '',
+    idNumber: '',
     specialRequests: '',
     paymentMethod: 'pay_at_hotel',
   })
@@ -337,6 +339,45 @@ export default function BookingPage() {
             />
           </div>
 
+          {/* Government ID Proof */}
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaIdCard size={11} className="text-gold" /> ID Proof Type *
+            </label>
+            <select
+              value={bookingData.idType}
+              onChange={(e) => updateBooking('idType', e.target.value)}
+              className="select-field"
+            >
+              <option value="">— Select ID Type —</option>
+              <option value="Aadhaar Card">Aadhaar Card</option>
+              <option value="Driving License">Driving License</option>
+              <option value="Passport">Passport</option>
+              <option value="Voter ID">Voter ID</option>
+              <option value="PAN Card">PAN Card</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaIdCard size={11} className="text-gold" /> ID Number *
+            </label>
+            <input
+              type="text"
+              value={bookingData.idNumber}
+              onChange={(e) => updateBooking('idNumber', e.target.value.toUpperCase())}
+              placeholder={
+                bookingData.idType === 'Aadhaar Card' ? 'XXXX XXXX XXXX'
+                : bookingData.idType === 'Driving License' ? 'TN00 00000000000'
+                : bookingData.idType === 'Passport' ? 'A1234567'
+                : bookingData.idType === 'PAN Card' ? 'ABCDE1234F'
+                : 'Enter ID number'
+              }
+              className="input-field"
+              required
+            />
+          </div>
+
           {/* Special Requests */}
           <div className="sm:col-span-2">
             <label className="label-text">Special Requests</label>
@@ -372,6 +413,14 @@ export default function BookingPage() {
             const age = getAge(bookingData.dob)
             if (age < 18) {
               toast.error('You must be 18 or older to make a booking')
+              return
+            }
+            if (!bookingData.idType) {
+              toast.error('Please select an ID proof type')
+              return
+            }
+            if (!bookingData.idNumber.trim()) {
+              toast.error('Please enter your ID number')
               return
             }
             goToStep(2)
@@ -438,6 +487,7 @@ export default function BookingPage() {
               { label: 'Date of Birth', value: bookingData.dob ? new Date(bookingData.dob).toLocaleDateString('en-IN') : '' },
               { label: 'Email', value: bookingData.email },
               { label: 'Phone', value: bookingData.phone },
+              { label: 'ID Proof', value: bookingData.idType ? `${bookingData.idType} — ${bookingData.idNumber}` : 'Not provided' },
               { label: 'Special Requests', value: bookingData.specialRequests || 'None' },
             ].map((item) => (
               <div key={item.label} className="flex justify-between gap-4">
