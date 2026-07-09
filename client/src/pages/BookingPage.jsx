@@ -71,6 +71,8 @@ export default function BookingPage() {
     roomId: searchParams.get('roomType') || '',
     checkIn: searchParams.get('checkIn') || today,
     checkOut: searchParams.get('checkOut') || '',
+    checkInTime: '12:00',
+    checkOutTime: '11:00',
     guests: parseInt(searchParams.get('guests') || '2'),
     name: '',
     gender: '',
@@ -103,48 +105,80 @@ export default function BookingPage() {
     <div>
       <h2 className="font-playfair text-2xl font-bold text-navy mb-6">Select Your Room</h2>
 
-      {/* Dates & Guests */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-white rounded-sm shadow-card p-6">
-        <div>
-          <label className="label-text flex items-center gap-2">
-            <FaCalendarAlt size={11} className="text-gold" />
-            Check In *
-          </label>
-          <input
-            type="date"
-            value={bookingData.checkIn}
-            min={today}
-            onChange={(e) => updateBooking('checkIn', e.target.value)}
-            className="input-field"
-          />
+      {/* Dates, Times & Guests */}
+      <div className="bg-white rounded-sm shadow-card p-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaCalendarAlt size={11} className="text-gold" />
+              Check In *
+            </label>
+            <input
+              type="date"
+              value={bookingData.checkIn}
+              min={today}
+              onChange={(e) => updateBooking('checkIn', e.target.value)}
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaCalendarAlt size={11} className="text-gold" />
+              Check Out *
+            </label>
+            <input
+              type="date"
+              value={bookingData.checkOut}
+              min={bookingData.checkIn || today}
+              onChange={(e) => updateBooking('checkOut', e.target.value)}
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaUsers size={11} className="text-gold" />
+              Guests
+            </label>
+            <select
+              value={bookingData.guests}
+              onChange={(e) => updateBooking('guests', parseInt(e.target.value))}
+              className="select-field"
+            >
+              {[1, 2, 3, 4].map((n) => (
+                <option key={n} value={n}>{n} Guest{n > 1 ? 's' : ''}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div>
-          <label className="label-text flex items-center gap-2">
-            <FaCalendarAlt size={11} className="text-gold" />
-            Check Out *
-          </label>
-          <input
-            type="date"
-            value={bookingData.checkOut}
-            min={bookingData.checkIn || today}
-            onChange={(e) => updateBooking('checkOut', e.target.value)}
-            className="input-field"
-          />
-        </div>
-        <div>
-          <label className="label-text flex items-center gap-2">
-            <FaUsers size={11} className="text-gold" />
-            Guests
-          </label>
-          <select
-            value={bookingData.guests}
-            onChange={(e) => updateBooking('guests', parseInt(e.target.value))}
-            className="select-field"
-          >
-            {[1, 2, 3, 4].map((n) => (
-              <option key={n} value={n}>{n} Guest{n > 1 ? 's' : ''}</option>
-            ))}
-          </select>
+
+        {/* Time Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaCalendarAlt size={11} className="text-gold" />
+              Check-In Time
+              <span className="font-poppins text-[10px] text-gray-400 font-normal">(Standard: 12:00 PM)</span>
+            </label>
+            <input
+              type="time"
+              value={bookingData.checkInTime}
+              onChange={(e) => updateBooking('checkInTime', e.target.value)}
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="label-text flex items-center gap-2">
+              <FaCalendarAlt size={11} className="text-gold" />
+              Check-Out Time
+              <span className="font-poppins text-[10px] text-gray-400 font-normal">(Standard: 11:00 AM)</span>
+            </label>
+            <input
+              type="time"
+              value={bookingData.checkOutTime}
+              onChange={(e) => updateBooking('checkOutTime', e.target.value)}
+              className="input-field"
+            />
+          </div>
         </div>
       </div>
 
@@ -459,7 +493,9 @@ export default function BookingPage() {
           <div className="space-y-3 font-poppins text-sm">
             {[
               { label: 'Check In', value: new Date(bookingData.checkIn).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) },
+              { label: 'Check-In Time', value: bookingData.checkInTime ? (() => { const [h, m] = bookingData.checkInTime.split(':'); const hr = parseInt(h); return `${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}` })() : '12:00 PM' },
               { label: 'Check Out', value: new Date(bookingData.checkOut).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) },
+              { label: 'Check-Out Time', value: bookingData.checkOutTime ? (() => { const [h, m] = bookingData.checkOutTime.split(':'); const hr = parseInt(h); return `${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}` })() : '11:00 AM' },
               { label: 'Duration', value: `${nights} Night${nights > 1 ? 's' : ''}` },
               { label: 'Guests', value: `${bookingData.guests} Guest${bookingData.guests > 1 ? 's' : ''}` },
             ].map((item) => (
@@ -536,8 +572,17 @@ export default function BookingPage() {
         <button
           onClick={async () => {
             setLoading(true)
-            try {
-              const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData)
+              // Combine Date and Time
+              const checkInDateTime = `${bookingData.checkIn}T${bookingData.checkInTime || '12:00'}`
+              const checkOutDateTime = `${bookingData.checkOut}T${bookingData.checkOutTime || '11:00'}`
+
+              const payload = {
+                ...bookingData,
+                checkIn: checkInDateTime,
+                checkOut: checkOutDateTime,
+              }
+
+              const res = await axios.post(`${API_BASE_URL}/bookings`, payload)
               const newBookingId = res.data.bookingId || 'AP' + String(Date.now()).slice(-6)
               setBookingId(newBookingId)
 
@@ -554,8 +599,8 @@ export default function BookingPage() {
                 idNumber: bookingData.idNumber,
                 address: bookingData.address,
                 room: selectedRoom?.name || bookingData.roomId,
-                checkIn: bookingData.checkIn,
-                checkOut: bookingData.checkOut,
+                checkIn: checkInDateTime,
+                checkOut: checkOutDateTime,
                 nights,
                 guests: bookingData.guests,
                 amount: totalPrice,
@@ -572,6 +617,8 @@ export default function BookingPage() {
               // Backend down — save locally with offline ID
               const offlineId = 'AP' + String(Date.now()).slice(-6)
               setBookingId(offlineId)
+              const checkInDateTime = `${bookingData.checkIn}T${bookingData.checkInTime || '12:00'}`
+              const checkOutDateTime = `${bookingData.checkOut}T${bookingData.checkOutTime || '11:00'}`
               const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
               savedBookings.unshift({
                 id: offlineId,
@@ -584,8 +631,8 @@ export default function BookingPage() {
                 idNumber: bookingData.idNumber,
                 address: bookingData.address,
                 room: selectedRoom?.name || bookingData.roomId,
-                checkIn: bookingData.checkIn,
-                checkOut: bookingData.checkOut,
+                checkIn: checkInDateTime,
+                checkOut: checkOutDateTime,
                 nights,
                 guests: bookingData.guests,
                 amount: totalPrice,
@@ -646,11 +693,17 @@ export default function BookingPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Check In</span>
-            <span className="text-navy font-medium">{new Date(bookingData.checkIn).toLocaleDateString('en-IN')}</span>
+            <span className="text-navy font-medium">
+              {new Date(bookingData.checkIn).toLocaleDateString('en-IN')}{' '}
+              {bookingData.checkInTime ? (() => { const [h, m] = bookingData.checkInTime.split(':'); const hr = parseInt(h); return `(${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'})` })() : '(12:00 PM)'}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Check Out</span>
-            <span className="text-navy font-medium">{new Date(bookingData.checkOut).toLocaleDateString('en-IN')}</span>
+            <span className="text-navy font-medium">
+              {new Date(bookingData.checkOut).toLocaleDateString('en-IN')}{' '}
+              {bookingData.checkOutTime ? (() => { const [h, m] = bookingData.checkOutTime.split(':'); const hr = parseInt(h); return `(${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'})` })() : '(11:00 AM)'}
+            </span>
           </div>
           <div className="flex justify-between border-t pt-3">
             <span className="text-gray-500 font-semibold">Total</span>
