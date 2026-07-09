@@ -41,6 +41,29 @@ export default function AdminLayout() {
 
   const currentPage = navItems.find((n) => isActive(n))?.label || 'Dashboard'
 
+  const [hasPending, setHasPending] = useState(false)
+
+  useEffect(() => {
+    const checkBookings = () => {
+      try {
+        const bookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+        const hasNew = bookings.some(b => b.status === 'pending')
+        setHasPending(hasNew)
+      } catch {
+        setHasPending(false)
+      }
+    }
+
+    checkBookings()
+    window.addEventListener('storage', checkBookings)
+    const interval = setInterval(checkBookings, 3000)
+    
+    return () => {
+      window.removeEventListener('storage', checkBookings)
+      clearInterval(interval)
+    }
+  }, [location.pathname])
+
   return (
     <div className="flex h-screen bg-lightbg overflow-hidden font-poppins">
       {/* Desktop Sidebar */}
@@ -206,30 +229,35 @@ export default function AdminLayout() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {/* Bell button with ring animation */}
-            <button className="bell-btn" style={{
-              width: 40, height: 40,
-              position: 'relative',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              backgroundColor: 'rgb(44,44,44)',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              border: 'none',
-              boxShadow: '2px 2px 10px rgba(0,0,0,0.13)',
-              transition: 'transform 0.1s, background-color 0.3s',
-              flexShrink: 0,
-            }}>
+            <button 
+              onClick={() => navigate('/admin/bookings')}
+              className="bell-btn" 
+              style={{
+                width: 40, height: 40,
+                position: 'relative',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backgroundColor: 'rgb(44,44,44)',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                border: 'none',
+                boxShadow: '2px 2px 10px rgba(0,0,0,0.13)',
+                transition: 'transform 0.1s, background-color 0.3s',
+                flexShrink: 0,
+              }}
+            >
               <svg viewBox="0 0 448 512" className="bell-icon" style={{ width: 16, height: 16 }}>
                 <path fill="white" d="M224 0c-17.7 0-32 14.3-32 32V49.9C119.5 61.4 64 124.2 64 200v33.4c0 45.4-15.5 89.5-43.8 124.9L5.3 377c-5.8 7.2-6.9 17.1-2.9 25.4S14.8 416 24 416H424c9.2 0 17.6-5.3 21.6-13.6s2.9-18.2-2.9-25.4l-14.9-18.6C399.5 322.9 384 278.8 384 233.4V200c0-75.8-55.5-138.6-128-150.1V32c0-17.7-14.3-32-32-32zm0 96h8c57.4 0 104 46.6 104 104v33.4c0 47.9 13.9 94.6 39.7 134.6H72.3C98.1 328 112 281.3 112 233.4V200c0-57.4 46.6-104 104-104h8zm64 352H224 160c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7s18.7-28.3 18.7-45.3z"/>
               </svg>
               {/* Gold notification dot */}
-              <span style={{
-                position: 'absolute', top: 6, right: 6,
-                width: 8, height: 8,
-                background: '#C9A227',
-                borderRadius: '50%',
-                border: '1.5px solid white',
-              }} />
+              {hasPending && (
+                <span style={{
+                  position: 'absolute', top: 6, right: 6,
+                  width: 8, height: 8,
+                  background: '#C9A227',
+                  borderRadius: '50%',
+                  border: '1.5px solid white',
+                }} />
+              )}
             </button>
 
             {/* Bell animation styles */}
