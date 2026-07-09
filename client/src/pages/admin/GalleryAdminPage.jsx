@@ -11,7 +11,22 @@ const STORAGE_KEY = 'arlinjai_gallery_images'
 const loadImages = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) return JSON.parse(saved)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return parsed.map(img => {
+        if (img.url && (img.url.endsWith('.jpeg') || img.url.endsWith('.jpg') || img.url.endsWith('.png')) && !img.url.startsWith('data:')) {
+          // Convert extension to .webp
+          const lastDot = img.url.lastIndexOf('.')
+          const urlWithoutExt = img.url.substring(0, lastDot)
+          if (urlWithoutExt.toLowerCase().endsWith('.jpg')) {
+            const innerDot = urlWithoutExt.lastIndexOf('.')
+            return { ...img, url: urlWithoutExt.substring(0, innerDot) + '.webp' }
+          }
+          return { ...img, url: urlWithoutExt + '.webp' }
+        }
+        return img
+      })
+    }
   } catch {}
   return GALLERY_IMAGES
 }
