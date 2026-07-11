@@ -78,9 +78,10 @@ export default function LoginPage() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 mb-16">
             <img
-              src="/Elegant monogram with seaside emblem.png"
+              src="/Elegant monogram with seaside emblem.webp"
               alt="Logo"
               className="w-14 h-14 object-contain rounded-full border-2 border-gold"
+              style={{ background: 'white', padding: '4px' }}
             />
             <div>
               <p className="font-playfair font-bold text-white text-lg leading-tight tracking-wider">
@@ -151,8 +152,9 @@ export default function LoginPage() {
             backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.2,
           }} />
           <div className="relative z-10 flex flex-col items-center gap-3">
-            <img src="/Elegant monogram with seaside emblem.png" alt="Logo"
-              className="w-16 h-16 object-contain rounded-full border-2 border-gold" />
+            <img src="/Elegant monogram with seaside emblem.webp" alt="Logo"
+              className="w-16 h-16 object-contain rounded-full border-2 border-gold"
+              style={{ background: 'white', padding: '4px' }} />
             <h1 className="font-playfair text-2xl font-bold text-white">ARLINJAI PARADISE</h1>
             <p className="text-gold text-xs tracking-widest uppercase">Smart Hotel Management</p>
             <p className="font-playfair text-xl text-white mt-2">Admin Portal</p>
