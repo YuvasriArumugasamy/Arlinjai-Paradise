@@ -41,18 +41,21 @@ const ScrollRestoration = () => {
 }
 
 const isAdminRoute = (pathname) => pathname.startsWith('/admin')
+const isLoginRoute = (pathname) => pathname === '/login'
 
 const Layout = ({ children }) => {
   const { pathname } = useLocation()
   const admin = isAdminRoute(pathname)
+  const login = isLoginRoute(pathname)
+  const hideChrome = admin || login
 
   return (
     <div style={{ overflowX: 'hidden', maxWidth: '100vw', position: 'relative' }}>
-      {!admin && <Navbar />}
+      {!hideChrome && <Navbar />}
       <main>{children}</main>
-      {!admin && <Footer />}
-      {!admin && <ScrollToTop />}
-      {!admin && <WhatsAppButton />}
+      {!hideChrome && <Footer />}
+      {!hideChrome && <ScrollToTop />}
+      {!hideChrome && <WhatsAppButton />}
     </div>
   )
 }
