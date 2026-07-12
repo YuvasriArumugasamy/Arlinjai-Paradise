@@ -402,7 +402,7 @@ export default function BookingsPage() {
               <div className="border-t pt-4">
                 <p className="font-poppins text-sm font-semibold text-gray-700 mb-2">Update Status</p>
                 <div className="flex flex-wrap gap-2">
-                  {['confirmed', 'checked-in', 'checked-out', 'cancelled'].map((s) => (
+                  {['confirmed', 'cancelled'].map((s) => (
                     <button key={s} onClick={() => updateStatus(selectedBooking.id, s)}
                       className={`font-poppins text-xs px-4 py-1.5 rounded-full border transition-colors capitalize
                         ${selectedBooking.status === s
