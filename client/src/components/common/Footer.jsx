@@ -124,12 +124,12 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-white/5 pt-3 pb-16 md:py-3">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-2 text-center md:text-left">
-          <p className="font-poppins text-[10px] text-gray-500 leading-relaxed">
+          <p className="font-poppins text-[10px] text-white/90 leading-relaxed">
             Copyright © {new Date().getFullYear()} Arlinjai Paradise, Kanyakumari.
             <br className="md:hidden" /> All rights reserved |{' '}
             <br className="md:hidden" /> Website Designed 💖 by -Yuvasri Arumugasamy
           </p>
-          <Link to="/login" className="font-poppins text-[10px] text-gray-500 hover:text-gold transition-colors duration-200">
+          <Link to="/login" className="font-poppins text-[10px] text-white/90 hover:text-gold transition-colors duration-200">
             Admin
           </Link>
         </div>
