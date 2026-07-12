@@ -123,10 +123,13 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-white/5 py-3">
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-center text-center">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-2 text-center md:text-left">
           <p className="font-poppins text-[10px] text-gray-500">
             Copyright © {new Date().getFullYear()} Arlinjai Paradise, Kanyakumari. All rights reserved | Website Designed 💖 by -Yuvasri Arumugasamy
           </p>
+          <Link to="/login" className="font-poppins text-[10px] text-gray-500 hover:text-gold transition-colors duration-200">
+            Admin
+          </Link>
         </div>
       </div>
     </footer>
