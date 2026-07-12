@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import {
   FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaWhatsapp,
-  FaHeart, FaChevronRight
+  FaChevronRight
 } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
 
@@ -123,12 +123,9 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-white/5 py-3">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-2 text-center md:text-left">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-center text-center">
           <p className="font-poppins text-[10px] text-gray-500">
-            © {new Date().getFullYear()} Arlinjai Paradise. All Rights Reserved.
-          </p>
-          <p className="font-poppins text-[10px] text-gray-500 flex items-center gap-1">
-            Crafted with <FaHeart className="text-gold" size={9} /> for our guests
+            Copyright © {new Date().getFullYear()} Arlinjai Paradise, Kanyakumari. All rights reserved | Website Designed 💖 by -Yuvasri Arumugasamy
           </p>
         </div>
       </div>
