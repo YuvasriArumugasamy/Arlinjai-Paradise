@@ -117,7 +117,7 @@ export default function DashboardPage() {
       : '—'
     const statusLabel = STATUS_STYLES[booking.status]?.label || booking.status
 
-    const message = `✅ *Arlinjai Paradise – Booking Update*\n\nDear ${booking.guest || 'Guest'},\n\nRegarding your booking (ID: *${booking.id}*):\n\n🛏️ Room: *${booking.room}*\n📅 Check-in: *${checkInDate}*\n📅 Check-out: *${checkOutDate}*\n📊 Status: *${statusLabel}*\n\n📍 Arlinjai Paradise, No. 5/69, Beach Road, Kanyakumari – 629702, Tamil Nadu, India\n\nThank you! 🙏`
+    const message = `\u2705 *Arlinjai Paradise – Booking Update*\n\nDear ${booking.guest || 'Guest'},\n\nRegarding your booking (ID: *${booking.id}*):\n\n\u{1F6CF}\uFE0F Room: *${booking.room}*\n\u{1F4C5} Check-in: *${checkInDate}*\n\u{1F4C5} Check-out: *${checkOutDate}*\n\u{1F4CA} Status: *${statusLabel}*\n\n\u{1F4CC} Arlinjai Paradise, No. 5/69, Beach Road, Kanyakumari – 629702, Tamil Nadu, India\n\nThank you! \u{1F64F}`
     
     const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank')
