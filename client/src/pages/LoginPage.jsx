@@ -65,17 +65,17 @@ export default function LoginPage() {
       
       {/* ── BACKGROUND IMAGE WITH PARALLAX EFFECT ── */}
       <motion.div 
-        initial={{ scale: 1.15, opacity: 0 }}
-        animate={{ scale: 1.05, opacity: 0.4 }}
-        transition={{ duration: 1.8, ease: 'easeOut' }}
+        initial={{ scale: 1.10, opacity: 0 }}
+        animate={{ scale: 1.02, opacity: 0.75 }}
+        transition={{ duration: 2.0, ease: 'easeOut' }}
         className="absolute inset-0 bg-cover bg-center select-none pointer-events-none"
         style={{
           backgroundImage: `url('/B791C280-016C-4109-AD3A-787851527299.JPG.webp')`,
         }}
       />
 
-      {/* Dark Luxury Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-[#03070e] via-[#050e1a]/90 to-[#03070e]/85 z-0" />
+      {/* Dark Luxury Gradient Overlay - softer in middle for high image clarity */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#03070e]/85 via-black/35 to-[#03070e]/75 z-0" />
 
       {/* ── AMBIENT GLOW EFFECTS ── */}
       <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[600px] bg-[#C9A227]/10 rounded-full blur-[120px] pointer-events-none z-0" />
@@ -258,36 +258,7 @@ export default function LoginPage() {
               )}
             </motion.button>
 
-            {/* Divider */}
-            <div className="flex items-center gap-3 py-2">
-              <div className="flex-1 h-[1px] bg-white/5" />
-              <span className="text-[10px] text-white/20 font-bold tracking-widest">OR</span>
-              <div className="flex-1 h-[1px] bg-white/5" />
-            </div>
-
-            {/* OTP Button */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={() => toast('OTP login service is currently offline.', { icon: '🔐' })}
-              className="w-full py-3.5 rounded-xl border border-white/10 hover:border-[#C9A227]/40 hover:bg-white/5 font-semibold text-xs flex items-center justify-center gap-2 text-white/70 transition-all cursor-pointer"
-            >
-              <FaShieldAlt size={12} className="text-[#C9A227]" />
-              <span>Login with Security OTP</span>
-            </motion.button>
           </form>
-
-          {/* ── SECURITY NOTE ── */}
-          <div className="mt-8 p-3.5 rounded-xl border border-white/5 bg-[#03070e]/40 flex items-start gap-3">
-            <FaShieldAlt size={13} className="text-[#C9A227] flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-[10px] font-semibold text-white/80">Secured Node Connection</p>
-              <p className="text-[9px] text-white/40 mt-0.5 leading-relaxed">
-                All login requests are encrypted. Authorization keys expire automatically.
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Back link */}
