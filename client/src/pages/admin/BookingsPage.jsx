@@ -261,21 +261,13 @@ export default function BookingsPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-2.5 mt-3.5 pt-3 border-t border-gray-100">
+              <div className="mt-3.5 pt-3 border-t border-gray-100">
                 <button
                   onClick={(e) => handleWhatsApp(booking, e)}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
                 >
                   <FaWhatsapp size={14} /> WhatsApp Guest
                 </button>
-                {booking.status !== 'cancelled' && (
-                  <button
-                    onClick={(e) => handleCancel(booking, e)}
-                    className="flex-1 flex items-center justify-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 font-poppins text-xs font-semibold py-2 px-3 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <FaTimesCircle size={13} /> Cancel Booking
-                  </button>
-                )}
               </div>
             </motion.div>
           )
@@ -423,21 +415,13 @@ export default function BookingsPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 border-t pt-4">
+              <div className="border-t pt-4">
                 <button
                   onClick={() => handleWhatsApp(selectedBooking)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-sm font-semibold py-2.5 px-4 rounded-lg shadow-sm transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-sm font-semibold py-2.5 px-4 rounded-lg shadow-sm transition-colors cursor-pointer"
                 >
                   <FaWhatsapp size={16} /> WhatsApp Guest
                 </button>
-                {selectedBooking.status !== 'cancelled' && (
-                  <button
-                    onClick={() => handleCancel(selectedBooking)}
-                    className="flex-1 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 font-poppins text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <FaTimesCircle size={15} /> Cancel Booking
-                  </button>
-                )}
               </div>
             </div>
           </motion.div>
