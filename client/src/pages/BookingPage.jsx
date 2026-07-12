@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaCheck, FaUser, FaEnvelope, FaPhoneAlt, FaBed,
   FaCalendarAlt, FaUsers, FaArrowRight, FaArrowLeft,
-  FaVenusMars, FaBirthdayCake, FaIdCard, FaClock
+  FaVenusMars, FaBirthdayCake, FaIdCard, FaClock, FaPrint
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import axios from 'axios'
@@ -775,39 +775,53 @@ export default function BookingPage() {
         A confirmation has been sent to <strong>{bookingData.email}</strong>
       </p>
 
-      <div className="bg-white rounded-sm shadow-card p-8 max-w-md mx-auto mb-8 text-left">
-        <h3 className="font-playfair font-semibold text-navy text-lg mb-4 text-center">Booking Details</h3>
-        <div className="space-y-3 font-poppins text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-500">Room</span>
-            <span className="text-navy font-medium">{selectedRoom?.name}</span>
+      <div className="bg-white rounded-sm shadow-card max-w-md mx-auto mb-8 text-left overflow-hidden">
+        <div className="p-8">
+          <h3 className="font-playfair font-semibold text-navy text-lg mb-4 text-center">Booking Details</h3>
+          <div className="space-y-3 font-poppins text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Room</span>
+              <span className="text-navy font-medium">{selectedRoom?.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Check In</span>
+              <span className="text-navy font-medium">{new Date(bookingData.checkIn).toLocaleDateString('en-IN')}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Check Out</span>
+              <span className="text-navy font-medium">{new Date(bookingData.checkOut).toLocaleDateString('en-IN')}</span>
+            </div>
+            <div className="flex justify-between border-t pt-3">
+              <span className="text-gray-500">Room Charges</span>
+              <span className="text-navy font-medium">₹{basePrice.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">GST (12%)</span>
+              <span className="text-navy font-medium">₹{gstAmount.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between border-t pt-3">
+              <span className="text-gray-500 font-bold">{bookingData.paymentMethod === 'razorpay' ? 'Total Paid' : 'Total Amount'}</span>
+              <span className="text-gold font-bold text-lg">₹{totalPrice.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Payment</span>
+              <span className={`font-medium text-xs px-2 py-0.5 rounded-full ${bookingData.paymentMethod === 'razorpay' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                {bookingData.paymentMethod === 'razorpay' ? '✅ Paid Online' : '🏨 Pay at Hotel'}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Check In</span>
-            <span className="text-navy font-medium">{new Date(bookingData.checkIn).toLocaleDateString('en-IN')}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Check Out</span>
-            <span className="text-navy font-medium">{new Date(bookingData.checkOut).toLocaleDateString('en-IN')}</span>
-          </div>
-          <div className="flex justify-between border-t pt-3">
-            <span className="text-gray-500">Room Charges</span>
-            <span className="text-navy font-medium">₹{basePrice.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">GST (12%)</span>
-            <span className="text-navy font-medium">₹{gstAmount.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between border-t pt-3">
-            <span className="text-gray-500 font-bold">{bookingData.paymentMethod === 'razorpay' ? 'Total Paid' : 'Total Amount'}</span>
-            <span className="text-gold font-bold text-lg">₹{totalPrice.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Payment</span>
-            <span className={`font-medium text-xs px-2 py-0.5 rounded-full ${bookingData.paymentMethod === 'razorpay' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-              {bookingData.paymentMethod === 'razorpay' ? '✅ Paid Online' : '🏨 Pay at Hotel'}
-            </span>
-          </div>
+        </div>
+
+        {/* Print Button (Hidden in Print) */}
+        <div className="bg-gray-50 border-t border-gray-100 px-6 py-4 print:hidden">
+          <button
+            onClick={() => window.print()}
+            className="w-full flex items-center justify-center gap-2 bg-[#08111F] text-white
+                       font-poppins font-semibold text-sm py-3 rounded-lg hover:bg-[#08111F]/90
+                       transition-colors cursor-pointer"
+          >
+            <FaPrint size={13} /> Save / Print Receipt
+          </button>
         </div>
       </div>
 
