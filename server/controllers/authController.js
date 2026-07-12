@@ -56,7 +56,12 @@ const login = async (req, res, next) => {
 
     const { email, password } = req.body
 
-    const user = await User.findOne({ email }).select('+password')
+    const user = await User.findOne({
+      $or: [
+        { email: email },
+        { name: email }
+      ]
+    }).select('+password')
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
