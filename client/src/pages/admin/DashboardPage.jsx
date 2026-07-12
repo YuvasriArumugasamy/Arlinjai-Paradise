@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   FaCalendarAlt, FaBed, FaUsers, FaRupeeSign,
-  FaArrowUp, FaArrowDown, FaClock, FaCheck, FaTimes, FaEye
+  FaArrowUp, FaArrowDown, FaClock, FaCheck, FaTimes, FaEye,
+  FaWhatsapp
 } from 'react-icons/fa'
 import axios from 'axios'
 import { API_BASE_URL } from '../../constants'
@@ -101,6 +102,27 @@ export default function DashboardPage() {
   const [bookings, setBookings] = useState(MOCK_BOOKINGS)
   const [loading, setLoading] = useState(true)
 
+  const handleWhatsApp = (booking, e) => {
+    if (e) e.preventDefault()
+    const phone = (booking.phone || '').replace(/[^0-9]/g, '')
+    const formattedPhone = phone.startsWith('91') && phone.length === 12 
+      ? phone 
+      : (phone.length === 10 ? '91' + phone : phone)
+    
+    const checkInDate = booking.checkIn 
+      ? new Date(booking.checkIn).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '—'
+    const checkOutDate = booking.checkOut
+      ? new Date(booking.checkOut).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '—'
+    const statusLabel = STATUS_STYLES[booking.status]?.label || booking.status
+
+    const message = `✅ *Arlinjai Paradise – Booking Update*\n\nDear ${booking.guest || 'Guest'},\n\nRegarding your booking (ID: *${booking.id}*):\n\n🛏️ Room: *${booking.room}*\n📅 Check-in: *${checkInDate}*\n📅 Check-out: *${checkOutDate}*\n📊 Status: *${statusLabel}*\n\n📍 Arlinjai Paradise, No. 5/69, Beach Road, Kanyakumari – 629702, Tamil Nadu, India\n\nThank you! 🙏`
+    
+    const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`
+    window.open(url, '_blank')
+  }
+
   useEffect(() => {
     const fetchDashboard = async () => {
       const token = localStorage.getItem('token')
@@ -120,6 +142,7 @@ export default function DashboardPage() {
           checkOut: b.checkOut,
           amount: b.pricing?.finalAmount || 0,
           status: b.status,
+          phone: b.guest?.phone || b.phone || '',
         }))
         setBookings(mapped)
       } catch {
@@ -138,6 +161,7 @@ export default function DashboardPage() {
             checkOut: b.checkOut,
             amount: b.amount || 0,
             status: b.status || 'pending',
+            phone: b.phone || '',
           }))
         setBookings(mapped)
       } finally {
@@ -362,12 +386,18 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2">
-                      <div>
+                    <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2 gap-3">
+                      <div className="flex-1">
                         <p className="font-poppins text-[10px] text-gray-400 uppercase">Total Amount</p>
                         <p className="font-poppins text-sm font-bold text-navy">₹{(booking.amount || 0).toLocaleString()}</p>
                       </div>
-                      <Link to="/admin/bookings" className="text-gold hover:text-gold-dark transition-colors p-2">
+                      <button
+                        onClick={(e) => handleWhatsApp(booking, e)}
+                        className="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-xs font-semibold py-1.5 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
+                      >
+                        <FaWhatsapp size={13} /> WhatsApp
+                      </button>
+                      <Link to="/admin/bookings" className="text-gold hover:text-gold-dark transition-colors p-2 flex-shrink-0" title="View Details">
                         <FaEye size={14} />
                       </Link>
                     </div>

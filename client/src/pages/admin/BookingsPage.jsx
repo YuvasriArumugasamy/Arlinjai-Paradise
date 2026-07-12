@@ -3,7 +3,8 @@ import { motion } from 'framer-motion'
 import {
   FaSearch, FaFilter, FaEye, FaTimes, FaDownload,
   FaUser, FaPhoneAlt, FaEnvelope, FaBed, FaCalendarAlt,
-  FaIdCard, FaVenusMars, FaBirthdayCake, FaMoneyBillWave
+  FaIdCard, FaVenusMars, FaBirthdayCake, FaMoneyBillWave,
+  FaWhatsapp, FaTimesCircle
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 
@@ -62,6 +63,34 @@ export default function BookingsPage() {
     saveBookings(updated)
     if (selectedBooking?.id === id) setSelectedBooking({ ...selectedBooking, status: newStatus })
     toast.success(`Status updated to ${newStatus}`)
+  }
+
+  const handleWhatsApp = (booking, e) => {
+    if (e) e.stopPropagation()
+    const phone = (booking.phone || '').replace(/[^0-9]/g, '')
+    const formattedPhone = phone.startsWith('91') && phone.length === 12 
+      ? phone 
+      : (phone.length === 10 ? '91' + phone : phone)
+    
+    const checkInDate = booking.checkIn 
+      ? new Date(booking.checkIn).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '—'
+    const checkOutDate = booking.checkOut
+      ? new Date(booking.checkOut).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '—'
+    const statusLabel = STATUS_STYLES[booking.status]?.label || booking.status
+
+    const message = `✅ *Arlinjai Paradise – Booking Update*\n\nDear ${booking.guest || 'Guest'},\n\nRegarding your booking (ID: *${booking.id}*):\n\n🛏️ Room: *${booking.room}*\n📅 Check-in: *${checkInDate}*\n📅 Check-out: *${checkOutDate}*\n📊 Status: *${statusLabel}*\n\n📍 Arlinjai Paradise, No. 5/69, Beach Road, Kanyakumari – 629702, Tamil Nadu, India\n\nThank you! 🙏`
+    
+    const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`
+    window.open(url, '_blank')
+  }
+
+  const handleCancel = (booking, e) => {
+    if (e) e.stopPropagation()
+    if (window.confirm(`Are you sure you want to cancel booking ${booking.id}?`)) {
+      updateStatus(booking.id, 'cancelled')
+    }
   }
 
   const exportCSV = () => {
@@ -230,6 +259,24 @@ export default function BookingsPage() {
                 <p className="font-poppins text-xs text-gray-500">{booking.nights} Night(s)</p>
                 <p className="font-poppins text-sm font-bold text-navy">₹{(booking.amount || 0).toLocaleString()}</p>
               </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2.5 mt-3.5 pt-3 border-t border-gray-100">
+                <button
+                  onClick={(e) => handleWhatsApp(booking, e)}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
+                >
+                  <FaWhatsapp size={14} /> WhatsApp Guest
+                </button>
+                {booking.status !== 'cancelled' && (
+                  <button
+                    onClick={(e) => handleCancel(booking, e)}
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 font-poppins text-xs font-semibold py-2 px-3 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <FaTimesCircle size={13} /> Cancel Booking
+                  </button>
+                )}
+              </div>
             </motion.div>
           )
         })}
@@ -373,6 +420,24 @@ export default function BookingsPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 border-t pt-4">
+                <button
+                  onClick={() => handleWhatsApp(selectedBooking)}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-sm font-semibold py-2.5 px-4 rounded-lg shadow-sm transition-colors cursor-pointer"
+                >
+                  <FaWhatsapp size={16} /> WhatsApp Guest
+                </button>
+                {selectedBooking.status !== 'cancelled' && (
+                  <button
+                    onClick={() => handleCancel(selectedBooking)}
+                    className="flex-1 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 font-poppins text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <FaTimesCircle size={15} /> Cancel Booking
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>
