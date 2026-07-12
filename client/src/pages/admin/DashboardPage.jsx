@@ -25,7 +25,7 @@ const MOCK_STATS = {
 const MOCK_BOOKINGS = [];
 
 // Calculate stats from localStorage bookings (offline fallback)
-function calcLocalStats() {
+function calcLocalStats(filter = 'month') {
   try {
     const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
     const now = new Date()
@@ -34,11 +34,11 @@ function calcLocalStats() {
     const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
 
     const active = raw.filter(b => b.status !== 'cancelled')
-    const thisMonth = active.filter(b => new Date(b.createdAt) >= startOfMonth)
+    const periodBookings = filter === 'all' ? active : active.filter(b => new Date(b.createdAt) >= startOfMonth)
 
-    const totalRevenue = thisMonth.reduce((s, b) => s + (b.amount || 0), 0)
-    const totalBookings = thisMonth.length
-    const totalGuests = thisMonth.reduce((s, b) => s + (b.guests || 0), 0)
+    const totalRevenue = periodBookings.reduce((s, b) => s + (b.amount || 0), 0)
+    const totalBookings = periodBookings.length
+    const totalGuests = periodBookings.reduce((s, b) => s + (b.guests || 0), 0)
     const todayStr = new Date().toLocaleDateString('en-CA')
     const currentlyCheckedIn = active.filter(b => b.status === 'checked-in').length
     const checkInsToday = active.filter(b => {
@@ -99,6 +99,7 @@ function StatCard({ title, value, prefix, suffix, growth, icon: Icon, color, del
 }
 
 export default function DashboardPage() {
+  const [filterMode, setFilterMode] = useState('month')
   const [stats, setStats] = useState(MOCK_STATS)
   const [bookings, setBookings] = useState(MOCK_BOOKINGS)
   const [loading, setLoading] = useState(true)
@@ -130,7 +131,7 @@ export default function DashboardPage() {
       const headers = token ? { Authorization: `Bearer ${token}` } : {}
       try {
         const [statsRes, bookingsRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/dashboard/stats`, { headers }),
+          axios.get(`${API_BASE_URL}/dashboard/stats?filter=${filterMode}`, { headers }),
           axios.get(`${API_BASE_URL}/dashboard/recent-bookings`, { headers }),
         ])
         setStats({ ...MOCK_STATS, ...statsRes.data.stats })
@@ -148,7 +149,7 @@ export default function DashboardPage() {
         setBookings(mapped)
       } catch {
         // Fallback: use localStorage bookings
-        const localStats = calcLocalStats()
+        const localStats = calcLocalStats(filterMode)
         if (localStats) setStats(prev => ({ ...prev, ...localStats }))
         const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
         const mapped = raw
@@ -173,7 +174,7 @@ export default function DashboardPage() {
     // Refresh every 60 seconds
     const interval = setInterval(fetchDashboard, 60000)
     return () => clearInterval(interval)
-  }, [])
+  }, [filterMode])
 
   const today = new Date().toLocaleDateString('en-IN', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -187,9 +188,28 @@ export default function DashboardPage() {
           <h2 className="font-playfair text-2xl font-bold text-navy">Dashboard Overview</h2>
           <p className="font-poppins text-sm text-gray-500 mt-1">{today}</p>
         </div>
-        <Link to="/admin/bookings" className="btn-gold text-sm px-5 py-2.5 self-start sm:self-auto">
-          + New Booking
-        </Link>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          {/* Calendar dropdown filter */}
+          <div className="relative flex items-center bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+            <FaCalendarAlt className="text-slate-400 mr-2.5" size={14} />
+            <select
+              value={filterMode}
+              onChange={(e) => setFilterMode(e.target.value)}
+              className="appearance-none bg-transparent font-poppins font-semibold text-sm text-slate-700 outline-none pr-6 cursor-pointer border-none p-0"
+            >
+              <option value="month">Month View</option>
+              <option value="all">All Time</option>
+            </select>
+            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <Link to="/admin/bookings" className="btn-gold text-sm px-5 py-2.5">
+            + New Booking
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -459,7 +479,7 @@ export default function DashboardPage() {
             {[
               { label: 'New Booking', path: '/admin/bookings', color: 'bg-gold' },
               { label: 'Add Room', path: '/admin/rooms', color: 'bg-blue-500' },
-              { label: 'View Messages', path: '/admin/messages', color: 'bg-purple-500' },
+              { label: 'Notifications', path: '/admin/notifications', color: 'bg-purple-500' },
               { label: 'Generate Report', path: '/admin/reports', color: 'bg-green-500' },
             ].map((action) => (
               <Link

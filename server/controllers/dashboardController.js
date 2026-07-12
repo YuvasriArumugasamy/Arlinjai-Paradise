@@ -9,26 +9,29 @@ const User = require('../models/User')
 // @access  Private (Admin/Manager)
 const getDashboardStats = async (req, res, next) => {
   try {
+    const { filter = 'month' } = req.query
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const startOfPeriod = filter === 'all' ? new Date(0) : startOfMonth
+
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
 
-    // Current month stats
+    // Period stats
     const [
-      totalBookingsThisMonth,
+      totalBookingsThisPeriod,
       totalBookingsLastMonth,
-      revenueThisMonth,
+      revenueThisPeriod,
       revenueLastMonth,
       totalGuests,
       newMessages,
       pendingReviews,
       roomCount,
     ] = await Promise.all([
-      Booking.countDocuments({ createdAt: { $gte: startOfMonth }, status: { $ne: 'cancelled' } }),
+      Booking.countDocuments({ createdAt: { $gte: startOfPeriod }, status: { $ne: 'cancelled' } }),
       Booking.countDocuments({ createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }, status: { $ne: 'cancelled' } }),
       Booking.aggregate([
-        { $match: { createdAt: { $gte: startOfMonth }, status: { $ne: 'cancelled' } } },
+        { $match: { createdAt: { $gte: startOfPeriod }, status: { $ne: 'cancelled' } } },
         { $group: { _id: null, total: { $sum: '$pricing.finalAmount' } } },
       ]),
       Booking.aggregate([
@@ -36,7 +39,7 @@ const getDashboardStats = async (req, res, next) => {
         { $group: { _id: null, total: { $sum: '$pricing.finalAmount' } } },
       ]),
       Booking.aggregate([
-        { $match: { createdAt: { $gte: startOfMonth }, status: { $ne: 'cancelled' } } },
+        { $match: { createdAt: { $gte: startOfPeriod }, status: { $ne: 'cancelled' } } },
         { $group: { _id: null, total: { $sum: '$guests' } } },
       ]),
       Contact.countDocuments({ status: 'new' }),
@@ -44,14 +47,14 @@ const getDashboardStats = async (req, res, next) => {
       Room.countDocuments({ isAvailable: true }),
     ])
 
-    const thisMonthRevenue = revenueThisMonth[0]?.total || 0
+    const thisPeriodRevenue = revenueThisPeriod[0]?.total || 0
     const lastMonthRevenue = revenueLastMonth[0]?.total || 0
     const revenueGrowth = lastMonthRevenue > 0
-      ? parseFloat(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1))
+      ? parseFloat(((thisPeriodRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1))
       : 0
 
     const bookingGrowth = totalBookingsLastMonth > 0
-      ? parseFloat(((totalBookingsThisMonth - totalBookingsLastMonth) / totalBookingsLastMonth * 100).toFixed(1))
+      ? parseFloat(((totalBookingsThisPeriod - totalBookingsLastMonth) / totalBookingsLastMonth * 100).toFixed(1))
       : 0
 
     // Today's check-ins and check-outs (UTC midnight alignment)
@@ -69,12 +72,12 @@ const getDashboardStats = async (req, res, next) => {
     res.json({
       success: true,
       stats: {
-        totalRevenue: thisMonthRevenue,
-        totalBookings: totalBookingsThisMonth,
+        totalRevenue: thisPeriodRevenue,
+        totalBookings: totalBookingsThisPeriod,
         totalGuests: totalGuests[0]?.total || 0,
         availableRooms: roomCount,
-        revenueGrowth,
-        bookingGrowth,
+        revenueGrowth: filter === 'all' ? undefined : revenueGrowth,
+        bookingGrowth: filter === 'all' ? undefined : bookingGrowth,
         newMessages,
         pendingReviews,
         checkInsToday,

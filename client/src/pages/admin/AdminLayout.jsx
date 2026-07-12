@@ -16,6 +16,7 @@ const navItems = [
   { path: '/admin/customers', label: 'Customers', icon: FaUsers },
   { path: '/admin/reviews', label: 'Reviews', icon: FaStar },
   { path: '/admin/reports', label: 'Reports', icon: FaChartBar },
+  { path: '/admin/notifications', label: 'Notifications', icon: FaBell },
   { path: '/admin/settings', label: 'Settings', icon: FaCog },
 ]
 
@@ -229,7 +230,7 @@ export default function AdminLayout() {
           </div>
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => navigate('/admin/bookings')}
+              onClick={() => navigate('/admin/notifications')}
               className="bell-btn" 
               style={{
                 width: 40, height: 40,

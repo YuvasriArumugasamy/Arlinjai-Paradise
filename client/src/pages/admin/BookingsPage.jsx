@@ -44,6 +44,7 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState(loadBookings)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [filterMode, setFilterMode] = useState('month')
   const [selectedBooking, setSelectedBooking] = useState(null)
 
   const filtered = bookings.filter((b) => {
@@ -54,7 +55,12 @@ export default function BookingsPage() {
       (b.email || '').toLowerCase().includes(q) ||
       (b.phone || '').includes(q)
     const matchStatus = statusFilter === 'all' || b.status === statusFilter
-    return matchSearch && matchStatus
+
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const matchPeriod = filterMode === 'all' || new Date(b.createdAt || b.checkIn) >= startOfMonth
+
+    return matchSearch && matchStatus && matchPeriod
   })
 
   const updateStatus = (id, newStatus) => {
@@ -129,9 +135,28 @@ export default function BookingsPage() {
           <h2 className="font-playfair text-2xl font-bold text-navy">Bookings</h2>
           <p className="font-poppins text-sm text-gray-500">{filtered.length} bookings found</p>
         </div>
-        <button onClick={exportCSV} className="flex items-center gap-2 btn-gold text-sm px-4 py-2.5">
-          <FaDownload size={12} /> Export CSV
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          {/* Calendar dropdown filter */}
+          <div className="relative flex items-center bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+            <FaCalendarAlt className="text-slate-400 mr-2.5" size={14} />
+            <select
+              value={filterMode}
+              onChange={(e) => setFilterMode(e.target.value)}
+              className="appearance-none bg-transparent font-poppins font-semibold text-sm text-slate-700 outline-none pr-6 cursor-pointer border-none p-0"
+            >
+              <option value="month">Month View</option>
+              <option value="all">All Time</option>
+            </select>
+            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <button onClick={exportCSV} className="flex items-center gap-2 btn-gold text-sm px-4 py-2.5">
+            <FaDownload size={12} /> Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

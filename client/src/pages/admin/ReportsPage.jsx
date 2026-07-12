@@ -65,6 +65,7 @@ function calcReportsFromLocal(bookings) {
 
 export default function ReportsPage() {
   const [period, setPeriod] = useState('monthly')
+  const [filterMode, setFilterMode] = useState('month')
   const [loading, setLoading] = useState(true)
   const [monthlyData, setMonthlyData] = useState([])
   const [roomData, setRoomData] = useState([])
@@ -101,7 +102,14 @@ export default function ReportsPage() {
           guests: b.guests || 1,
           createdAt: b.createdAt,
         }))
-        const calc = calcReportsFromLocal(mapped)
+        
+        const now = new Date()
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const periodMapped = filterMode === 'all'
+          ? mapped
+          : mapped.filter(b => new Date(b.createdAt) >= startOfMonth)
+
+        const calc = calcReportsFromLocal(periodMapped)
         setRoomData(calc.roomData)
         setStatusData(calc.statusData)
         setTotalRevenue(calc.totalRevenue)
@@ -110,7 +118,13 @@ export default function ReportsPage() {
       } catch {
         // Fallback: localStorage
         const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-        const calc = calcReportsFromLocal(raw)
+        const now = new Date()
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const periodRaw = filterMode === 'all'
+          ? raw
+          : raw.filter(b => new Date(b.createdAt) >= startOfMonth)
+
+        const calc = calcReportsFromLocal(periodRaw)
         setMonthlyData(calc.monthlyData)
         setRoomData(calc.roomData)
         setStatusData(calc.statusData)
@@ -122,7 +136,7 @@ export default function ReportsPage() {
       }
     }
     fetchReports()
-  }, [period])
+  }, [period, filterMode])
 
   const maxRevenue = monthlyData.length > 0 ? Math.max(...monthlyData.map((d) => d.revenue), 1) : 1
   const avgPerBooking = totalBookings > 0 ? Math.round(totalRevenue / totalBookings) : 0
@@ -150,7 +164,24 @@ export default function ReportsPage() {
           <h2 className="font-playfair text-2xl font-bold text-navy">Reports & Analytics</h2>
           <p className="font-poppins text-sm text-gray-500">Financial overview and booking analytics</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
+          {/* Calendar dropdown filter */}
+          <div className="relative flex items-center bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+            <FaCalendarAlt className="text-slate-400 mr-2.5" size={14} />
+            <select
+              value={filterMode}
+              onChange={(e) => setFilterMode(e.target.value)}
+              className="appearance-none bg-transparent font-poppins font-semibold text-sm text-slate-700 outline-none pr-6 cursor-pointer border-none p-0"
+            >
+              <option value="month">Month View</option>
+              <option value="all">All Time</option>
+            </select>
+            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}

@@ -31,6 +31,7 @@ import CustomersPage from './pages/admin/CustomersPage'
 import ReviewsAdminPage from './pages/admin/ReviewsAdminPage'
 import ReportsPage from './pages/admin/ReportsPage'
 import SettingsPage from './pages/admin/SettingsPage'
+import NotificationsPage from './pages/admin/NotificationsPage'
 
 const ScrollRestoration = () => {
   const { pathname } = useLocation()
@@ -115,6 +116,7 @@ function App() {
             <Route path="customers" element={<CustomersPage />} />
             <Route path="reviews" element={<ReviewsAdminPage />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
 
