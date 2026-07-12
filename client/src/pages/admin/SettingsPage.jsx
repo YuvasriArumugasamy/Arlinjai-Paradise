@@ -32,7 +32,8 @@ const ROOMS_LIST = [
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general')
-  const [settings, setSettings] = useState({
+
+  const defaultSettings = {
     hotelName: HOTEL_INFO.name,
     tagline: HOTEL_INFO.tagline,
     address: HOTEL_INFO.address,
@@ -52,6 +53,22 @@ export default function SettingsPage() {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
+  }
+
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('arlinjai_settings')
+      if (saved) {
+        return {
+          ...defaultSettings,
+          ...JSON.parse(saved),
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        }
+      }
+    } catch {}
+    return defaultSettings
   })
 
   const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false })
@@ -86,7 +103,12 @@ export default function SettingsPage() {
   }
 
   const handleSave = () => {
-    toast.success('Settings saved successfully')
+    try {
+      localStorage.setItem('arlinjai_settings', JSON.stringify(settings))
+      toast.success('Settings saved successfully')
+    } catch {
+      toast.error('Failed to save settings')
+    }
   }
 
   const handleChangePassword = async () => {
