@@ -4,7 +4,7 @@ import {
   FaSearch, FaFilter, FaEye, FaTimes, FaDownload,
   FaUser, FaPhoneAlt, FaEnvelope, FaBed, FaCalendarAlt,
   FaIdCard, FaVenusMars, FaBirthdayCake, FaMoneyBillWave,
-  FaWhatsapp, FaTimesCircle
+  FaWhatsapp, FaTimesCircle, FaTrashAlt
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 
@@ -90,6 +90,17 @@ export default function BookingsPage() {
     if (e) e.stopPropagation()
     if (window.confirm(`Are you sure you want to cancel booking ${booking.id}?`)) {
       updateStatus(booking.id, 'cancelled')
+    }
+  }
+
+  const handleDelete = (id, e) => {
+    if (e) e.stopPropagation()
+    if (window.confirm(`Are you sure you want to permanently delete booking ${id}? This action cannot be undone.`)) {
+      const updated = bookings.filter((b) => b.id !== id)
+      setBookings(updated)
+      saveBookings(updated)
+      if (selectedBooking?.id === id) setSelectedBooking(null)
+      toast.success('Booking deleted successfully')
     }
   }
 
@@ -261,12 +272,19 @@ export default function BookingsPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-3.5 pt-3 border-t border-gray-100">
+              <div className="mt-3.5 pt-3 border-t border-gray-100 flex gap-2">
                 <button
                   onClick={(e) => handleWhatsApp(booking, e)}
-                  className="w-full flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
+                  className="flex-grow flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
                 >
                   <FaWhatsapp size={14} /> WhatsApp Guest
+                </button>
+                <button
+                  onClick={(e) => handleDelete(booking.id, e)}
+                  className="flex-shrink-0 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 p-2 rounded-lg transition-colors cursor-pointer"
+                  title="Delete Booking"
+                >
+                  <FaTrashAlt size={14} />
                 </button>
               </div>
             </motion.div>
@@ -415,12 +433,18 @@ export default function BookingsPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="border-t pt-4">
+              <div className="border-t pt-4 flex flex-col gap-2.5">
                 <button
                   onClick={() => handleWhatsApp(selectedBooking)}
                   className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-sm font-semibold py-2.5 px-4 rounded-lg shadow-sm transition-colors cursor-pointer"
                 >
                   <FaWhatsapp size={16} /> WhatsApp Guest
+                </button>
+                <button
+                  onClick={() => handleDelete(selectedBooking.id)}
+                  className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 font-poppins text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer"
+                >
+                  <FaTrashAlt size={14} /> Delete Booking
                 </button>
               </div>
             </div>
