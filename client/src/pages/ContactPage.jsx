@@ -242,7 +242,7 @@ export default function ContactPage() {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {/* Row: Name + Phone */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
                 <div style={{ position: 'relative' }}>
                   <FaUser size={13} style={{ position: 'absolute', left: 14, top: '50%',
                     transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
