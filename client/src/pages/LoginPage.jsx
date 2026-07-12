@@ -17,14 +17,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [focused, setFocused] = useState('')
 
-  // Load remember me email if exists
+  // Redirect to admin dashboard if token is already present, or load saved email
   useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      navigate('/admin')
+      return
+    }
     const savedEmail = localStorage.getItem('remembered_admin_email')
     if (savedEmail) {
       setForm((prev) => ({ ...prev, email: savedEmail }))
       setRemember(true)
     }
-  }, [])
+  }, [navigate])
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
