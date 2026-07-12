@@ -145,10 +145,10 @@ export default function LoginPage() {
           {/* ── LOGIN FORM ── */}
           <form onSubmit={handleSubmit} className="space-y-5 font-poppins">
             
-            {/* Username/Email Input */}
+            {/* Username Input */}
             <div className="space-y-1.5">
               <label className="block text-[10px] font-bold text-[#C9A227] uppercase tracking-[0.15em]">
-                Username / Email
+                Username
               </label>
               <div className="relative">
                 <FaUser
@@ -157,13 +157,13 @@ export default function LoginPage() {
                   style={{ color: focused === 'email' ? '#C9A227' : 'rgba(255,255,255,0.25)' }}
                 />
                 <input
-                  type="email"
+                  type="text"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
                   onFocus={() => setFocused('email')}
                   onBlur={() => setFocused('')}
-                  placeholder="admin@arlinjaiparadise.com"
+                  placeholder="admin"
                   className="w-full pl-11 pr-4 py-3.5 bg-[#03070e]/60 border rounded-xl text-sm text-white placeholder-white/20 transition-all duration-300 outline-none"
                   style={{
                     borderColor: focused === 'email' ? '#C9A227' : 'rgba(255,255,255,0.08)',
