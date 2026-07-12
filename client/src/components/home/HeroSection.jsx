@@ -7,8 +7,13 @@ import { StarButtonLink, StarButton } from '../common/StarButton'
 
 export default function HeroSection() {
   const navigate = useNavigate()
-  const today = new Date().toISOString().split('T')[0]
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
+  const getLocalDateStr = (date = new Date()) => {
+    const offset = date.getTimezoneOffset()
+    const local = new Date(date.getTime() - (offset * 60 * 1000))
+    return local.toISOString().split('T')[0]
+  }
+  const today = getLocalDateStr()
+  const tomorrow = getLocalDateStr(new Date(Date.now() + 86400000))
 
   const [form, setForm] = useState({
     checkIn: today,

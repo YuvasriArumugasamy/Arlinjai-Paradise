@@ -1,15 +1,39 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { FaChevronLeft, FaChevronRight, FaThumbtack, FaCalendarAlt, FaUsers, FaPhoneAlt } from 'react-icons/fa'
+import axios from 'axios'
+import toast from 'react-hot-toast'
+import { API_BASE_URL } from '../../constants'
 
 const DAY_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
-const toDateStr = (date) => date.toISOString().split('T')[0]
+const toDateStr = (date) => {
+  const d = new Date(date)
+  const offset = d.getTimezoneOffset()
+  const local = new Date(d.getTime() - (offset * 60 * 1000))
+  return local.toISOString().split('T')[0]
+}
 const todayStr = toDateStr(new Date())
+
+const STATUS_STYLES = {
+  confirmed:    { bg: 'bg-blue-500',   text: 'text-white',   label: 'Confirmed' },
+  pending:      { bg: 'bg-yellow-500', text: 'text-navy',    label: 'Pending' },
+  'checked-in': { bg: 'bg-green-600',  text: 'text-white',   label: 'Checked In' },
+  'checked-out':{ bg: 'bg-gray-400',   text: 'text-white',   label: 'Checked Out' },
+  cancelled:    { bg: 'bg-red-400',    text: 'text-white',   label: 'Cancelled' },
+}
 
 export default function CalendarPage() {
   const [startDate, setStartDate] = useState(todayStr)
   const [selectedRoomType, setSelectedRoomType] = useState('All')
+  const [bookings, setBookings] = useState([])
+  const [roomAssignments, setRoomAssignments] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('arlinjai_room_assignments') || '{}')
+    } catch {
+      return {}
+    }
+  })
 
   // Generate 14 days dynamically from startDate
   const days = useMemo(() => {
@@ -56,7 +80,86 @@ export default function CalendarPage() {
     ? rooms
     : rooms.filter(room => room.type === selectedRoomType)
 
-  const allocations = []
+  useEffect(() => {
+    const fetchBookings = async () => {
+      const token = localStorage.getItem('token')
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      try {
+        const res = await axios.get(`${API_BASE_URL}/bookings?limit=100`, { headers })
+        if (res.data.success) {
+          const mapped = res.data.bookings.map(b => ({
+            id: b.bookingId || b._id,
+            guest: b.guest?.name || b.guest || '—',
+            room: b.roomSnapshot?.name || b.room?.name || '—',
+            checkIn: toDateStr(new Date(b.checkIn)),
+            checkOut: toDateStr(new Date(b.checkOut)),
+            nights: b.nights,
+            guests: b.guests,
+            amount: b.pricing?.finalAmount || 0,
+            status: b.status,
+            phone: b.guest?.phone || b.phone || '',
+          }))
+          setBookings(mapped)
+        }
+      } catch {
+        try {
+          const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+          setBookings(raw.map(b => ({
+            id: b.id,
+            guest: b.guest,
+            room: b.room,
+            checkIn: b.checkIn,
+            checkOut: b.checkOut,
+            nights: b.nights,
+            guests: b.guests,
+            amount: b.amount,
+            status: b.status,
+            phone: b.phone,
+          })))
+        } catch {}
+      }
+    }
+    fetchBookings()
+  }, [])
+
+  const daysList = days.map(d => d.dateStr)
+  const minDate = daysList[0]
+  const maxDate = daysList[daysList.length - 1]
+
+  const overlappingBookings = useMemo(() => {
+    return bookings.filter(b => {
+      if (b.status === 'cancelled') return false
+      return b.checkIn <= maxDate && b.checkOut >= minDate
+    })
+  }, [bookings, minDate, maxDate])
+
+  const allocations = useMemo(() => {
+    return overlappingBookings.filter(b => !roomAssignments[b.id]).map(b => ({
+      id: b.id,
+      name: b.guest,
+      type: b.room,
+      dates: `${new Date(b.checkIn).toLocaleDateString('en-IN')} to ${new Date(b.checkOut).toLocaleDateString('en-IN')}`,
+      guests: `${b.guests} Guest(s)`,
+      phone: b.phone || '—',
+      booking: b,
+    }))
+  }, [overlappingBookings, roomAssignments])
+
+  const handleAssignRoom = (bookingId, roomId) => {
+    if (!roomId) return
+    const updated = { ...roomAssignments, [bookingId]: roomId }
+    setRoomAssignments(updated)
+    localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updated))
+    toast.success('Room assigned successfully')
+  }
+
+  const handleUnassignRoom = (bookingId) => {
+    const updated = { ...roomAssignments }
+    delete updated[bookingId]
+    setRoomAssignments(updated)
+    localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updated))
+    toast.success('Room unassigned')
+  }
 
   return (
     <div className="flex flex-col gap-6 font-poppins">
@@ -147,13 +250,42 @@ export default function CalendarPage() {
                 
                 {/* Day Cells */}
                 <div className="flex flex-1">
-                  {days.map((_, i) => (
-                    <div key={i} className="flex-1 min-w-[70px] border-r border-gray-100 flex items-center justify-center cursor-pointer group">
-                      <span className="text-[10px] font-medium text-green-100 group-hover:text-green-500 transition-colors">
-                        + Book
-                      </span>
-                    </div>
-                  ))}
+                  {days.map((d, di) => {
+                    const dateStr = d.dateStr
+                    // Check if there is an overlapping booking assigned to this physical room on this dateStr
+                    const activeBooking = overlappingBookings.find(b => {
+                      return roomAssignments[b.id] === room.id && dateStr >= b.checkIn && dateStr < b.checkOut
+                    })
+
+                    if (activeBooking) {
+                      const isStart = activeBooking.checkIn === dateStr
+                      const st = STATUS_STYLES[activeBooking.status] || { bg: 'bg-blue-500', text: 'text-white' }
+                      return (
+                        <div 
+                          key={di}
+                          onClick={() => {
+                            if (window.confirm(`Unassign room for booking of ${activeBooking.guest}?`)) {
+                              handleUnassignRoom(activeBooking.id)
+                            }
+                          }}
+                          className={`flex-1 min-w-[70px] border-r border-gray-100 flex items-center justify-center p-1 text-center font-poppins text-[10px] cursor-pointer transition-all hover:opacity-90 ${st.bg} ${st.text}`}
+                          title={`Guest: ${activeBooking.guest}\nDates: ${activeBooking.checkIn} to ${activeBooking.checkOut}\nStatus: ${activeBooking.status}\nClick to Unassign`}
+                        >
+                          <span className="truncate max-w-[65px] font-semibold">
+                            {isStart ? activeBooking.guest : '•••'}
+                          </span>
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <div key={di} className="flex-1 min-w-[70px] border-r border-gray-100 flex items-center justify-center cursor-pointer group hover:bg-gray-50">
+                        <span className="text-[10px] font-medium text-gray-300 group-hover:text-green-500 transition-colors">
+                          + Book
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -209,11 +341,16 @@ export default function CalendarPage() {
 
                   <div>
                     <span className="text-[10px] font-bold text-gray-400 block mb-1">AVAILABLE ROOMS</span>
-                    <select className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs text-gray-700 outline-none">
-                      <option>-- Select a Room --</option>
-                      <option>Room 102</option>
-                      <option>Room 201</option>
-                      <option>Room 202</option>
+                    <select 
+                      onChange={(e) => handleAssignRoom(alloc.id, e.target.value)}
+                      className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs text-gray-700 outline-none cursor-pointer"
+                    >
+                      <option value="">-- Select a Room --</option>
+                      {rooms.filter(r => r.type === alloc.type).map(r => (
+                        <option key={r.id} value={r.id}>
+                          {r.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
