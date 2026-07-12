@@ -62,7 +62,8 @@ export default function BookingPage() {
   const [bookingId, setBookingId] = useState(null)
   const formRef = useRef(null)
 
-  // Load Razorpay script on mount
+  // Load Razorpay script on mount (Commented out as we are using direct booking now)
+  /*
   useEffect(() => {
     const script = document.createElement('script')
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'
@@ -72,6 +73,7 @@ export default function BookingPage() {
       document.body.removeChild(script)
     }
   }, [])
+  */
 
   const scrollToForm = () => {
     if (formRef.current) {
@@ -102,7 +104,7 @@ export default function BookingPage() {
     idType: '',
     idNumber: '',
     specialRequests: '',
-    paymentMethod: 'razorpay',
+    paymentMethod: 'pay_at_hotel',
   })
 
   const selectedRoom = ROOMS.find((r) => r.id === bookingData.roomId)
@@ -567,16 +569,16 @@ export default function BookingPage() {
             ))}
           </div>
 
-          {/* Payment Method — Razorpay Only */}
+          {/* Payment Method — Pay at Hotel */}
           <div className="mt-5 pt-5 border-t border-gray-100">
-            <h4 className="font-poppins font-semibold text-navy text-sm mb-3">Payment</h4>
+            <h4 className="font-poppins font-semibold text-navy text-sm mb-3">Payment Method</h4>
             <div className="flex items-center gap-3 p-4 rounded-sm border border-gold bg-gold bg-opacity-5">
               <div className="w-8 h-8 rounded-full bg-gold flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-sm">💳</span>
+                <span className="text-white text-sm">🏨</span>
               </div>
               <div>
-                <p className="font-poppins text-sm font-semibold text-navy">Secure Online Payment via Razorpay</p>
-                <p className="font-poppins text-xs text-gray-500 mt-0.5">Cards · UPI · Net Banking · Wallets — All accepted</p>
+                <p className="font-poppins text-sm font-semibold text-navy">Pay at Hotel / Cash on Arrival</p>
+                <p className="font-poppins text-xs text-gray-500 mt-0.5">No immediate online payment required. Pay directly at the front desk upon check-in.</p>
               </div>
             </div>
           </div>
@@ -660,7 +662,8 @@ export default function BookingPage() {
               }
             }
 
-            // ── Razorpay Direct Checkout (no server order needed) ────
+            // ── Direct Booking Flow (Bypass Razorpay) ────
+            /*
             if (!window.Razorpay) {
               toast.error('Payment gateway not loaded. Please refresh and try again.')
               return
@@ -721,7 +724,7 @@ export default function BookingPage() {
                     razorpay_payment_id: response.razorpay_payment_id,
                     razorpay_signature: response.razorpay_signature || '',
                   })
-                } catch { /* server offline — still finalize */ }
+                } catch { }
                 await finalizeBooking({
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_order_id: response.razorpay_order_id || '',
@@ -731,20 +734,23 @@ export default function BookingPage() {
 
             const rzp = new window.Razorpay(rzpOptions)
             rzp.open()
+            */
+
+            await finalizeBooking()
           }}
-          disabled={loading || paymentLoading}
+          disabled={loading}
           className="btn-gold flex items-center gap-2 px-8 py-3.5"
         >
-          {(loading || paymentLoading) ? (
+          {loading ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              {paymentLoading ? 'Opening Payment...' : 'Confirming...'}
+              Confirming...
             </span>
           ) : (
-            <>💳 Pay Now <FaCheck size={14} /></>
+            <>🏨 Confirm Booking <FaCheck size={14} /></>
           )}
         </button>
       </div>
@@ -793,7 +799,7 @@ export default function BookingPage() {
             <span className="text-navy font-medium">₹{gstAmount.toLocaleString()}</span>
           </div>
           <div className="flex justify-between border-t pt-3">
-            <span className="text-gray-500 font-bold">Total Paid</span>
+            <span className="text-gray-500 font-bold">{bookingData.paymentMethod === 'razorpay' ? 'Total Paid' : 'Total Amount'}</span>
             <span className="text-gold font-bold text-lg">₹{totalPrice.toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
