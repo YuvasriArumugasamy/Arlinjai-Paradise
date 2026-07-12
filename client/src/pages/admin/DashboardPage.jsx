@@ -39,14 +39,15 @@ function calcLocalStats() {
     const totalRevenue = thisMonth.reduce((s, b) => s + (b.amount || 0), 0)
     const totalBookings = thisMonth.length
     const totalGuests = thisMonth.reduce((s, b) => s + (b.guests || 0), 0)
+    const todayStr = new Date().toLocaleDateString('en-CA')
     const currentlyCheckedIn = active.filter(b => b.status === 'checked-in').length
     const checkInsToday = active.filter(b => {
-      const d = new Date(b.checkIn)
-      return d >= today && d < tomorrow && (b.status === 'confirmed' || b.status === 'pending')
+      const dStr = new Date(b.checkIn).toLocaleDateString('en-CA')
+      return dStr === todayStr && (b.status === 'confirmed' || b.status === 'pending')
     }).length
     const checkOutsToday = active.filter(b => {
-      const d = new Date(b.checkOut)
-      return d >= today && d < tomorrow && b.status === 'checked-in'
+      const dStr = new Date(b.checkOut).toLocaleDateString('en-CA')
+      return dStr === todayStr && (b.status === 'checked-in' || b.status === 'checked-out')
     }).length
 
     return {

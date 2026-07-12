@@ -54,15 +54,15 @@ const getDashboardStats = async (req, res, next) => {
       ? parseFloat(((totalBookingsThisMonth - totalBookingsLastMonth) / totalBookingsLastMonth * 100).toFixed(1))
       : 0
 
-    // Today's check-ins and check-outs
+    // Today's check-ins and check-outs (UTC midnight alignment)
     const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const utcToday = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()))
+    const utcTomorrow = new Date(utcToday)
+    utcTomorrow.setUTCDate(utcTomorrow.getUTCDate() + 1)
 
     const [checkInsToday, checkOutsToday, currentlyCheckedIn] = await Promise.all([
-      Booking.countDocuments({ checkIn: { $gte: today, $lt: tomorrow }, status: { $in: ['confirmed', 'pending'] } }),
-      Booking.countDocuments({ checkOut: { $gte: today, $lt: tomorrow }, status: 'checked-in' }),
+      Booking.countDocuments({ checkIn: { $gte: utcToday, $lt: utcTomorrow }, status: { $in: ['confirmed', 'pending'] } }),
+      Booking.countDocuments({ checkOut: { $gte: utcToday, $lt: utcTomorrow }, status: { $in: ['checked-in', 'checked-out'] } }),
       Booking.countDocuments({ status: 'checked-in' }),
     ])
 
