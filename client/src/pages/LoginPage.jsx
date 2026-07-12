@@ -47,7 +47,7 @@ export default function LoginPage() {
       navigate('/admin')
     } catch {
       // Fallback credentials for demo/development
-      if (form.email === 'admin@arlinjaiparadise.com' && form.password === 'Admin@2024') {
+      if (form.email === 'admin@arlinjaiparadise.com' && form.password === 'Admin@1234') {
         localStorage.setItem('token', 'demo-token')
         localStorage.setItem('user', JSON.stringify({ name: 'Admin', role: 'admin', email: form.email }))
         toast.success('Welcome back, Admin!')
