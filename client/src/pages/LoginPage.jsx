@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaEye, FaEyeSlash, FaLock, FaUser,
-  FaArrowRight, FaShieldAlt, FaGlobe, FaHotel
+  FaArrowRight, FaShieldAlt
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import axios from 'axios'
@@ -269,16 +269,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Back link */}
-        <div className="mt-6 text-center">
-          <Link 
-            to="/" 
-            className="inline-flex items-center gap-2 text-xs text-white/40 hover:text-[#C9A227] transition-colors"
-          >
-            <FaGlobe size={11} />
-            <span>Return to Public Hotel Website</span>
-          </Link>
-        </div>
+
       </motion.div>
 
       {/* Global CSS Animations */}
