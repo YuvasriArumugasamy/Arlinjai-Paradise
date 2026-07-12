@@ -82,6 +82,7 @@ export default function LoginPage() {
       {/* ── LEFT PANEL ── */}
       <div
         className="hidden lg:flex lg:w-[48%] relative flex-col justify-between p-10 overflow-hidden"
+        style={{ position: 'sticky', top: 0, height: '100vh' }}
       >
         {/* Real hotel photo as background */}
         <div className="absolute inset-0" style={{
@@ -191,7 +192,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── RIGHT PANEL ── */}
-      <div className="flex-1 flex flex-col bg-white">
+      <div className="flex-1 flex flex-col bg-white overflow-y-auto" style={{ maxHeight: '100vh' }}>
 
         {/* Mobile hero */}
         <div className="lg:hidden relative py-14 text-center overflow-hidden">
