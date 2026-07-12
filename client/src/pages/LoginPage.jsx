@@ -81,21 +81,29 @@ export default function LoginPage() {
       <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[600px] bg-[#C9A227]/10 rounded-full blur-[120px] pointer-events-none z-0" />
       <div className="absolute bottom-[-15%] left-[-10%] w-[60vw] h-[60vw] max-w-[700px] bg-blue-900/15 rounded-full blur-[150px] pointer-events-none z-0" />
 
-      {/* ── CARD WRAPPER ── */}
+      {/* ── CARD WRAPPER WITH RUNNING BORDER LIGHT ── */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, cubicBezier: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-[450px] z-10"
+        className="w-full max-w-[450px] z-10 relative p-[1.5px] rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.8)]"
       >
+        {/* Animated Running Border Gradient */}
         <div 
-          className="backdrop-blur-xl bg-[#08111f]/65 rounded-2xl p-8 sm:p-10 border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.6)] relative overflow-hidden"
+          className="absolute inset-[-1000%] pointer-events-none"
           style={{
-            boxShadow: '0 24px 60px -15px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255,255,255,0.1)'
+            background: 'conic-gradient(from 0deg, transparent 35%, #C9A227 45%, #E5C158 50%, #C9A227 55%, transparent 65%)',
+            animation: 'rotate-border 5s linear infinite'
+          }}
+        />
+
+        {/* Card Body */}
+        <div 
+          className="backdrop-blur-xl bg-[#08111f]/85 rounded-2xl p-8 sm:p-10 relative z-10 w-full h-full"
+          style={{
+            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.05)'
           }}
         >
-          {/* Subtle gold line at top */}
-          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#C9A227] to-transparent" />
 
           {/* ── LOGO & HEADER ── */}
           <div className="flex flex-col items-center mb-8">
@@ -273,11 +281,19 @@ export default function LoginPage() {
         </div>
       </motion.div>
 
-      {/* Global CSS Shimmer Keyframe */}
+      {/* Global CSS Animations */}
       <style>{`
         @keyframes shimmer {
           100% {
             transform: translateX(250%) skewX(-30deg);
+          }
+        }
+        @keyframes rotate-border {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
           }
         }
       `}</style>
