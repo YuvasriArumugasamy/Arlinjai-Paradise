@@ -6,6 +6,8 @@ import {
   FaStar, FaChartBar, FaCog, FaBars, FaTimes,
   FaSignOutAlt, FaBell, FaChevronLeft, FaExternalLinkAlt, FaCalendarDay
 } from 'react-icons/fa'
+import axios from 'axios'
+import { API_BASE_URL } from '../../constants'
 
 const navItems = [
   { path: '/admin', label: 'Dashboard', icon: FaTachometerAlt, exact: true },
@@ -44,25 +46,40 @@ export default function AdminLayout() {
   const [hasPending, setHasPending] = useState(false)
 
   useEffect(() => {
-    const checkBookings = () => {
+    const checkRealtimeNotifications = async () => {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
       try {
-        const bookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-        const hasNew = bookings.some(b => b.status === 'pending')
-        setHasPending(hasNew)
-      } catch {
-        setHasPending(false)
+        const headers = { Authorization: `Bearer ${token}` }
+        
+        // Fetch pending bookings and new messages in parallel
+        const [bookingsRes, contactRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/bookings?status=pending&limit=1`, { headers }),
+          axios.get(`${API_BASE_URL}/contact?status=new&limit=1`, { headers })
+        ]).catch(() => [null, null])
+
+        const pendingCount = bookingsRes?.data?.total || 0
+        const newMsgCount = contactRes?.data?.total || 0
+
+        setHasPending(pendingCount > 0 || newMsgCount > 0)
+      } catch (err) {
+        // Fallback: check localStorage
+        try {
+          const bookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+          const hasNew = bookings.some(b => b.status === 'pending')
+          setHasPending(hasNew)
+        } catch {
+          setHasPending(false)
+        }
       }
     }
 
-    checkBookings()
-    window.addEventListener('storage', checkBookings)
-    const interval = setInterval(checkBookings, 3000)
+    checkRealtimeNotifications()
+    const interval = setInterval(checkRealtimeNotifications, 10000) // check every 10s
     
-    return () => {
-      window.removeEventListener('storage', checkBookings)
-      clearInterval(interval)
-    }
-  }, [location.pathname])
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="flex h-screen bg-lightbg overflow-hidden font-poppins">
