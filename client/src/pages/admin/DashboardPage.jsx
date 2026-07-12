@@ -243,7 +243,8 @@ export default function DashboardPage() {
             View All →
           </Link>
         </div>
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
@@ -295,15 +296,86 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button className="text-gold hover:text-gold-dark transition-colors">
+                      <Link to="/admin/bookings" className="text-gold hover:text-gold-dark transition-colors inline-block">
                         <FaEye size={14} />
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="lg:hidden divide-y divide-gray-100">
+          {loading ? (
+            <div className="p-6 text-center">
+              <div className="flex items-center justify-center gap-2 text-gray-400 font-poppins text-sm">
+                <svg className="animate-spin h-4 w-4 text-gold" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Loading bookings...
+              </div>
+            </div>
+          ) : bookings.length === 0 ? (
+            <div className="p-6 text-center">
+              <p className="font-poppins text-sm text-gray-400">No bookings yet</p>
+            </div>
+          ) : (
+            <div className="p-4 space-y-4">
+              {bookings.map((booking) => {
+                const status = STATUS_STYLES[booking.status] || STATUS_STYLES.pending
+                return (
+                  <div key={booking.id} className="bg-white rounded-lg border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <p className="font-poppins text-[10px] text-gray-400 uppercase tracking-wider">Booking ID</p>
+                        <p className="font-poppins text-sm font-semibold text-[#08111F]">{booking.id}</p>
+                      </div>
+                      <span className={`font-poppins text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${status.bg} ${status.text}`}>
+                        {status.label}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mb-3 text-xs font-poppins">
+                      <div>
+                        <p className="text-gray-400">Guest</p>
+                        <p className="font-medium text-[#08111F] truncate">{booking.guest}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Room</p>
+                        <p className="font-medium text-[#08111F] truncate">{booking.room}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Check In</p>
+                        <p className="font-medium text-gray-700">
+                          {new Date(booking.checkIn).toLocaleDateString('en-IN')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Check Out</p>
+                        <p className="font-medium text-gray-700">
+                          {new Date(booking.checkOut).toLocaleDateString('en-IN')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2">
+                      <div>
+                        <p className="font-poppins text-[10px] text-gray-400 uppercase">Total Amount</p>
+                        <p className="font-poppins text-sm font-bold text-navy">₹{(booking.amount || 0).toLocaleString()}</p>
+                      </div>
+                      <Link to="/admin/bookings" className="text-gold hover:text-gold-dark transition-colors p-2">
+                        <FaEye size={14} />
+                      </Link>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </motion.div>
 
