@@ -939,10 +939,18 @@ export default function BookingPage() {
             display: none !important;
           }
         }
+        @page {
+          size: A4 portrait;
+          margin: 8mm 12mm 8mm 12mm !important;
+        }
         @media print {
           /* Hide all screen elements */
           body * {
             visibility: hidden !important;
+          }
+          html, body {
+            height: 100%;
+            overflow: hidden;
           }
           /* Show only the printable invoice card */
           .printable-invoice, .printable-invoice * {
@@ -954,104 +962,105 @@ export default function BookingPage() {
             top: 0 !important;
             width: 100% !important;
             margin: 0 !important;
-            padding: 20px !important;
+            padding: 0 !important;
             background: #ffffff !important;
             color: #333333 !important;
             font-family: 'Poppins', sans-serif !important;
+            box-sizing: border-box !important;
           }
           .invoice-header {
             display: flex !important;
             justify-content: space-between !important;
             align-items: flex-start !important;
-            margin-bottom: 25px !important;
+            margin-bottom: 12px !important;
           }
           .hotel-logo-section .hotel-title {
             font-family: 'Playfair Display', serif !important;
-            font-size: 24px !important;
+            font-size: 20px !important;
             font-weight: 800 !important;
             color: #08111F !important;
             margin: 0 !important;
           }
           .hotel-logo-section .hotel-tagline {
-            font-size: 9px !important;
-            letter-spacing: 3px !important;
+            font-size: 8px !important;
+            letter-spacing: 2px !important;
             color: #C9A227 !important;
-            margin: 3px 0 0 0 !important;
+            margin: 2px 0 0 0 !important;
             text-transform: uppercase !important;
             font-weight: 600 !important;
           }
           .hotel-contact-section {
             text-align: right !important;
-            font-size: 11px !important;
+            font-size: 10px !important;
             color: #555555 !important;
-            line-height: 1.5 !important;
+            line-height: 1.4 !important;
           }
           .invoice-divider {
             height: 2px !important;
             background: linear-gradient(90deg, #08111F, #C9A227, #08111F) !important;
-            margin-bottom: 25px !important;
+            margin-bottom: 15px !important;
           }
           .invoice-meta-row {
             display: flex !important;
             justify-content: space-between !important;
-            margin-bottom: 25px !important;
+            margin-bottom: 15px !important;
           }
           .bill-to, .invoice-details {
             width: 48% !important;
           }
           .section-title {
-            font-size: 10px !important;
+            font-size: 9px !important;
             letter-spacing: 2px !important;
             color: #C9A227 !important;
             border-bottom: 1px solid #eeeeee !important;
-            padding-bottom: 5px !important;
-            margin-bottom: 10px !important;
+            padding-bottom: 4px !important;
+            margin-bottom: 8px !important;
             font-weight: 700 !important;
             text-transform: uppercase !important;
           }
           .bill-to p, .invoice-details p {
-            font-size: 12px !important;
+            font-size: 11px !important;
             color: #444444 !important;
-            margin: 3px 0 !important;
+            margin: 2px 0 !important;
           }
           .bill-to .guest-name {
             font-family: 'Playfair Display', serif !important;
-            font-size: 15px !important;
+            font-size: 13px !important;
             font-weight: 700 !important;
             color: #08111F !important;
-            margin-bottom: 5px !important;
+            margin-bottom: 4px !important;
           }
           .status-badge {
-            padding: 2px 8px !important;
+            padding: 1px 6px !important;
             border-radius: 9999px !important;
-            font-size: 10px !important;
+            font-size: 9px !important;
             font-weight: 600 !important;
           }
           .invoice-table {
             width: 100% !important;
             border-collapse: collapse !important;
-            margin-bottom: 30px !important;
+            margin-bottom: 15px !important;
           }
           .invoice-table th {
             background: #08111F !important;
             color: #ffffff !important;
-            font-size: 11px !important;
+            font-size: 10px !important;
             text-transform: uppercase !important;
             letter-spacing: 1px !important;
-            padding: 8px 12px !important;
+            padding: 6px 10px !important;
             font-weight: 600 !important;
             text-align: left !important;
           }
           .invoice-table td {
-            padding: 12px !important;
+            padding: 8px 10px !important;
             border-bottom: 1px solid #eeeeee !important;
-            font-size: 12px !important;
+            font-size: 11px !important;
             color: #444444 !important;
           }
           .nights-desc {
-            font-size: 10px !important;
+            font-size: 9px !important;
             color: #777777 !important;
-            margin: 2px 0 0 0 !important;
+            margin: 1px 0 0 0 !important;
           }
           .text-center { text-align: center !important; }
           .text-right { text-align: right !important; }
@@ -1060,58 +1069,58 @@ export default function BookingPage() {
           .text-gold { color: #C9A227 !important; }
           .subtotal-row td {
             border-top: 1px solid #dddddd !important;
-            padding-top: 12px !important;
+            padding-top: 8px !important;
           }
           .total-row td {
-            font-size: 14px !important;
+            font-size: 12px !important;
             color: #08111F !important;
             border-bottom: double 3px #C9A227 !important;
-            padding-top: 12px !important;
-            padding-bottom: 12px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
           }
           .invoice-footer {
             display: flex !important;
             justify-content: space-between !important;
             align-items: flex-end !important;
-            margin-top: 40px !important;
+            margin-top: 20px !important;
           }
           .terms {
             width: 60% !important;
           }
           .terms h4 {
-            font-size: 12px !important;
+            font-size: 11px !important;
             font-weight: 700 !important;
             color: #08111F !important;
-            margin: 0 0 8px 0 !important;
+            margin: 0 0 5px 0 !important;
           }
           .terms p {
-            font-size: 10px !important;
+            font-size: 9px !important;
             color: #666666 !important;
-            margin: 3px 0 !important;
-            line-height: 1.4 !important;
+            margin: 2px 0 !important;
+            line-height: 1.3 !important;
           }
           .signature-section {
             text-align: center !important;
             width: 35% !important;
           }
           .signature-title {
-            font-size: 11px !important;
+            font-size: 10px !important;
             color: #555555 !important;
-            margin-bottom: 10px !important;
+            margin-bottom: 8px !important;
           }
           .signature-line {
             border-bottom: 1px solid #cccccc !important;
-            padding-bottom: 5px !important;
-            margin-bottom: 5px !important;
+            padding-bottom: 4px !important;
+            margin-bottom: 4px !important;
           }
           .signature-font {
             font-family: 'Brush Script MT', cursive, sans-serif !important;
-            font-size: 18px !important;
+            font-size: 16px !important;
             color: #08111F !important;
             font-style: italic !important;
           }
           .signature-date {
-            font-size: 10px !important;
+            font-size: 9px !important;
             color: #777777 !important;
           }
         }
