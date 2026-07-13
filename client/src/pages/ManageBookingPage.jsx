@@ -9,13 +9,14 @@ import toast from 'react-hot-toast'
 import Breadcrumb from '../components/common/Breadcrumb'
 import { HOTEL_INFO, API_BASE_URL } from '../constants'
 import axios from 'axios'
+import signatureImg from './admin/image.png'
 
 // Dummy fallback for demo (when backend not running)
 const DEMO_BOOKINGS = [
   {
     bookingId: 'AP000001',
     status: 'confirmed',
-    guest: { name: 'Demo Guest', phone: '9876543210', email: 'demo@example.com' },
+    guest: { name: 'Demo Guest', phone: '9876543210', email: 'demo@example.com', address: 'Kanyakumari, Tamil Nadu' },
     roomSnapshot: { name: 'Deluxe AC Room', price: 2500 },
     checkIn: new Date(Date.now() + 86400000 * 2).toISOString(),
     checkOut: new Date(Date.now() + 86400000 * 4).toISOString(),
@@ -406,7 +407,7 @@ export default function ManageBookingPage() {
               {/* Details Card / Receipt */}
               <div className="bg-white rounded-xl shadow-card overflow-hidden print-card border border-gray-100">
                 
-                {/* Status Banner (Inside Receipt for Print) */}
+                {/* Status Banner */}
                 <div
                   className="px-6 py-5 flex items-center gap-4 border-b border-gray-100"
                   style={{ background: statusCfg?.bg || '#f9fafb' }}
@@ -518,7 +519,7 @@ export default function ManageBookingPage() {
                 </div>
 
                 {/* Print Button (Hidden in Print) */}
-                <div className="bg-gray-50 border-t border-gray-100 px-6 py-4">
+                <div className="bg-gray-50 border-t border-gray-100 px-6 py-4 print:hidden">
                   <button
                     onClick={handlePrint}
                     className="w-full flex items-center justify-center gap-2 bg-navy text-white
@@ -740,9 +741,7 @@ export default function ManageBookingPage() {
                   <div className="signature-area">
                     <p>For: Arlinjai Paradise</p>
                     <div className="sig-wrap">
-                      <svg className="signature-svg" width="150" height="50" viewBox="0 0 150 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M 15,35 C 30,30 45,15 52,10 C 56,8 60,12 58,18 C 55,25 47,35 41,36 C 37,37 38,32 44,27 C 55,18 72,10 80,8 C 84,7 82,15 78,20 C 72,28 64,34 72,32 C 80,30 96,18 105,14 M 25,37 L 110,22" stroke="#12223c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                      <img src={signatureImg} alt="Authorized Signature" className="signature-img" />
                     </div>
                     <h5>Authorized Signatory</h5>
                   </div>
@@ -1088,9 +1087,10 @@ export default function ManageBookingPage() {
               height: 40px !important;
               margin-bottom: 2px !important;
             }
-            .signature-svg {
+            .signature-img {
               height: 100% !important;
               width: auto !important;
+              display: block !important;
             }
             .signature-area h5 {
               font-size: 10px !important;

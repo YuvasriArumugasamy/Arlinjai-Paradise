@@ -10,6 +10,7 @@ import toast from 'react-hot-toast'
 import axios from 'axios'
 import Breadcrumb from '../components/common/Breadcrumb'
 import { ROOMS, HOTEL_INFO, API_BASE_URL } from '../constants'
+import signatureImg from './admin/image.png'
 
 const STEPS = ['Select Room', 'Your Details', 'Review & Pay', 'Confirmation']
 
@@ -1116,9 +1117,7 @@ export default function BookingPage() {
                 <div className="signature-area">
                   <p>For: Arlinjai Paradise</p>
                   <div className="sig-wrap">
-                    <svg className="signature-svg" width="150" height="50" viewBox="0 0 150 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M 15,35 C 30,30 45,15 52,10 C 56,8 60,12 58,18 C 55,25 47,35 41,36 C 37,37 38,32 44,27 C 55,18 72,10 80,8 C 84,7 82,15 78,20 C 72,28 64,34 72,32 C 80,30 96,18 105,14 M 25,37 L 110,22" stroke="#12223c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <img src={signatureImg} alt="Authorized Signature" className="signature-img" />
                   </div>
                   <h5>Authorized Signatory</h5>
                 </div>
@@ -1463,9 +1462,10 @@ export default function BookingPage() {
               height: 40px !important;
               margin-bottom: 2px !important;
             }
-            .signature-svg {
+            .signature-img {
               height: 100% !important;
               width: auto !important;
+              display: block !important;
             }
             .signature-area h5 {
               font-size: 10px !important;
