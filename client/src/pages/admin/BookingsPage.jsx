@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   FaSearch, FaFilter, FaEye, FaTimes, FaDownload,
@@ -7,6 +7,8 @@ import {
   FaWhatsapp, FaTimesCircle, FaTrashAlt
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
+import axios from 'axios'
+import { API_BASE_URL } from '../../constants'
 
 const STATUS_STYLES = {
   confirmed:    { bg: 'bg-blue-100',   text: 'text-blue-700',   label: 'Confirmed' },
@@ -41,11 +43,48 @@ const getAge = (dob) => {
 }
 
 export default function BookingsPage() {
-  const [bookings, setBookings] = useState(loadBookings)
+  const [bookings, setBookings] = useState([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [filterMode, setFilterMode] = useState('month')
   const [selectedBooking, setSelectedBooking] = useState(null)
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      const token = localStorage.getItem('token')
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      try {
+        const res = await axios.get(`${API_BASE_URL}/bookings?limit=100`, { headers })
+        if (res.data.success) {
+          const mapped = res.data.bookings.map(b => ({
+            id: b.bookingId || b._id,
+            guest: b.guest?.name || b.guest || '—',
+            gender: b.guest?.gender || b.gender || '',
+            dob: b.guest?.dob || b.dob || '',
+            email: b.guest?.email || b.email || '',
+            phone: b.guest?.phone || b.phone || '',
+            idType: b.guest?.idType || b.idType || '',
+            idNumber: b.guest?.idNumber || b.idNumber || '',
+            room: b.roomSnapshot?.name || b.room?.name || '—',
+            checkIn: b.checkIn,
+            checkOut: b.checkOut,
+            nights: b.nights,
+            guests: b.guests,
+            amount: b.pricing?.finalAmount || 0,
+            paymentMethod: b.paymentMethod || 'pay_at_hotel',
+            status: b.status,
+            createdAt: b.createdAt
+          }))
+          setBookings(mapped)
+          saveBookings(mapped)
+        }
+      } catch (err) {
+        console.error('Failed to fetch bookings from server:', err)
+        setBookings(loadBookings())
+      }
+    }
+    fetchBookings()
+  }, [])
 
   const filtered = bookings.filter((b) => {
     const q = search.toLowerCase()
@@ -63,12 +102,28 @@ export default function BookingsPage() {
     return matchSearch && matchStatus && matchPeriod
   })
 
-  const updateStatus = (id, newStatus) => {
-    const updated = bookings.map((b) => b.id === id ? { ...b, status: newStatus } : b)
-    setBookings(updated)
-    saveBookings(updated)
-    if (selectedBooking?.id === id) setSelectedBooking({ ...selectedBooking, status: newStatus })
-    toast.success(`Status updated to ${newStatus}`)
+  const updateStatus = async (id, newStatus) => {
+    const token = localStorage.getItem('token')
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    try {
+      const res = await axios.patch(`${API_BASE_URL}/bookings/${id}/status`, { status: newStatus }, { headers })
+      if (res.data.success) {
+        const updated = bookings.map((b) => b.id === id ? { ...b, status: newStatus } : b)
+        setBookings(updated)
+        saveBookings(updated)
+        if (selectedBooking?.id === id) setSelectedBooking({ ...selectedBooking, status: newStatus })
+        toast.success(`Status updated to ${newStatus}`)
+      } else {
+        toast.error(res.data.message || 'Failed to update status')
+      }
+    } catch (err) {
+      console.error(err)
+      const updated = bookings.map((b) => b.id === id ? { ...b, status: newStatus } : b)
+      setBookings(updated)
+      saveBookings(updated)
+      if (selectedBooking?.id === id) setSelectedBooking({ ...selectedBooking, status: newStatus })
+      toast.success(`Status updated locally to ${newStatus}`)
+    }
   }
 
   const handleWhatsApp = (booking, e) => {
@@ -99,14 +154,30 @@ export default function BookingsPage() {
     }
   }
 
-  const handleDelete = (id, e) => {
+  const handleDelete = async (id, e) => {
     if (e) e.stopPropagation()
     if (window.confirm(`Are you sure you want to permanently delete booking ${id}? This action cannot be undone.`)) {
-      const updated = bookings.filter((b) => b.id !== id)
-      setBookings(updated)
-      saveBookings(updated)
-      if (selectedBooking?.id === id) setSelectedBooking(null)
-      toast.success('Booking deleted successfully')
+      const token = localStorage.getItem('token')
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      try {
+        const res = await axios.delete(`${API_BASE_URL}/bookings/${id}`, { headers })
+        if (res.data.success) {
+          const updated = bookings.filter((b) => b.id !== id)
+          setBookings(updated)
+          saveBookings(updated)
+          if (selectedBooking?.id === id) setSelectedBooking(null)
+          toast.success('Booking deleted successfully')
+        } else {
+          toast.error(res.data.message || 'Failed to delete booking')
+        }
+      } catch (err) {
+        console.error(err)
+        const updated = bookings.filter((b) => b.id !== id)
+        setBookings(updated)
+        saveBookings(updated)
+        if (selectedBooking?.id === id) setSelectedBooking(null)
+        toast.success('Booking deleted locally')
+      }
     }
   }
 
