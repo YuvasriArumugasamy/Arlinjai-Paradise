@@ -1283,7 +1283,7 @@ export default function BookingPage() {
               color: #ffffff !important;
               display: flex !important;
               align-items: center !important;
-              padding: 6px 10px 6px 95px !important;
+              padding: 6px 10px 6px 135px !important;
               font-family: 'Poppins', sans-serif !important;
               font-size: 8px !important;
               gap: 5px !important;
@@ -1291,9 +1291,9 @@ export default function BookingPage() {
               height: 48px !important;
               box-sizing: border-box !important;
               border-bottom-left-radius: 120px 48px !important;
-              margin-left: -80px !important;
+              margin-left: -120px !important;
               position: relative !important;
-              z-index: 3 !important;
+              z-index: 5 !important;
             }
             .contact-item {
               display: flex !important;
