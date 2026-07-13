@@ -1223,7 +1223,7 @@ export default function BookingPage() {
             .invoice-header-left-navy {
               background: #1a2d42 !important;
               color: #ffffff !important;
-              width: 40% !important;
+              width: 450px !important;
               padding: 15px 20px !important;
               clip-path: ellipse(100% 85% at 0 50%) !important;
               display: flex !important;
@@ -1262,7 +1262,7 @@ export default function BookingPage() {
               color: #ffffff !important;
             }
             .invoice-header-right {
-              width: 60% !important;
+              width: calc(100% - 450px) !important;
               display: flex !important;
               flex-direction: column !important;
               justify-content: space-between !important;
