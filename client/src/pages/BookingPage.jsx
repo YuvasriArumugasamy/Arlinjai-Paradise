@@ -1237,7 +1237,7 @@ export default function BookingPage() {
               color: #ffffff !important;
               width: 400px !important;
               padding: 15px 20px !important;
-              clip-path: ellipse(100% 120% at 0% 50%) !important;
+              border-bottom-right-radius: 120px 100px !important;
               display: flex !important;
               flex-direction: column !important;
               gap: 12px !important;
@@ -1285,14 +1285,14 @@ export default function BookingPage() {
               color: #ffffff !important;
               display: flex !important;
               align-items: center !important;
-              padding: 6px 10px 6px 25px !important;
+              padding: 6px 10px 6px 45px !important;
               font-family: 'Poppins', sans-serif !important;
               font-size: 8px !important;
               gap: 5px !important;
               justify-content: space-between !important;
-              height: 45px !important;
+              height: 48px !important;
               box-sizing: border-box !important;
-              border-top-left-radius: 60px 45px !important;
+              border-bottom-left-radius: 120px 48px !important;
             }
             .contact-item {
               display: flex !important;
