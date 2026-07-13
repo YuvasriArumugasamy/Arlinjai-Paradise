@@ -917,8 +917,9 @@ export default function BookingPage() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="text-center print:hidden"
+        className="text-center"
       >
+        <div className="print:hidden">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <FaCheck size={36} className="text-green-500" />
         </div>
@@ -980,14 +981,15 @@ export default function BookingPage() {
           </div>
         </div>
 
-        <p className="font-poppins text-gray-600 text-sm mb-6 print:hidden">
-          Questions? Call us at{' '}
-          <a href={`tel:${HOTEL_INFO.phone1}`} className="text-gold font-semibold">{HOTEL_INFO.phone1}</a>
-        </p>
+          <p className="font-poppins text-gray-600 text-sm mb-6">
+            Questions? Call us at{' '}
+            <a href={`tel:${HOTEL_INFO.phone1}`} className="text-gold font-semibold">{HOTEL_INFO.phone1}</a>
+          </p>
 
-        <button onClick={() => navigate('/')} className="btn-gold px-8 py-3.5 print:hidden">
-          Back to Home
-        </button>
+          <button onClick={() => navigate('/')} className="btn-gold px-8 py-3.5 mb-8">
+            Back to Home
+          </button>
+        </div>
 
         {/* Printable Invoice (Hidden on Screen, Visible on Print) */}
         <div className="printable-invoice">
