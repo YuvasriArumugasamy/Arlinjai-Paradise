@@ -917,7 +917,7 @@ export default function BookingPage() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="text-center"
+        className="text-center print:hidden"
       >
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <FaCheck size={36} className="text-green-500" />
@@ -1189,13 +1189,16 @@ export default function BookingPage() {
             margin: 8mm 12mm 8mm 12mm !important;
           }
           @media print {
-            /* Hide all screen elements */
+            /* Hide all screen layout elements */
+            nav, footer, .navbar, .footer, .print-hidden, .print\:hidden, #root > nav, #root > footer {
+              display: none !important;
+            }
             body * {
               visibility: hidden !important;
             }
-            html, body {
-              height: 100%;
-              overflow: hidden;
+            html, body, #root {
+              height: 100% !important;
+              overflow: hidden !important;
             }
             /* Show only the printable invoice card */
             .printable-invoice, .printable-invoice * {
@@ -1540,7 +1543,7 @@ export default function BookingPage() {
     <div className="min-h-screen bg-lightbg">
       {/* Header */}
       <div
-        className="py-20"
+        className="py-20 print:hidden"
         style={{
           backgroundImage: `linear-gradient(rgba(8,17,31,0.85), rgba(8,17,31,0.85)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.webp')`,
           backgroundSize: 'cover',
@@ -1557,7 +1560,9 @@ export default function BookingPage() {
       </div>
 
       <div ref={formRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <StepIndicator currentStep={step} />
+        <div className="print:hidden">
+          <StepIndicator currentStep={step} />
+        </div>
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
