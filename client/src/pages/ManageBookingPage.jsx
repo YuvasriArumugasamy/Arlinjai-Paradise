@@ -45,6 +45,143 @@ const fmtTime = (dateStr, timeStr) =>
     day: 'numeric', month: 'short', year: 'numeric',
   }) + ` (${timeStr || '12:00 PM'})`
 
+// State and code detection helper
+const STATE_CODES = {
+  'tamil nadu': '33', 'tn': '33',
+  'delhi': '07', 'new delhi': '07',
+  'kerala': '32', 'kl': '32',
+  'karnataka': '29', 'ka': '29',
+  'andhra pradesh': '37', 'ap': '37',
+  'telangana': '36', 'tg': '36',
+  'maharashtra': '27', 'mh': '27',
+  'pondicherry': '34', 'puducherry': '34',
+  'goa': '30', 'ga': '30',
+  'gujarat': '24', 'gj': '24',
+  'rajasthan': '08', 'rj': '08',
+  'west bengal': '19', 'wb': '19',
+  'uttar pradesh': '09', 'up': '09',
+  'bihar': '10', 'br': '10',
+  'madhya pradesh': '23', 'mp': '23',
+  'punjab': '03', 'pb': '03',
+  'haryana': '06', 'hr': '06',
+};
+
+const getStateWithCode = (address) => {
+  if (!address) return { name: 'Tamil Nadu', code: '33' };
+  const clean = address.toLowerCase();
+  for (const [state, code] of Object.entries(STATE_CODES)) {
+    if (clean.includes(state)) {
+      const name = state.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { name, code };
+    }
+  }
+  const parts = address.split(',').map(p => p.trim());
+  if (parts.length >= 2) {
+    const nameCandidate = parts[parts.length - 2] || parts[parts.length - 1];
+    if (nameCandidate) {
+      const name = nameCandidate.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { name, code: '33' };
+    }
+  }
+  return { name: 'Tamil Nadu', code: '33' };
+};
+
+const formatDateDDMMYYYY = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
+const formatTimeHHMM = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const ampmLabel = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const hoursStr = String(hours).padStart(2, '0');
+  return `${hoursStr}:${minutes} ${ampmLabel}`;
+};
+
+const getOrdinalSuffix = (day) => {
+  if (day > 3 && day < 21) return 'th';
+  switch (day % 10) {
+    case 1:  return "st";
+    case 2:  return "nd";
+    case 3:  return "rd";
+    default: return "th";
+  }
+};
+
+const formatDateOrdinal = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const day = d.getDate();
+  const suffix = getOrdinalSuffix(day);
+  const month = d.toLocaleDateString('en-US', { month: 'long' });
+  const year = d.getFullYear();
+  return `${day}${suffix} ${month} ${year}`;
+};
+
+const numberToWords = (num) => {
+  const a = [
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+    'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
+  ];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  if (num === 0) return 'Zero';
+  
+  const convertThousands = (n) => {
+    let str = '';
+    if (n >= 100) {
+      str += a[Math.floor(n / 100)] + ' Hundred ';
+      n %= 100;
+    }
+    if (n > 0) {
+      if (str !== '') str += 'and ';
+      if (n < 20) {
+        str += a[n];
+      } else {
+        str += b[Math.floor(n / 10)];
+        if (n % 10 > 0) {
+          str += '-' + a[n % 10];
+        }
+      }
+    }
+    return str.trim();
+  };
+  
+  let parts = [];
+  let units = num % 1000;
+  let remaining = Math.floor(num / 1000);
+  
+  let thousands = remaining % 100;
+  remaining = Math.floor(remaining / 100);
+  
+  let lakhs = remaining % 100;
+  let crores = Math.floor(remaining / 100);
+  
+  if (crores > 0) {
+    parts.push(convertThousands(crores) + ' Crore');
+  }
+  if (lakhs > 0) {
+    parts.push(convertThousands(lakhs) + ' Lakh');
+  }
+  if (thousands > 0) {
+    parts.push(convertThousands(thousands) + ' Thousand');
+  }
+  if (units > 0) {
+    parts.push(convertThousands(units));
+  }
+  
+  return parts.join(' ').trim() + ' Rupees only';
+};
+
 export default function ManageBookingPage() {
   const [bookingIdInput, setBookingIdInput] = useState('')
   const [booking, setBooking] = useState(null)
@@ -84,7 +221,7 @@ export default function ManageBookingPage() {
           setBooking({
             bookingId: local.id,
             status: local.status || 'pending',
-            guest: { name: local.guest, phone: local.phone, email: local.email },
+            guest: { name: local.guest, phone: local.phone, email: local.email, address: local.address },
             roomSnapshot: { name: local.room },
             checkIn: local.checkIn,
             checkInTime: local.checkInTime,
@@ -92,7 +229,7 @@ export default function ManageBookingPage() {
             checkOutTime: local.checkOutTime,
             nights: local.nights,
             guests: local.guests,
-            pricing: { finalAmount: local.amount },
+            pricing: { finalAmount: local.basePrice || Math.round(local.amount / 1.12) },
             createdAt: local.createdAt,
             paymentMethod: local.paymentMethod,
           })
@@ -127,9 +264,26 @@ export default function ManageBookingPage() {
     ? Math.max(1, Math.floor((new Date(booking.checkOut) - new Date(booking.checkIn)) / 86400000))
     : 0
 
-  const gst = booking ? Math.round((booking.pricing?.finalAmount || 0) * 0.12) : 0
-  const baseAmount = booking ? (booking.pricing?.finalAmount || 0) : 0
-  const totalWithGst = baseAmount + gst
+  const basePrice = booking ? (booking.pricing?.finalAmount || 0) : 0;
+  const gstAmount = Math.round(basePrice * 0.12);
+  const totalPrice = basePrice + gstAmount;
+
+  // Keep old names for compatibility with on-screen view
+  const baseAmount = basePrice;
+  const gst = gstAmount;
+  const totalWithGst = totalPrice;
+
+  const guestState = getStateWithCode(booking?.guest?.address || booking?.address);
+  const isTamilNadu = guestState.code === '33';
+  const gstLabelAmount = isTamilNadu ? gstAmount / 2 : gstAmount;
+  const isPaid = booking?.paymentStatus === 'paid' || booking?.paymentMethod === 'upi' || booking?.paymentMethod === 'card' || booking?.paymentMethod === 'bank_transfer' || booking?.status === 'checked-out';
+  const amountReceived = isPaid ? totalPrice : 0;
+  const balanceAmount = totalPrice - amountReceived;
+  const paymentModeLabel = booking?.paymentMethod === 'pay_at_hotel' ? 'Cash' 
+    : booking?.paymentMethod === 'upi' ? 'UPI'
+    : booking?.paymentMethod === 'card' ? 'Card'
+    : booking?.paymentMethod === 'bank_transfer' ? 'Bank Transfer'
+    : 'Cash';
 
   const statusCfg = booking ? (STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending) : null
   const StatusIcon = statusCfg?.icon || FaClock
@@ -460,298 +614,549 @@ export default function ManageBookingPage() {
         {/* Printable Invoice (Hidden on Screen, Visible on Print) */}
         {booking && (
           <div className="printable-invoice">
-            {/* Header with Logo and Hotel Info */}
-            <div className="invoice-header">
-              <div className="hotel-logo-section">
-                <h1 className="hotel-title">ARLINJAI PARADISE</h1>
-                <p className="hotel-tagline">FOR A PLEASANT STAY</p>
+            {/* Header section with left navy curved container & right contacts section */}
+            <div className="invoice-header-container">
+              {/* Left Navy container */}
+              <div className="invoice-header-left-navy">
+                <div className="logo-section">
+                  <div className="logo-circle">
+                    <img src="/Elegant monogram with seaside emblem.webp" alt="Arlinjai Paradise Logo" />
+                  </div>
+                </div>
+                <div className="hotel-details-section">
+                  <h2 className="hotel-title">Arlinjai Paradise</h2>
+                  <p className="hotel-subtitle">GSTIN: 33ALCPA0679E2ZN</p>
+                  <p className="hotel-subtitle">State: 33-Tamil Nadu</p>
+                </div>
               </div>
-              <div className="hotel-contact-section">
-                <p><strong>Arlinjai Paradise Hotel</strong></p>
-                <p>No. 5/69, Beach Road, Kanyakumari – 629702</p>
-                <p>Phone: +91 94862 71234, 04652 271234</p>
-                <p>Email: booking@arlinjaiparadise.com</p>
-                <p>GSTIN: 33ARLINJAI1234Z5</p>
+
+              {/* Right section containing Green bar and Tax Invoice Title */}
+              <div className="invoice-header-right">
+                <div className="green-contacts-bar">
+                  <div className="contact-item">
+                    <span className="contact-icon">📞</span>
+                    <span className="contact-text">9486271234</span>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">✉</span>
+                    <span className="contact-text">arlinjaiparadise@gmail.com</span>
+                  </div>
+                  <div className="contact-item address-item">
+                    <span className="contact-icon">📍</span>
+                    <span className="contact-text">ARLINJAI PARADISE , 6/248D, Kotakarai, Kovalam, Kanniyakumari,629702 Tamil Nadu,</span>
+                  </div>
+                </div>
+                <div className="title-section">
+                  <h1 className="tax-invoice-text">Tax Invoice</h1>
+                </div>
               </div>
             </div>
 
-            {/* Divider Line */}
-            <div className="invoice-divider"></div>
-
             {/* Invoice Metadata and Bill To */}
-            <div className="invoice-meta-row">
-              <div className="bill-to">
-                <h3 className="section-title">BILL TO</h3>
-                <p className="guest-name">{booking.guest?.name || booking.guest}</p>
-                <p>Phone: {booking.guest?.phone || booking.phone}</p>
-                <p>Email: {booking.guest?.email || booking.email}</p>
+            <div className="invoice-meta-section">
+              <div className="bill-to-box">
+                <span className="section-label">Bill To</span>
+                <h2 className="guest-name">{booking.guest?.name || booking.guest}</h2>
+                <p className="guest-address">{booking.guest?.address || booking.address || 'Kanyakumari, Tamil Nadu'}</p>
+                <p className="guest-detail"><strong>Contact No.:</strong> {booking.guest?.phone || booking.phone}</p>
+                <p className="guest-detail"><strong>GSTIN Number:</strong> N/A</p>
+                <p className="guest-detail"><strong>State:</strong> {guestState.code}-{guestState.name}</p>
               </div>
-              <div className="invoice-details">
-                <h3 className="section-title">RECEIPT DETAILS</h3>
-                <p><strong>Receipt No:</strong> INV-{booking.bookingId || booking.id}</p>
-                <p><strong>Date:</strong> {new Date(booking.createdAt || Date.now()).toLocaleDateString('en-IN')}</p>
-                <p><strong>Status:</strong> <span className="status-badge" style={{ backgroundColor: statusCfg?.bg, color: statusCfg?.color }}>{statusCfg?.label}</span></p>
-                <p><strong>Payment:</strong> {booking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel (Cash/UPI)' : 'UPI Transfer'}</p>
+              <div className="meta-details-box">
+                <div className="meta-row">
+                  <span className="meta-label">Invoice No.:</span>
+                  <span className="meta-value">{booking.bookingId || booking.id}</span>
+                </div>
+                <div className="meta-row">
+                  <span className="meta-label">Date:</span>
+                  <span className="meta-value">{formatDateDDMMYYYY(new Date(booking.createdAt || Date.now()))}</span>
+                </div>
+                <div className="meta-row">
+                  <span className="meta-label">Time:</span>
+                  <span className="meta-value">{formatTimeHHMM(new Date(booking.createdAt || Date.now()))}</span>
+                </div>
+                <div className="meta-row">
+                  <span className="meta-label">Place of Supply:</span>
+                  <span className="meta-value">{guestState.code}-{guestState.name}</span>
+                </div>
               </div>
             </div>
 
             {/* Booking Details Table */}
-            <table className="invoice-table">
+            <table className="invoice-items-table">
               <thead>
                 <tr>
-                  <th>Description</th>
-                  <th className="text-center">Check-In / Check-Out</th>
-                  <th className="text-center">Guests</th>
-                  <th className="text-center">Rate/Night</th>
-                  <th className="text-right">Total</th>
+                  <th style={{ width: '5%' }}>#</th>
+                  <th style={{ width: '38%' }}>Item Name</th>
+                  <th style={{ width: '12%' }}>HSN/ SAC</th>
+                  <th style={{ width: '8%' }}>Quantity</th>
+                  <th style={{ width: '8%' }}>Unit</th>
+                  <th style={{ width: '13%' }}>Price/ Unit</th>
+                  <th style={{ width: '15%' }}>GST</th>
+                  <th style={{ width: '13%' }}>Amount</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>
-                    <strong>Room Charge ({booking.roomSnapshot?.name || booking.room})</strong>
-                    <p className="nights-desc">{booking.nights || nights} Night(s)</p>
-                  </td>
-                  <td className="text-center">
-                    <div>{new Date(booking.checkIn).toLocaleDateString('en-IN')} ({booking.checkInTime || '12:00 PM'})</div>
-                    <div>{new Date(booking.checkOut).toLocaleDateString('en-IN')} ({booking.checkOutTime || '11:00 AM'})</div>
-                  </td>
-                  <td className="text-center">1 Room × {booking.guests} Guests</td>
-                  <td className="text-center">₹{baseAmount ? Math.round(baseAmount / (booking.nights || nights || 1)).toLocaleString() : 0}</td>
-                  <td className="text-right">₹{baseAmount.toLocaleString()}</td>
+                  <td className="text-center">1</td>
+                  <td className="item-name-cell">{booking.roomSnapshot?.name || booking.room || 'Deluxe AC Room'}</td>
+                  <td className="text-center">996311</td>
+                  <td className="text-center">1</td>
+                  <td className="text-center">Nos</td>
+                  <td className="text-right">Rs {basePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td className="text-right">Rs {gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (12.0%)</td>
+                  <td className="text-right">Rs {totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 </tr>
-                <tr className="subtotal-row">
-                  <td colSpan="3"></td>
-                  <td className="text-right font-medium">Subtotal</td>
-                  <td className="text-right font-medium">₹{baseAmount.toLocaleString()}</td>
-                </tr>
-                <tr>
-                  <td colSpan="3"></td>
-                  <td className="text-right text-gray-500">GST (12%)</td>
-                  <td className="text-right text-gray-500">₹{gst.toLocaleString()}</td>
-                </tr>
-                <tr className="total-row">
-                  <td colSpan="3"></td>
-                  <td className="text-right font-bold">Total Amount</td>
-                  <td className="text-right font-bold text-gold">₹{totalWithGst.toLocaleString()}</td>
+                <tr className="table-total-row">
+                  <td></td>
+                  <td className="text-left font-bold">Total</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td className="text-right font-bold">Rs {gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td className="text-right font-bold">Rs {totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 </tr>
               </tbody>
             </table>
 
-            {/* Footer Section */}
-            <div className="invoice-footer">
-              <div className="terms">
-                <h4>Terms & Conditions</h4>
-                <p>1. Please present a valid government-issued ID upon arrival.</p>
-                <p>2. Standard Check-in is 12:00 PM and Check-out is 11:00 AM.</p>
-                <p>3. Guests are responsible for any damage caused to hotel property.</p>
-              </div>
-              <div className="signature-section">
-                <p className="signature-title">Authorized Signature</p>
-                <div className="signature-line">
-                  <span className="signature-font">Arlinjai Paradise</span>
+            {/* Description & Summary Section */}
+            <div className="invoice-bottom-section">
+              {/* Left side details */}
+              <div className="bottom-left-info">
+                <div className="info-block">
+                  <h4>Description</h4>
+                  <p>Check in date - {formatDateOrdinal(booking.checkIn)}</p>
+                  <p>Check out date - {formatDateOrdinal(booking.checkOut)}</p>
+                  <p>Pax - {booking.guests}</p>
                 </div>
-                <p className="signature-date">{new Date().toLocaleDateString('en-IN')}</p>
+                <div className="info-block">
+                  <h4>Invoice Amount In Words</h4>
+                  <p className="words-amount">{numberToWords(totalPrice)}</p>
+                </div>
+                <div className="info-block terms-block">
+                  <h4>Terms And Conditions</h4>
+                  <p>Thank you for doing business with us.</p>
+                  <div className="signature-area">
+                    <p>For: Arlinjai Paradise</p>
+                    <div className="sig-wrap">
+                      <svg className="signature-svg" width="150" height="50" viewBox="0 0 150 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 15,35 C 30,30 45,15 52,10 C 56,8 60,12 58,18 C 55,25 47,35 41,36 C 37,37 38,32 44,27 C 55,18 72,10 80,8 C 84,7 82,15 78,20 C 72,28 64,34 72,32 C 80,30 96,18 105,14 M 25,37 L 110,22" stroke="#12223c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <h5>Authorized Signatory</h5>
+                  </div>
+                </div>
               </div>
+
+              {/* Right side summary */}
+              <div className="bottom-right-summary">
+                <table className="summary-box-table">
+                  <tbody>
+                    <tr>
+                      <td>Sub Total</td>
+                      <td>Rs {basePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                    {isTamilNadu ? (
+                      <>
+                        <tr>
+                          <td>CGST@6.0%</td>
+                          <td>Rs {gstLabelAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        </tr>
+                        <tr>
+                          <td>SGST@6.0%</td>
+                          <td>Rs {gstLabelAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        </tr>
+                      </>
+                    ) : (
+                      <tr>
+                        <td>IGST@12.0%</td>
+                        <td>Rs {gstLabelAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      </tr>
+                    )}
+                    <tr className="summary-total-row">
+                      <td>Total</td>
+                      <td>Rs {totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                    <tr>
+                      <td>Received</td>
+                      <td>Rs {amountReceived.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                    <tr>
+                      <td>Balance</td>
+                      <td>Rs {balanceAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                    <tr>
+                      <td>Payment Mode</td>
+                      <td>{paymentModeLabel}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Bottom Decoration */}
+            <div className="invoice-bottom-decoration">
+              <div className="deco-green"></div>
+              <div className="deco-grey"></div>
             </div>
           </div>
         )}
 
+        {/* Print Styles */}
+        <style>{`
+          @media screen {
+            .printable-invoice {
+              display: none !important;
+            }
+          }
+          @page {
+            size: A4 portrait;
+            margin: 8mm 12mm 8mm 12mm !important;
+          }
+          @media print {
+            /* Hide all screen elements */
+            body * {
+              visibility: hidden !important;
+            }
+            html, body {
+              height: 100%;
+              overflow: hidden;
+            }
+            /* Show only the printable invoice card */
+            .printable-invoice, .printable-invoice * {
+              visibility: visible !important;
+            }
+            .printable-invoice {
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              color: #333333 !important;
+              font-family: 'Poppins', sans-serif !important;
+              box-sizing: border-box !important;
+            }
+            
+            /* Header Wave Design */
+            .invoice-header-container {
+              display: flex !important;
+              width: 100% !important;
+              margin-bottom: 25px !important;
+            }
+            .invoice-header-left-navy {
+              background: #1a2d42 !important;
+              color: #ffffff !important;
+              width: 40% !important;
+              padding: 15px 20px !important;
+              border-bottom-right-radius: 90px 45px !important;
+              display: flex !important;
+              flex-direction: column !important;
+              gap: 12px !important;
+              box-sizing: border-box !important;
+            }
+            .logo-circle {
+              width: 65px !important;
+              height: 65px !important;
+              border-radius: 50% !important;
+              border: 2px solid #C9A227 !important;
+              background: #ffffff !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              overflow: hidden !important;
+            }
+            .logo-circle img {
+              width: 85% !important;
+              height: 85% !important;
+              object-fit: contain !important;
+            }
+            .hotel-details-section .hotel-title {
+              font-family: 'Playfair Display', serif !important;
+              font-size: 20px !important;
+              font-weight: 700 !important;
+              margin: 0 0 4px 0 !important;
+              color: #ffffff !important;
+            }
+            .hotel-details-section p {
+              font-family: 'Poppins', sans-serif !important;
+              font-size: 9px !important;
+              margin: 1px 0 !important;
+              opacity: 0.9 !important;
+              color: #ffffff !important;
+            }
+            .invoice-header-right {
+              width: 60% !important;
+              display: flex !important;
+              flex-direction: column !important;
+              justify-content: space-between !important;
+              box-sizing: border-box !important;
+            }
+            .green-contacts-bar {
+              background: #16c085 !important;
+              color: #ffffff !important;
+              display: flex !important;
+              align-items: center !important;
+              padding: 6px 10px !important;
+              font-family: 'Poppins', sans-serif !important;
+              font-size: 8px !important;
+              gap: 5px !important;
+              justify-content: space-between !important;
+              height: 45px !important;
+              box-sizing: border-box !important;
+            }
+            .contact-item {
+              display: flex !important;
+              align-items: center !important;
+              gap: 4px !important;
+              border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+              padding-right: 8px !important;
+              flex: 1 !important;
+            }
+            .contact-item:last-child {
+              border-right: none !important;
+              padding-right: 0 !important;
+              flex: 1.5 !important;
+            }
+            .contact-icon {
+              font-size: 10px !important;
+            }
+            .contact-text {
+              line-height: 1.2 !important;
+              color: #ffffff !important;
+            }
+            .title-section {
+              text-align: right !important;
+              padding-right: 10px !important;
+              padding-bottom: 5px !important;
+            }
+            .tax-invoice-text {
+              font-family: 'Playfair Display', Georgia, serif !important;
+              font-size: 34px !important;
+              color: #1a2d42 !important;
+              margin: 0 !important;
+              font-weight: 500 !important;
+            }
+            
+            /* Bill To & Meta Section */
+            .invoice-meta-section {
+              display: flex !important;
+              justify-content: space-between !important;
+              padding: 0 15px !important;
+              margin-bottom: 25px !important;
+            }
+            .bill-to-box {
+              width: 55% !important;
+              display: flex !important;
+              flex-direction: column !important;
+              gap: 2px !important;
+            }
+            .section-label {
+              color: #16c085 !important;
+              font-family: 'Poppins', sans-serif !important;
+              font-size: 12px !important;
+              font-weight: 600 !important;
+              margin-bottom: 4px !important;
+              text-transform: uppercase !important;
+            }
+            .guest-name {
+              font-family: 'Poppins', sans-serif !important;
+              font-size: 15px !important;
+              font-weight: 700 !important;
+              color: #1a2d42 !important;
+              margin: 0 0 3px 0 !important;
+            }
+            .guest-address {
+              font-family: 'Poppins', sans-serif !important;
+              font-size: 10px !important;
+              color: #555555 !important;
+              margin: 0 0 4px 0 !important;
+              line-height: 1.3 !important;
+              max-width: 90% !important;
+            }
+            .guest-detail {
+              font-family: 'Poppins', sans-serif !important;
+              font-size: 10px !important;
+              color: #333333 !important;
+              margin: 1px 0 !important;
+            }
+            .meta-details-box {
+              width: 38% !important;
+              display: flex !important;
+              flex-direction: column !important;
+              gap: 4px !important;
+              font-family: 'Poppins', sans-serif !important;
+              font-size: 10px !important;
+            }
+            .meta-row {
+              display: flex !important;
+              justify-content: space-between !important;
+            }
+            .meta-label {
+              font-weight: 600 !important;
+              color: #333333 !important;
+            }
+            .meta-value {
+              color: #000000 !important;
+              text-align: right !important;
+            }
+            
+            /* Table Styling */
+            .invoice-items-table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+              margin-bottom: 25px !important;
+              font-family: 'Poppins', sans-serif !important;
+            }
+            .invoice-items-table th {
+              background: #16c085 !important;
+              color: #ffffff !important;
+              font-size: 10px !important;
+              font-weight: 600 !important;
+              padding: 8px 10px !important;
+              border: 1px solid #16c085 !important;
+              text-transform: uppercase !important;
+            }
+            .invoice-items-table td {
+              padding: 8px 10px !important;
+              border: 1px solid #dddddd !important;
+              font-size: 10px !important;
+              color: #333333 !important;
+              vertical-align: middle !important;
+            }
+            .invoice-items-table .item-name-cell {
+              font-weight: 600 !important;
+              color: #1a2d42 !important;
+            }
+            .table-total-row td {
+              background: #16c085 !important;
+              color: #ffffff !important;
+              font-weight: 700 !important;
+              font-size: 11px !important;
+              border: 1px solid #16c085 !important;
+            }
+            
+            /* Bottom Section Layout */
+            .invoice-bottom-section {
+              display: flex !important;
+              justify-content: space-between !important;
+              padding: 0 15px !important;
+              margin-top: 15px !important;
+              font-family: 'Poppins', sans-serif !important;
+            }
+            .bottom-left-info {
+              width: 55% !important;
+              display: flex !important;
+              flex-direction: column !important;
+              gap: 12px !important;
+            }
+            .info-block h4 {
+              color: #16c085 !important;
+              font-size: 10px !important;
+              font-weight: 600 !important;
+              margin: 0 0 3px 0 !important;
+              text-transform: uppercase !important;
+              letter-spacing: 0.5px !important;
+            }
+            .info-block p {
+              font-size: 10px !important;
+              color: #444444 !important;
+              margin: 1px 0 !important;
+              line-height: 1.3 !important;
+            }
+            .words-amount {
+              font-weight: 600 !important;
+              color: #1a2d42 !important;
+            }
+            .terms-block {
+              margin-top: 3px !important;
+            }
+            .signature-area {
+              margin-top: 10px !important;
+              display: flex !important;
+              flex-direction: column !important;
+              align-items: flex-start !important;
+            }
+            .signature-area p {
+              font-size: 9px !important;
+              color: #555555 !important;
+              margin-bottom: 1px !important;
+            }
+            .sig-wrap {
+              height: 40px !important;
+              margin-bottom: 2px !important;
+            }
+            .signature-svg {
+              height: 100% !important;
+              width: auto !important;
+            }
+            .signature-area h5 {
+              font-size: 10px !important;
+              font-weight: 700 !important;
+              color: #1a2d42 !important;
+              margin: 3px 0 0 0 !important;
+              border-top: 1px solid #cccccc !important;
+              width: 140px !important;
+              padding-top: 3px !important;
+              text-align: center !important;
+            }
+            
+            .bottom-right-summary {
+              width: 38% !important;
+            }
+            .summary-box-table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+              border: 1px solid #dddddd !important;
+            }
+            .summary-box-table td {
+              padding: 5px 8px !important;
+              border: 1px solid #dddddd !important;
+              font-size: 10px !important;
+              color: #333333 !important;
+            }
+            .summary-box-table td:first-child {
+              font-weight: 600 !important;
+            }
+            .summary-box-table td:last-child {
+              text-align: right !important;
+            }
+            .summary-total-row td {
+              background: #16c085 !important;
+              color: #ffffff !important;
+              font-weight: 700 !important;
+              border: 1px solid #16c085 !important;
+            }
+            
+            /* Bottom Decoration */
+            .invoice-bottom-decoration {
+              display: flex !important;
+              height: 12px !important;
+              width: 100% !important;
+              margin-top: 35px !important;
+            }
+            .deco-green {
+              background: #16c085 !important;
+              width: 35% !important;
+              height: 100% !important;
+              border-top-right-radius: 12px !important;
+            }
+            .deco-grey {
+              background: #f3f4f6 !important;
+              width: 65% !important;
+              height: 100% !important;
+            }
+            
+            /* Alignments */
+            .text-center { text-align: center !important; }
+            .text-right { text-align: right !important; }
+            .text-left { text-align: left !important; }
+            .font-bold { font-weight: 700 !important; }
+          }
+        `}</style>
       </div>
-
-      {/* Print Styles */}
-      <style>{`
-        @media screen {
-          .printable-invoice {
-            display: none !important;
-          }
-        }
-        @page {
-          size: A4 portrait;
-          margin: 8mm 12mm 8mm 12mm !important;
-        }
-        @media print {
-          /* Hide all screen elements */
-          body * {
-            visibility: hidden !important;
-          }
-          html, body {
-            height: 100%;
-            overflow: hidden;
-          }
-          /* Show only the printable invoice card */
-          .printable-invoice, .printable-invoice * {
-            visibility: visible !important;
-          }
-          .printable-invoice {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-            color: #333333 !important;
-            font-family: 'Poppins', sans-serif !important;
-            box-sizing: border-box !important;
-          }
-          .invoice-header {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: flex-start !important;
-            margin-bottom: 12px !important;
-          }
-          .hotel-logo-section .hotel-title {
-            font-family: 'Playfair Display', serif !important;
-            font-size: 20px !important;
-            font-weight: 800 !important;
-            color: #08111F !important;
-            margin: 0 !important;
-          }
-          .hotel-logo-section .hotel-tagline {
-            font-size: 8px !important;
-            letter-spacing: 2px !important;
-            color: #C9A227 !important;
-            margin: 2px 0 0 0 !important;
-            text-transform: uppercase !important;
-            font-weight: 600 !important;
-          }
-          .hotel-contact-section {
-            text-align: right !important;
-            font-size: 10px !important;
-            color: #555555 !important;
-            line-height: 1.4 !important;
-          }
-          .invoice-divider {
-            height: 2px !important;
-            background: linear-gradient(90deg, #08111F, #C9A227, #08111F) !important;
-            margin-bottom: 15px !important;
-          }
-          .invoice-meta-row {
-            display: flex !important;
-            justify-content: space-between !important;
-            margin-bottom: 15px !important;
-          }
-          .bill-to, .invoice-details {
-            width: 48% !important;
-          }
-          .section-title {
-            font-size: 9px !important;
-            letter-spacing: 2px !important;
-            color: #C9A227 !important;
-            border-bottom: 1px solid #eeeeee !important;
-            padding-bottom: 4px !important;
-            margin-bottom: 8px !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-          }
-          .bill-to p, .invoice-details p {
-            font-size: 11px !important;
-            color: #444444 !important;
-            margin: 2px 0 !important;
-          }
-          .bill-to .guest-name {
-            font-family: 'Playfair Display', serif !important;
-            font-size: 13px !important;
-            font-weight: 700 !important;
-            color: #08111F !important;
-            margin-bottom: 4px !important;
-          }
-          .status-badge {
-            padding: 1px 6px !important;
-            border-radius: 9999px !important;
-            font-size: 9px !important;
-            font-weight: 600 !important;
-          }
-          .invoice-table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            margin-bottom: 15px !important;
-          }
-          .invoice-table th {
-            background: #08111F !important;
-            color: #ffffff !important;
-            font-size: 10px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 1px !important;
-            padding: 6px 10px !important;
-            font-weight: 600 !important;
-            text-align: left !important;
-          }
-          .invoice-table td {
-            padding: 8px 10px !important;
-            border-bottom: 1px solid #eeeeee !important;
-            font-size: 11px !important;
-            color: #444444 !important;
-          }
-          .nights-desc {
-            font-size: 9px !important;
-            color: #777777 !important;
-            margin: 1px 0 0 0 !important;
-          }
-          .text-center { text-align: center !important; }
-          .text-right { text-align: right !important; }
-          .font-medium { font-weight: 500 !important; }
-          .font-bold { font-weight: 700 !important; }
-          .text-gold { color: #C9A227 !important; }
-          .subtotal-row td {
-            border-top: 1px solid #dddddd !important;
-            padding-top: 8px !important;
-          }
-          .total-row td {
-            font-size: 12px !important;
-            color: #08111F !important;
-            border-bottom: double 3px #C9A227 !important;
-            padding-top: 8px !important;
-            padding-bottom: 8px !important;
-          }
-          .invoice-footer {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: flex-end !important;
-            margin-top: 20px !important;
-          }
-          .terms {
-            width: 60% !important;
-          }
-          .terms h4 {
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            color: #08111F !important;
-            margin: 0 0 5px 0 !important;
-          }
-          .terms p {
-            font-size: 9px !important;
-            color: #666666 !important;
-            margin: 2px 0 !important;
-            line-height: 1.3 !important;
-          }
-          .signature-section {
-            text-align: center !important;
-            width: 35% !important;
-          }
-          .signature-title {
-            font-size: 10px !important;
-            color: #555555 !important;
-            margin-bottom: 8px !important;
-          }
-          .signature-line {
-            border-bottom: 1px solid #cccccc !important;
-            padding-bottom: 4px !important;
-            margin-bottom: 4px !important;
-          }
-          .signature-font {
-            font-family: 'Brush Script MT', cursive, sans-serif !important;
-            font-size: 16px !important;
-            color: #08111F !important;
-            font-style: italic !important;
-          }
-          .signature-date {
-            font-size: 9px !important;
-            color: #777777 !important;
-          }
-        }
-      `}</style>
     </div>
   )
 }
