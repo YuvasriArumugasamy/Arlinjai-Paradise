@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { FaChevronLeft, FaChevronRight, FaThumbtack, FaCalendarAlt, FaUsers, FaPhoneAlt } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '../../constants'
@@ -24,6 +25,7 @@ const STATUS_STYLES = {
 }
 
 export default function CalendarPage() {
+  const navigate = useNavigate()
   const [startDate, setStartDate] = useState(todayStr)
   const [selectedRoomType, setSelectedRoomType] = useState('All')
   const [bookings, setBookings] = useState([])
@@ -278,8 +280,22 @@ export default function CalendarPage() {
                       )
                     }
 
+                    const typeMap = {
+                      'Deluxe AC': 'deluxe-ac',
+                      'Normal AC': 'normal-ac',
+                      'Non AC': 'non-ac'
+                    }
+                    const roomTypeId = typeMap[room.type] || '';
+                    const nextDay = new Date(dateStr + 'T00:00:00')
+                    nextDay.setDate(nextDay.getDate() + 1)
+                    const checkOutStr = toDateStr(nextDay)
+
                     return (
-                      <div key={di} className="flex-1 min-w-[70px] border-r border-gray-100 flex items-center justify-center cursor-pointer group hover:bg-gray-50">
+                      <div 
+                        key={di} 
+                        onClick={() => navigate(`/booking?roomType=${roomTypeId}&checkIn=${dateStr}&checkOut=${checkOutStr}`)}
+                        className="flex-1 min-w-[70px] border-r border-gray-100 flex items-center justify-center cursor-pointer group hover:bg-gray-50"
+                      >
                         <span className="text-[10px] font-medium text-gray-300 group-hover:text-green-500 transition-colors">
                           + Book
                         </span>
