@@ -919,7 +919,6 @@ export default function BookingPage() {
         animate={{ opacity: 1, scale: 1 }}
         className="text-center"
       >
-        <div className="print:hidden">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <FaCheck size={36} className="text-green-500" />
         </div>
@@ -981,15 +980,14 @@ export default function BookingPage() {
           </div>
         </div>
 
-          <p className="font-poppins text-gray-600 text-sm mb-6">
-            Questions? Call us at{' '}
-            <a href={`tel:${HOTEL_INFO.phone1}`} className="text-gold font-semibold">{HOTEL_INFO.phone1}</a>
-          </p>
+        <p className="font-poppins text-gray-600 text-sm mb-6 print:hidden">
+          Questions? Call us at{' '}
+          <a href={`tel:${HOTEL_INFO.phone1}`} className="text-gold font-semibold">{HOTEL_INFO.phone1}</a>
+        </p>
 
-          <button onClick={() => navigate('/')} className="btn-gold px-8 py-3.5 mb-8">
-            Back to Home
-          </button>
-        </div>
+        <button onClick={() => navigate('/')} className="btn-gold px-8 py-3.5 print:hidden">
+          Back to Home
+        </button>
 
         {/* Printable Invoice (Hidden on Screen, Visible on Print) */}
         <div className="printable-invoice">
@@ -1191,20 +1189,29 @@ export default function BookingPage() {
             margin: 8mm 12mm 8mm 12mm !important;
           }
           @media print {
-            /* Hide all screen layout elements */
-            nav, footer, .navbar, .footer, .print-hidden, .print\:hidden, #root > nav, #root > footer {
-              display: none !important;
-            }
+            /* Hide all screen elements */
             body * {
               visibility: hidden !important;
             }
-            html, body, #root {
-              height: 100% !important;
-              overflow: hidden !important;
+            html, body {
+              height: 100%;
+              overflow: hidden;
             }
             /* Show only the printable invoice card */
             .printable-invoice, .printable-invoice * {
               visibility: visible !important;
+            }
+            /* Reset stacking contexts in print to fix Chromium print bug */
+            #root,
+            #root *,
+            div,
+            main,
+            section,
+            article {
+              transform: none !important;
+              filter: none !important;
+              perspective: none !important;
+              will-change: auto !important;
             }
             .printable-invoice {
               position: absolute !important;
@@ -1545,7 +1552,7 @@ export default function BookingPage() {
     <div className="min-h-screen bg-lightbg">
       {/* Header */}
       <div
-        className="py-20 print:hidden"
+        className="py-20"
         style={{
           backgroundImage: `linear-gradient(rgba(8,17,31,0.85), rgba(8,17,31,0.85)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.webp')`,
           backgroundSize: 'cover',
@@ -1562,9 +1569,7 @@ export default function BookingPage() {
       </div>
 
       <div ref={formRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="print:hidden">
-          <StepIndicator currentStep={step} />
-        </div>
+        <StepIndicator currentStep={step} />
         <AnimatePresence mode="wait">
           <motion.div
             key={step}

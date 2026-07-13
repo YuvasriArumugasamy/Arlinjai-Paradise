@@ -294,7 +294,7 @@ export default function ManageBookingPage() {
 
       {/* Hero Header */}
       <div
-        className="relative py-24 text-center overflow-hidden print:hidden"
+        className="relative py-24 text-center overflow-hidden"
         style={{
           background: 'linear-gradient(135deg, #08111F 0%, #0d1e35 60%, #08111F 100%)',
         }}
@@ -337,7 +337,7 @@ export default function ManageBookingPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 py-12 space-y-6 print:hidden">
+      <div className="max-w-2xl mx-auto px-4 py-12 space-y-6">
 
         {/* Search Card */}
         <motion.div
@@ -814,20 +814,29 @@ export default function ManageBookingPage() {
             margin: 8mm 12mm 8mm 12mm !important;
           }
           @media print {
-            /* Hide all screen layout elements */
-            nav, footer, .navbar, .footer, .print-hidden, .print\:hidden, #root > nav, #root > footer {
-              display: none !important;
-            }
+            /* Hide all screen elements */
             body * {
               visibility: hidden !important;
             }
-            html, body, #root {
-              height: 100% !important;
-              overflow: hidden !important;
+            html, body {
+              height: 100%;
+              overflow: hidden;
             }
             /* Show only the printable invoice card */
             .printable-invoice, .printable-invoice * {
               visibility: visible !important;
+            }
+            /* Reset stacking contexts in print to fix Chromium print bug */
+            #root,
+            #root *,
+            div,
+            main,
+            section,
+            article {
+              transform: none !important;
+              filter: none !important;
+              perspective: none !important;
+              will-change: auto !important;
             }
             .printable-invoice {
               position: absolute !important;
