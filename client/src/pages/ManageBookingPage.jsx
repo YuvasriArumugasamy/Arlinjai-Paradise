@@ -793,12 +793,6 @@ export default function ManageBookingPage() {
                 </table>
               </div>
             </div>
-
-            {/* Bottom Decoration */}
-            <div className="invoice-bottom-decoration">
-              <div className="deco-green"></div>
-              <div className="deco-grey"></div>
-            </div>
           </div>
         )}
 
@@ -855,7 +849,7 @@ export default function ManageBookingPage() {
             .invoice-header-container {
               display: flex !important;
               width: 100% !important;
-              margin-bottom: 25px !important;
+              margin-bottom: 50px !important;
             }
             .invoice-header-left-navy {
               background: #1a2d42 !important;
@@ -964,7 +958,7 @@ export default function ManageBookingPage() {
               display: flex !important;
               justify-content: space-between !important;
               padding: 0 15px !important;
-              margin-bottom: 25px !important;
+              margin-bottom: 50px !important;
             }
             .bill-to-box {
               width: 55% !important;
@@ -1026,7 +1020,7 @@ export default function ManageBookingPage() {
             .invoice-items-table {
               width: 100% !important;
               border-collapse: collapse !important;
-              margin-bottom: 25px !important;
+              margin-bottom: 60px !important;
               font-family: 'Poppins', sans-serif !important;
             }
             .invoice-items-table th {
@@ -1034,12 +1028,12 @@ export default function ManageBookingPage() {
               color: #ffffff !important;
               font-size: 10px !important;
               font-weight: 600 !important;
-              padding: 8px 10px !important;
+              padding: 14px 10px !important;
               border: 1px solid #16c085 !important;
               text-transform: uppercase !important;
             }
             .invoice-items-table td {
-              padding: 8px 10px !important;
+              padding: 14px 10px !important;
               border: 1px solid #dddddd !important;
               font-size: 10px !important;
               color: #333333 !important;
@@ -1062,14 +1056,14 @@ export default function ManageBookingPage() {
               display: flex !important;
               justify-content: space-between !important;
               padding: 0 15px !important;
-              margin-top: 15px !important;
+              margin-top: 40px !important;
               font-family: 'Poppins', sans-serif !important;
             }
             .bottom-left-info {
               width: 55% !important;
               display: flex !important;
               flex-direction: column !important;
-              gap: 12px !important;
+              gap: 20px !important;
             }
             .info-block h4 {
               color: #16c085 !important;
@@ -1093,7 +1087,7 @@ export default function ManageBookingPage() {
               margin-top: 3px !important;
             }
             .signature-area {
-              margin-top: 10px !important;
+              margin-top: 20px !important;
               display: flex !important;
               flex-direction: column !important;
               align-items: flex-start !important;
@@ -1132,7 +1126,7 @@ export default function ManageBookingPage() {
               border: 1px solid #dddddd !important;
             }
             .summary-box-table td {
-              padding: 5px 8px !important;
+              padding: 8px 10px !important;
               border: 1px solid #dddddd !important;
               font-size: 10px !important;
               color: #333333 !important;
@@ -1148,25 +1142,6 @@ export default function ManageBookingPage() {
               color: #ffffff !important;
               font-weight: 700 !important;
               border: 1px solid #16c085 !important;
-            }
-            
-            /* Bottom Decoration */
-            .invoice-bottom-decoration {
-              display: flex !important;
-              height: 12px !important;
-              width: 100% !important;
-              margin-top: 35px !important;
-            }
-            .deco-green {
-              background: #16c085 !important;
-              width: 35% !important;
-              height: 100% !important;
-              border-top-right-radius: 12px !important;
-            }
-            .deco-grey {
-              background: #f3f4f6 !important;
-              width: 65% !important;
-              height: 100% !important;
             }
             
             /* Alignments */
