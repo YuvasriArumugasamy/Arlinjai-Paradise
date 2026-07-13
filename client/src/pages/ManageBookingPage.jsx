@@ -898,13 +898,14 @@ export default function ManageBookingPage() {
               color: #ffffff !important;
               display: flex !important;
               align-items: center !important;
-              padding: 6px 10px !important;
+              padding: 6px 10px 6px 20px !important;
               font-family: 'Poppins', sans-serif !important;
               font-size: 8px !important;
               gap: 5px !important;
               justify-content: space-between !important;
               height: 45px !important;
               box-sizing: border-box !important;
+              border-top-left-radius: 45% 100% !important;
             }
             .contact-item {
               display: flex !important;
