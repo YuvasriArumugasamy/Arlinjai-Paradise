@@ -850,7 +850,7 @@ export default function ManageBookingPage() {
               color: #ffffff !important;
               width: 450px !important;
               padding: 15px 20px !important;
-              clip-path: ellipse(100% 85% at 0 50%) !important;
+              clip-path: circle(90.7% at 0 49%) !important;
               display: flex !important;
               flex-direction: column !important;
               gap: 12px !important;
