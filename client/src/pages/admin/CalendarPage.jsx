@@ -37,6 +37,206 @@ export default function CalendarPage() {
     }
   })
 
+  const [loading, setLoading] = useState(false)
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [bookingModalData, setBookingModalData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    roomType: 'deluxe-ac',
+    numRooms: 1,
+    checkIn: '',
+    checkInTime: '12:00',
+    checkOut: '',
+    checkOutTime: '11:00',
+    guests: 2,
+    advancePaid: 0,
+    paymentMethod: 'Cash',
+    notes: '',
+    physicalRoomId: '',
+    physicalRoomName: '',
+  })
+
+  const handleCellClick = (room, dateStr) => {
+    const typeMap = {
+      'Deluxe AC': 'deluxe-ac',
+      'Normal AC': 'normal-ac',
+      'Non AC': 'non-ac'
+    }
+    const roomTypeId = typeMap[room.type] || 'deluxe-ac';
+    const nextDay = new Date(dateStr + 'T00:00:00')
+    nextDay.setDate(nextDay.getDate() + 1)
+    const checkOutStr = toDateStr(nextDay)
+
+    setBookingModalData({
+      name: '',
+      phone: '',
+      email: '',
+      roomType: roomTypeId,
+      numRooms: 1,
+      checkIn: dateStr,
+      checkInTime: '12:00',
+      checkOut: checkOutStr,
+      checkOutTime: '11:00',
+      guests: 2,
+      advancePaid: 0,
+      paymentMethod: 'Cash',
+      notes: `Offline Booking pre-filled for ${room.name}`,
+      physicalRoomId: room.id,
+      physicalRoomName: room.name,
+    })
+    setShowBookingModal(true)
+  }
+
+  const handleConfirmBooking = async (e) => {
+    e.preventDefault()
+    if (!bookingModalData.name || !bookingModalData.phone || !bookingModalData.checkIn || !bookingModalData.checkOut) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    const token = localStorage.getItem('token')
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    setLoading(true)
+
+    // Calculate nights
+    const diff = new Date(bookingModalData.checkOut) - new Date(bookingModalData.checkIn)
+    const nights = Math.max(1, Math.floor(diff / 86400000))
+
+    // Map roomTypeId to category prices
+    const categoryPrices = {
+      'deluxe-ac': 2500,
+      'normal-ac': 2000,
+      'non-ac': 1500
+    }
+    const pricePerNight = categoryPrices[bookingModalData.roomType] || 1500
+    const basePrice = pricePerNight * nights
+    const gstAmount = Math.round(basePrice * 0.12)
+    const totalPrice = basePrice + gstAmount
+
+    const payload = {
+      roomId: bookingModalData.roomType,
+      checkIn: bookingModalData.checkIn,
+      checkOut: bookingModalData.checkOut,
+      checkInTime: bookingModalData.checkInTime,
+      checkOutTime: bookingModalData.checkOutTime,
+      guests: bookingModalData.guests,
+      name: bookingModalData.name,
+      phone: bookingModalData.phone,
+      email: bookingModalData.email,
+      address: 'Offline Booking',
+      paymentMethod: bookingModalData.paymentMethod.toLowerCase() === 'cash' ? 'cash' : bookingModalData.paymentMethod.toLowerCase() === 'upi' ? 'upi' : 'card',
+      specialRequests: bookingModalData.notes,
+      advancePaid: Number(bookingModalData.advancePaid),
+      status: 'confirmed'
+    }
+
+    try {
+      const res = await axios.post(`${API_BASE_URL}/bookings`, payload, { headers })
+      if (res.data.success) {
+        const newBooking = res.data.booking
+        const newBookingId = newBooking.bookingId || newBooking._id
+        
+        // Add to calendar local state
+        const mappedNewBooking = {
+          id: newBookingId,
+          guest: newBooking.guest?.name || newBooking.guest || bookingModalData.name,
+          room: newBooking.roomSnapshot?.name || newBooking.room?.name || (bookingModalData.roomType === 'deluxe-ac' ? 'Deluxe AC Room' : bookingModalData.roomType === 'normal-ac' ? 'Normal AC Room' : 'Non AC Room'),
+          checkIn: bookingModalData.checkIn,
+          checkOut: bookingModalData.checkOut,
+          nights: nights,
+          guests: bookingModalData.guests,
+          amount: totalPrice,
+          status: 'confirmed',
+          phone: bookingModalData.phone,
+        }
+        setBookings(prev => [mappedNewBooking, ...prev])
+
+        // Add to arlinjai_bookings local storage
+        const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+        savedBookings.unshift({
+          id: newBookingId,
+          guest: bookingModalData.name,
+          phone: bookingModalData.phone,
+          email: bookingModalData.email,
+          room: mappedNewBooking.room,
+          checkIn: bookingModalData.checkIn,
+          checkInTime: bookingModalData.checkInTime,
+          checkOut: bookingModalData.checkOut,
+          checkOutTime: bookingModalData.checkOutTime,
+          nights: nights,
+          guests: bookingModalData.guests,
+          basePrice: basePrice,
+          amount: totalPrice,
+          paymentMethod: payload.paymentMethod,
+          specialRequests: bookingModalData.notes,
+          status: 'confirmed',
+          createdAt: new Date().toISOString(),
+        })
+        localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
+
+        // Save physical room assignment
+        const updatedAssignments = { ...roomAssignments, [newBookingId]: bookingModalData.physicalRoomId }
+        setRoomAssignments(updatedAssignments)
+        localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updatedAssignments))
+
+        toast.success('Offline booking created successfully!')
+        setShowBookingModal(false)
+      } else {
+        toast.error(res.data.message || 'Failed to create booking')
+      }
+    } catch (err) {
+      console.error(err)
+      // Fallback for offline creation
+      const offlineId = 'AP' + String(Date.now()).slice(-6)
+      const mappedNewBooking = {
+        id: offlineId,
+        guest: bookingModalData.name,
+        room: bookingModalData.roomType === 'deluxe-ac' ? 'Deluxe AC Room' : bookingModalData.roomType === 'normal-ac' ? 'Normal AC Room' : 'Non AC Room',
+        checkIn: bookingModalData.checkIn,
+        checkOut: bookingModalData.checkOut,
+        nights: nights,
+        guests: bookingModalData.guests,
+        amount: totalPrice,
+        status: 'confirmed',
+        phone: bookingModalData.phone,
+      }
+      setBookings(prev => [mappedNewBooking, ...prev])
+
+      const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+      savedBookings.unshift({
+        id: offlineId,
+        guest: bookingModalData.name,
+        phone: bookingModalData.phone,
+        email: bookingModalData.email,
+        room: mappedNewBooking.room,
+        checkIn: bookingModalData.checkIn,
+        checkInTime: bookingModalData.checkInTime,
+        checkOut: bookingModalData.checkOut,
+        checkOutTime: bookingModalData.checkOutTime,
+        nights: nights,
+        guests: bookingModalData.guests,
+        basePrice: basePrice,
+        amount: totalPrice,
+        paymentMethod: payload.paymentMethod,
+        specialRequests: bookingModalData.notes,
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+      })
+      localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
+
+      // Save physical room assignment
+      const updatedAssignments = { ...roomAssignments, [offlineId]: bookingModalData.physicalRoomId }
+      setRoomAssignments(updatedAssignments)
+      localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updatedAssignments))
+
+      toast.success('Offline booking created locally!')
+      setShowBookingModal(false)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Generate 14 days dynamically from startDate
   const days = useMemo(() => {
     const base = new Date(startDate + 'T00:00:00')
@@ -280,20 +480,10 @@ export default function CalendarPage() {
                       )
                     }
 
-                    const typeMap = {
-                      'Deluxe AC': 'deluxe-ac',
-                      'Normal AC': 'normal-ac',
-                      'Non AC': 'non-ac'
-                    }
-                    const roomTypeId = typeMap[room.type] || '';
-                    const nextDay = new Date(dateStr + 'T00:00:00')
-                    nextDay.setDate(nextDay.getDate() + 1)
-                    const checkOutStr = toDateStr(nextDay)
-
                     return (
                       <div 
                         key={di} 
-                        onClick={() => navigate(`/booking?roomType=${roomTypeId}&checkIn=${dateStr}&checkOut=${checkOutStr}`)}
+                        onClick={() => handleCellClick(room, dateStr)}
                         className="flex-1 min-w-[70px] border-r border-gray-100 flex items-center justify-center cursor-pointer group hover:bg-gray-50"
                       >
                         <span className="text-[10px] font-medium text-gray-300 group-hover:text-green-500 transition-colors">
@@ -374,7 +564,199 @@ export default function CalendarPage() {
             )}
           </div>
         </div>
-      {/* end Room Allocations */}
+      {/* Add Offline Booking Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto font-poppins">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 relative max-h-[95vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+              <h3 className="font-playfair font-bold text-navy text-xl flex items-center gap-2">
+                <span className="text-gold font-poppins">+</span> Add Offline Booking
+              </h3>
+              <button 
+                onClick={() => setShowBookingModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors text-lg font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleConfirmBooking} className="space-y-4 text-left">
+              {/* Customer Name */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Customer Name *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Name"
+                  value={bookingModalData.name}
+                  onChange={(e) => setBookingModalData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                />
+              </div>
+
+              {/* Phone & Email */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number *</label>
+                  <input 
+                    type="tel" 
+                    required
+                    placeholder="e.g. 9876543210"
+                    value={bookingModalData.phone}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
+                  <input 
+                    type="email" 
+                    placeholder="e.g. guest@example.com"
+                    value={bookingModalData.email}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Room Type & Number of Rooms */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Room Type *</label>
+                  <select 
+                    value={bookingModalData.roomType}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, roomType: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-medium"
+                  >
+                    <option value="deluxe-ac">Deluxe AC Room</option>
+                    <option value="normal-ac">Normal AC Room</option>
+                    <option value="non-ac">Non AC Room</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Number of Rooms</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={bookingModalData.numRooms}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, numRooms: parseInt(e.target.value) || 1 }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Check-In Date & Check-In Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Check-In Date *</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={bookingModalData.checkIn}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, checkIn: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Check-In Time *</label>
+                  <input 
+                    type="time" 
+                    required
+                    value={bookingModalData.checkInTime}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, checkInTime: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Check-Out Date & Check-Out Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Check-Out Date *</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={bookingModalData.checkOut}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, checkOut: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Check-Out Time *</label>
+                  <input 
+                    type="time" 
+                    required
+                    value={bookingModalData.checkOutTime}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, checkOutTime: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Guests & Advance Paid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Guests</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={bookingModalData.guests}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, guests: parseInt(e.target.value) || 2 }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Advance Paid (₹)</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    value={bookingModalData.advancePaid}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, advancePaid: parseFloat(e.target.value) || 0 }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Payment Method & Special Notes */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Payment Method (for Advance)</label>
+                  <select 
+                    value={bookingModalData.paymentMethod}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-medium"
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Card">Card</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Special Notes</label>
+                  <input 
+                    type="text" 
+                    placeholder="Special requests or notes"
+                    value={bookingModalData.notes}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, notes: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#C9A227] hover:bg-[#A07D10] text-white font-semibold py-3 rounded-lg text-sm transition-colors mt-6 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {loading ? 'Processing...' : 'Confirm Offline Booking'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   )
