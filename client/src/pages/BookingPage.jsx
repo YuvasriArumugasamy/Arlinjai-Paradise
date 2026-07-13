@@ -1225,7 +1225,7 @@ export default function BookingPage() {
               color: #ffffff !important;
               width: 40% !important;
               padding: 15px 20px !important;
-              border-bottom-right-radius: 90px 45px !important;
+              clip-path: ellipse(100% 85% at 0 50%) !important;
               display: flex !important;
               flex-direction: column !important;
               gap: 12px !important;
