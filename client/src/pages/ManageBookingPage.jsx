@@ -848,9 +848,9 @@ export default function ManageBookingPage() {
             .invoice-header-left-navy {
               background: #1a2d42 !important;
               color: #ffffff !important;
-              width: 450px !important;
+              width: 400px !important;
               padding: 15px 20px !important;
-              clip-path: circle(90.7% at 0 49%) !important;
+              clip-path: ellipse(75% 59% at 21% 49%) !important;
               display: flex !important;
               flex-direction: column !important;
               gap: 12px !important;
@@ -887,7 +887,7 @@ export default function ManageBookingPage() {
               color: #ffffff !important;
             }
             .invoice-header-right {
-              width: calc(100% - 450px) !important;
+              width: calc(100% - 400px) !important;
               display: flex !important;
               flex-direction: column !important;
               justify-content: space-between !important;
