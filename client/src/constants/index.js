@@ -607,4 +607,20 @@ export const BOOKING_STEPS = [
 ]
 
 // API Base URL
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    // If accessed via local IP address (e.g. 192.168.1.15) on Wi-Fi
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      if (/^[0-9.]+$/.test(hostname)) {
+        return `http://${hostname}:5000/api`
+      }
+    }
+  }
+  return 'http://localhost:5000/api'
+}
+
+export const API_BASE_URL = getApiBaseUrl()
