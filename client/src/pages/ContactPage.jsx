@@ -71,9 +71,7 @@ export default function ContactPage() {
       <div
         style={{
           position: 'relative',
-          backgroundImage: `linear-gradient(rgba(8,17,31,0.78), rgba(8,17,31,0.78)), url('/IMG_0472.JPG.webp')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          background: 'linear-gradient(180deg, #08111F 0%, #0f1828 100%)',
           padding: '140px 0 80px',
           textAlign: 'center',
           overflow: 'hidden',
