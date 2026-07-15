@@ -117,7 +117,8 @@ export default function AboutPage() {
       {/* ── Hero Header ── */}
       <div style={{
         position: 'relative',
-        background: 'linear-gradient(180deg, #08111F 0%, #0f1828 100%)',
+        backgroundImage: `linear-gradient(rgba(8,17,31,0.76), rgba(8,17,31,0.76)), url('/ChatGPT Image Jul 15, 2026, 04_54_06 PM.png')`,
+        backgroundSize: 'cover', backgroundPosition: 'center',
         padding: '140px 0 80px', textAlign: 'center', overflow: 'hidden',
       }}>
         {/* Watermark logo right side */}
