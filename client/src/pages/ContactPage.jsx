@@ -74,9 +74,10 @@ export default function ContactPage() {
           backgroundImage: `linear-gradient(rgba(8,17,31,0.78), rgba(8,17,31,0.78)), url('/ChatGPT Image Jul 15, 2026, 05_01_04 PM.png')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          padding: '140px 0 80px',
+          padding: '200px 0 180px',
           textAlign: 'center',
           overflow: 'hidden',
+          minHeight: '500px',
         }}
       >
         {/* Bottom glow line */}
