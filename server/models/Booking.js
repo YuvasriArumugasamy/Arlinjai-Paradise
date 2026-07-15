@@ -110,7 +110,7 @@ const bookingSchema = new mongoose.Schema(
 bookingSchema.pre('save', async function (next) {
   if (!this.bookingId) {
     const count = await mongoose.model('Booking').countDocuments()
-    this.bookingId = `AP${String(count + 1).padStart(6, '0')}`
+    this.bookingId = `AJ${String(count + 1).padStart(6, '0')}`
   }
   next()
 })

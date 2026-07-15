@@ -14,7 +14,7 @@ import signatureImg from './admin/image.png'
 // Dummy fallback for demo (when backend not running)
 const DEMO_BOOKINGS = [
   {
-    bookingId: 'AP000001',
+    bookingId: 'AJ000001',
     status: 'confirmed',
     guest: { name: 'Demo Guest', phone: '9876543210', email: 'demo@example.com', address: 'Kanyakumari, Tamil Nadu' },
     roomSnapshot: { name: 'Deluxe AC Room', price: 2500 },
@@ -374,7 +374,7 @@ export default function ManageBookingPage() {
           </div>
           <p className="font-poppins text-xs text-gray-400 mt-2">
             Your Booking ID was shown after submitting your booking request. It looks like:{' '}
-            <span className="bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-600">AP000001</span>
+            <span className="bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-600">AJ000001</span>
           </p>
         </motion.div>
 
