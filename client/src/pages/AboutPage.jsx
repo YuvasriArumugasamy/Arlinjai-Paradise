@@ -117,8 +117,7 @@ export default function AboutPage() {
       {/* ── Hero Header ── */}
       <div style={{
         position: 'relative',
-        backgroundImage: `linear-gradient(rgba(8,17,31,0.76), rgba(8,17,31,0.76)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.webp')`,
-        backgroundSize: 'cover', backgroundPosition: 'center',
+        background: 'linear-gradient(180deg, #08111F 0%, #0f1828 100%)',
         padding: '140px 0 80px', textAlign: 'center', overflow: 'hidden',
       }}>
         {/* Watermark logo right side */}
