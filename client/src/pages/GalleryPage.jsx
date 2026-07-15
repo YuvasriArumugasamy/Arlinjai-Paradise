@@ -174,11 +174,9 @@ export default function GalleryPage() {
     <div className="min-h-screen bg-lightbg">
       {/* Header */}
       <div
-        className="relative py-24 md:py-32"
+        className="relative py-24 md:py-32 bg-gradient-to-b from-navy to-navy-dark"
         style={{
-          backgroundImage: `linear-gradient(rgba(8,17,31,0.8), rgba(8,17,31,0.8)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.webp')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          background: 'linear-gradient(180deg, #08111F 0%, #0f1828 100%)',
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
