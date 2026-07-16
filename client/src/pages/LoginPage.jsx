@@ -23,12 +23,6 @@ export default function LoginPage() {
     if (!authLoading && user) {
       navigate('/admin', { replace: true })
     }
-    // Load remembered email
-    const savedEmail = localStorage.getItem('remembered_admin_email')
-    if (savedEmail) {
-      setForm((prev) => ({ ...prev, email: savedEmail }))
-      setRemember(true)
-    }
   }, [authLoading, user, navigate])
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
@@ -164,7 +158,7 @@ export default function LoginPage() {
                   onChange={handleChange}
                   onFocus={() => setFocused('email')}
                   onBlur={() => setFocused('')}
-                  placeholder="admin"
+                  placeholder="Username or Email"
                   className="w-full pl-11 pr-4 py-3.5 bg-[#03070e]/60 border rounded-xl text-sm text-white placeholder-white/20 transition-all duration-300 outline-none"
                   style={{
                     borderColor: focused === 'email' ? '#C9A227' : 'rgba(255,255,255,0.08)',
