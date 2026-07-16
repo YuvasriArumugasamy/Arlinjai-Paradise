@@ -190,26 +190,44 @@ const refreshAccessToken = async (req, res, next) => {
   }
 }
 
-// @desc    Logout - clear refresh token cookie + DB
-// @route   POST /api/auth/logout
-// @access  Public
-const logout = async (req, res, next) => {
+// @desc    Initialize admin user (only if no users exist)
+// @route   POST /api/auth/initialize-admin
+// @access  Public (only works on first deployment)
+const initializeAdmin = async (req, res, next) => {
   try {
-    const token = req.cookies?.refreshToken
-    if (token) {
-      const hashed = hashToken(token)
-      await User.findOneAndUpdate({ refreshToken: hashed }, { refreshToken: null })
+    // Check if any users exist
+    const userCount = await User.countDocuments()
+    if (userCount > 0) {
+      return res.status(403).json({ message: 'Database already initialized. Admin already exists.' })
     }
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      path: '/',
+
+    // Create default admin
+    const user = await User.create({
+      name: 'Arlinjai Paradise',
+      email: 'admin@arlinjaiparadise.com',
+      password: 'Admin@1234',
+      role: 'admin',
+      phone: '9486271234',
+      isActive: true
     })
-    res.json({ success: true, message: 'Logged out successfully' })
+
+    const accessToken = generateAccessToken(user._id)
+    const refreshToken = generateRefreshToken()
+    user.refreshToken = hashToken(refreshToken)
+    user.lastLogin = new Date()
+    await user.save({ validateBeforeSave: false })
+
+    setRefreshCookie(res, refreshToken)
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin user initialized successfully',
+      accessToken,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+    })
   } catch (error) {
     next(error)
   }
 }
 
-module.exports = { register, login, getMe, changePassword, refreshAccessToken, logout }
+module.exports = { register, login, getMe, changePassword, refreshAccessToken, logout, initializeAdmin }

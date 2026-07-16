@@ -1,6 +1,6 @@
 const express = require('express')
 const { body } = require('express-validator')
-const { register, login, getMe, changePassword, refreshAccessToken, logout } = require('../controllers/authController')
+const { register, login, getMe, changePassword, refreshAccessToken, logout, initializeAdmin } = require('../controllers/authController')
 const { protect } = require('../middleware/authMiddleware')
 const { adminOnly } = require('../middleware/roleMiddleware')
 
@@ -17,6 +17,9 @@ const loginValidation = [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required'),
 ]
+
+// Initialize admin (only if no users exist) — temporary endpoint for first deployment
+router.post('/initialize-admin', initializeAdmin)
 
 router.post('/register', protect, adminOnly, registerValidation, register)
 router.post('/login', loginValidation, login)
