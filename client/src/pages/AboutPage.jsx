@@ -119,8 +119,8 @@ export default function AboutPage() {
         position: 'relative',
         backgroundImage: `linear-gradient(rgba(8,17,31,0.76), rgba(8,17,31,0.76)), url('/ChatGPT Image Jul 15, 2026, 04_54_06 PM.png')`,
         backgroundSize: 'cover', backgroundPosition: 'center',
-        padding: '200px 0 180px', textAlign: 'center', overflow: 'hidden',
-        minHeight: '500px',
+        padding: 'clamp(80px, 15vw, 200px) 0 clamp(60px, 12vw, 180px)', textAlign: 'center', overflow: 'hidden',
+        minHeight: 'clamp(300px, 50vw, 500px)',
       }}>
         {/* Watermark logo right side */}
         <div style={{
