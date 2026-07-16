@@ -71,10 +71,43 @@ export default function BookingsPage() {
       } catch (err) {
         console.error('Failed to fetch bookings from server:', err)
         toast.error('Unable to load bookings from server. Please check the network or login status.')
+        // Fallback: load bookings saved locally (admin or public bookings)
+        const localAdmin = loadBookings()
+        if (localAdmin && localAdmin.length > 0) {
+          setBookings(localAdmin)
+        } else {
+          // Try public/guest saved bookings as last resort
+          try {
+            const publicSaved = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+            const mapped = publicSaved.map(b => ({
+              id: b.id || b.bookingId || 'LOCAL-'+Math.random().toString(36).slice(2,8),
+              guest: b.guest || b.guest?.name || 'Demo Guest',
+              phone: b.phone || b.guest?.phone || '',
+              email: b.email || b.guest?.email || '',
+              room: b.roomSnapshot?.name || b.room || b.room || '—',
+              checkIn: b.checkIn,
+              checkOut: b.checkOut,
+              nights: b.nights || 1,
+              guests: b.guests || 1,
+              amount: b.pricing?.finalAmount || b.amount || 0,
+              status: b.status || 'pending',
+              createdAt: b.createdAt || new Date().toISOString(),
+            }))
+            setBookings(mapped)
+          } catch (e) {}
+        }
       }
     }
     fetchBookings()
   }, [])
+
+  // Local save/load helpers for admin bookings fallback
+  const saveBookings = (data) => {
+    try { localStorage.setItem('arlinjai_admin_bookings', JSON.stringify(data)) } catch (e) {}
+  }
+  const loadBookings = () => {
+    try { return JSON.parse(localStorage.getItem('arlinjai_admin_bookings') || '[]') } catch { return [] }
+  }
 
   const filtered = bookings.filter((b) => {
     const q = search.toLowerCase()

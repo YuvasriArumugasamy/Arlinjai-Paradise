@@ -238,6 +238,43 @@ export default function CalendarPage() {
         }
       } catch {
         toast.error('Unable to load calendar bookings from the server. Please check your network and login status.')
+        // Fallback to previously saved admin bookings or public bookings
+        try {
+          const adminSaved = JSON.parse(localStorage.getItem('arlinjai_admin_bookings') || '[]')
+          if (adminSaved && adminSaved.length) {
+            setBookings(adminSaved.map(b => ({
+              id: b.id,
+              guest: b.guest,
+              room: b.room,
+              checkIn: b.checkIn,
+              checkOut: b.checkOut,
+              nights: b.nights,
+              guests: b.guests,
+              amount: b.amount,
+              status: b.status,
+              phone: b.phone,
+            })))
+            return
+          }
+        } catch (e) {}
+        try {
+          const publicSaved = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+          if (publicSaved && publicSaved.length) {
+            setBookings(publicSaved.map(b => ({
+              id: b.id || b.bookingId || 'LOCAL-'+Math.random().toString(36).slice(2,8),
+              guest: b.guest || b.guest?.name || 'Demo Guest',
+              room: b.roomSnapshot?.name || b.room || '—',
+              checkIn: b.checkIn,
+              checkOut: b.checkOut,
+              nights: b.nights || 1,
+              guests: b.guests || 1,
+              amount: b.pricing?.finalAmount || b.amount || 0,
+              status: b.status || 'pending',
+              phone: b.phone || '',
+            })))
+            return
+          }
+        } catch (e) {}
       }
     }
     fetchBookings()
