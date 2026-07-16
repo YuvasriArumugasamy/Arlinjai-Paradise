@@ -637,9 +637,8 @@ const getApiBaseUrl = () => {
       return 'http://localhost:5000/api'
     }
 
-    // In production, assume API is hosted on the same origin under /api
-    // If your API is on a different host, set VITE_API_URL in the environment.
-    return `${window.location.protocol}//${window.location.host}/api`
+    // In production, default to the live Render API
+    return 'https://arlinjai-paradise.onrender.com/api'
   }
 
   return 'http://localhost:5000/api'
