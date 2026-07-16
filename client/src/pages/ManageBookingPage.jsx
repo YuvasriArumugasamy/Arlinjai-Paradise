@@ -10,6 +10,7 @@ import Breadcrumb from '../components/common/Breadcrumb'
 import { HOTEL_INFO, API_BASE_URL } from '../constants'
 import axios from 'axios'
 import signatureImg from './admin/image.png'
+import bgImage from '../../public/ChatGPT Image Jul 15, 2026, 05_13_58 PM.png'
 
 // Dummy fallback for demo (when backend not running)
 const DEMO_BOOKINGS = [
@@ -290,22 +291,44 @@ export default function ManageBookingPage() {
   const StatusIcon = statusCfg?.icon || FaClock
 
   return (
-    <div className="min-h-screen bg-lightbg">
+    <div 
+      className="min-h-screen relative"
+      style={{
+        backgroundImage: `url('${bgImage}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* Dark overlay for better content readability */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      
+      {/* Content wrapper */}
+      <div className="relative z-10">
 
       {/* Hero Header */}
       <div
-        className="relative py-24 text-center overflow-hidden"
+        className="relative text-center overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #08111F 0%, #0d1e35 60%, #08111F 100%)',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
+        {/* Dark overlay */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(160deg, rgba(8,17,31,0.75) 0%, rgba(8,17,31,0.55) 50%, rgba(8,17,31,0.75) 100%)',
+        }} />
         {/* Gold bottom line */}
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, height: 2,
           background: 'linear-gradient(90deg, transparent, #C9A227, transparent)',
         }} />
 
-        <div className="relative z-10 max-w-3xl mx-auto px-4">
+        <div className="relative z-10 max-w-3xl mx-auto px-4 w-full">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -326,57 +349,58 @@ export default function ManageBookingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="font-poppins text-gray-400 text-sm max-w-md mx-auto"
+            className="font-poppins text-gray-400 text-sm max-w-md mx-auto mb-6"
           >
             Enter your Booking ID to track status, view details, or print your receipt.
           </motion.p>
-          <div className="flex justify-center mt-5">
+          <div className="flex justify-center mb-8">
             <Breadcrumb items={[{ label: 'Manage Booking', path: '/manage-booking' }]} />
           </div>
+
+          {/* Search box inside hero */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white rounded-xl shadow-2xl p-6 max-w-xl mx-auto"
+          >
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gold" size={14} />
+                <input
+                  type="text"
+                  value={bookingIdInput}
+                  onChange={(e) => setBookingIdInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleFind()}
+                  placeholder="Paste your Booking ID here..."
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg font-poppins text-sm
+                             focus:outline-none focus:border-gold transition-colors"
+                />
+              </div>
+              <button
+                onClick={handleFind}
+                disabled={loading}
+                className="btn-gold px-6 py-3 text-sm font-semibold whitespace-nowrap flex items-center gap-2"
+              >
+                {loading ? (
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                ) : <FaSearch size={13} />}
+                Find Booking
+              </button>
+            </div>
+            <p className="font-poppins text-xs text-gray-400 mt-2">
+              Your Booking ID was shown after submitting your booking request. It looks like:{' '}
+              <span className="bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-600">AP000001</span>
+            </p>
+          </motion.div>
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Results */}
       <div className="max-w-2xl mx-auto px-4 py-12 space-y-6">
-
-        {/* Search Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-card p-6"
-        >
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gold" size={14} />
-              <input
-                type="text"
-                value={bookingIdInput}
-                onChange={(e) => setBookingIdInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleFind()}
-                placeholder="Paste your Booking ID here..."
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg font-poppins text-sm
-                           focus:outline-none focus:border-gold transition-colors"
-              />
-            </div>
-            <button
-              onClick={handleFind}
-              disabled={loading}
-              className="btn-gold px-6 py-3 text-sm font-semibold whitespace-nowrap flex items-center gap-2"
-            >
-              {loading ? (
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                </svg>
-              ) : <FaSearch size={13} />}
-              Find Booking
-            </button>
-          </div>
-          <p className="font-poppins text-xs text-gray-400 mt-2">
-            Your Booking ID was shown after submitting your booking request. It looks like:{' '}
-            <span className="bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-600">AJ000001</span>
-          </p>
-        </motion.div>
 
         {/* Not Found */}
         <AnimatePresence>
@@ -1152,6 +1176,7 @@ export default function ManageBookingPage() {
           }
         `}</style>
       </div>
+    </div>
     </div>
   )
 }
