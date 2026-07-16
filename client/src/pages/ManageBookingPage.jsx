@@ -11,7 +11,7 @@ import { HOTEL_INFO, API_BASE_URL } from '../constants'
 import axios from 'axios'
 import signatureImg from './admin/image.png'
 // Use public path for large background images (avoid importing from public folder)
-const bgImage = '/ChatGPT Image Jul 15, 2026, 05_13_58 PM.png'
+const bgImage = '/ChatGPT Image Jul 15, 2026, 05_13_58 PM.webp'
 
 // Dummy fallback for demo (when backend not running)
 const DEMO_BOOKINGS = [
