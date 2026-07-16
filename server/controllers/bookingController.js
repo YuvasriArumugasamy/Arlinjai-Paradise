@@ -107,7 +107,12 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Validation failed', errors: errors.array() })
     }
 
-    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber } = req.body
+    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, status } = req.body
+
+    // Fallback for empty email in offline bookings
+    if (!email || email.trim() === '') {
+      email = 'offline@arlinjaiparadise.com'
+    }
 
     // Find room
     let room = null
@@ -130,12 +135,15 @@ const createBooking = async (req, res, next) => {
 
       const sr = staticRooms[roomId]
       const nights = Math.max(1, Math.floor((new Date(checkOut) - new Date(checkIn)) / 86400000))
-      const totalAmount = sr.price * nights
+      
+      const customPrice = roomAmount ? parseFloat(roomAmount) : null
+      const finalPricePerNight = customPrice !== null ? Math.round(customPrice / nights) : sr.price
+      const totalAmount = customPrice !== null ? customPrice : sr.price * nights
 
       const booking = await Booking.create({
         guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
         room: new mongoose.Types.ObjectId('000000000000000000000001'),
-        roomSnapshot: { name: sr.name, price: sr.price, category: sr.category },
+        roomSnapshot: { name: sr.name, price: finalPricePerNight, category: sr.category },
         checkIn: new Date(checkIn),
         checkInTime: checkInTime || '12:00 PM',
         checkOut: new Date(checkOut),
@@ -143,9 +151,9 @@ const createBooking = async (req, res, next) => {
         nights,
         guests: parseInt(guests),
         specialRequests,
-        pricing: { pricePerNight: sr.price, totalAmount, discountAmount: 0, finalAmount: totalAmount },
+        pricing: { pricePerNight: finalPricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
         paymentMethod: paymentMethod || 'pay_at_hotel',
-        status: 'pending',
+        status: status || 'pending',
       })
 
       // Send push notification (async)
@@ -169,8 +177,10 @@ const createBooking = async (req, res, next) => {
 
     const checkInMonth = checkInDate.getMonth()
     const isHighSeason = [11, 0].includes(checkInMonth)
-    const pricePerNight = isHighSeason ? room.highSeasonPrice : room.price
-    const totalAmount = pricePerNight * nights
+    
+    const customPrice = roomAmount ? parseFloat(roomAmount) : null
+    const pricePerNight = customPrice !== null ? Math.round(customPrice / nights) : (isHighSeason ? room.highSeasonPrice : room.price)
+    const totalAmount = customPrice !== null ? customPrice : pricePerNight * nights
 
     const booking = await Booking.create({
       guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
@@ -185,7 +195,7 @@ const createBooking = async (req, res, next) => {
       specialRequests,
       pricing: { pricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
       paymentMethod: paymentMethod || 'pay_at_hotel',
-      status: 'pending',
+      status: status || 'pending',
     })
 
     // Send confirmation email (async, don't block response)

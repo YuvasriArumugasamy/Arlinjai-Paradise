@@ -109,10 +109,9 @@ export default function CalendarPage() {
       'normal-ac': 2000,
       'non-ac': 1500
     }
-    const pricePerNight = categoryPrices[bookingModalData.roomType] || 1500
-    const basePrice = pricePerNight * nights
-    const gstAmount = Math.round(basePrice * 0.12)
-    const totalPrice = basePrice + gstAmount
+    const userBasePrice = bookingModalData.roomAmount ? Number(bookingModalData.roomAmount) : (categoryPrices[bookingModalData.roomType] || 1500) * nights
+    const userGstAmount = Math.round(userBasePrice * 0.12)
+    const userTotalPrice = userBasePrice + userGstAmount
 
     const payload = {
       roomId: bookingModalData.roomType,
@@ -123,11 +122,12 @@ export default function CalendarPage() {
       guests: bookingModalData.guests,
       name: bookingModalData.name,
       phone: bookingModalData.phone,
-      email: bookingModalData.email,
+      email: bookingModalData.email || 'offline@arlinjaiparadise.com',
       address: 'Offline Booking',
       paymentMethod: bookingModalData.paymentMethod.toLowerCase() === 'cash' ? 'cash' : bookingModalData.paymentMethod.toLowerCase() === 'upi' ? 'upi' : 'card',
       specialRequests: bookingModalData.notes,
       advancePaid: Number(bookingModalData.advancePaid),
+      roomAmount: Number(bookingModalData.roomAmount || 0),
       status: 'confirmed'
     }
 
@@ -146,7 +146,7 @@ export default function CalendarPage() {
           checkOut: bookingModalData.checkOut,
           nights: nights,
           guests: bookingModalData.guests,
-          amount: totalPrice,
+          amount: userTotalPrice,
           status: 'confirmed',
           phone: bookingModalData.phone,
         }
