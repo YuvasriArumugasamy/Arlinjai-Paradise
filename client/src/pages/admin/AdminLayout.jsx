@@ -30,6 +30,14 @@ export default function AdminLayout() {
 
   const user = JSON.parse(localStorage.getItem('user') || '{"name":"Admin","role":"admin"}')
 
+  // Protect admin routes: if there's no auth token, redirect to login
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      navigate('/login', { replace: true })
+    }
+  }, [navigate])
+
   const isActive = (item) => {
     if (item.exact) return location.pathname === item.path
     return location.pathname.startsWith(item.path)
