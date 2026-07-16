@@ -637,17 +637,17 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              {/* Total Amount & Advance Paid */}
+              {/* Room Charge & Advance Paid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Total Amount (₹) *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Room Charge (₹) * <span className="text-gray-400 font-normal">(before GST)</span></label>
                   <input 
                     type="number" 
                     min="0"
                     required
-                    placeholder="Enter total booking amount"
-                    value={bookingModalData.totalAmount || ''}
-                    onChange={(e) => setBookingModalData(prev => ({ ...prev, totalAmount: parseFloat(e.target.value) || 0 }))}
+                    placeholder="Enter room charge amount"
+                    value={bookingModalData.roomAmount || ''}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, roomAmount: parseFloat(e.target.value) || 0 }))}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-semibold"
                   />
                 </div>
@@ -664,24 +664,39 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              {/* Balance Due Display */}
-              {(bookingModalData.totalAmount > 0 || bookingModalData.advancePaid > 0) && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-1.5">
-                  <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">💰 Payment Summary</p>
-                  <div className="flex justify-between text-sm font-bold text-gray-900">
-                    <span>Total Amount</span>
-                    <span className="text-[#C9A227]">₹{(bookingModalData.totalAmount || 0).toLocaleString('en-IN')}</span>
+              {/* Payment Summary with GST */}
+              {(bookingModalData.roomAmount > 0 || bookingModalData.advancePaid > 0) && (() => {
+                const roomCharge = parseFloat(bookingModalData.roomAmount) || 0
+                const gst = Math.round(roomCharge * 0.12)
+                const total = roomCharge + gst
+                const advance = parseFloat(bookingModalData.advancePaid) || 0
+                const balance = Math.max(0, total - advance)
+                return (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-1.5">
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">💰 Payment Summary</p>
+                    <div className="flex justify-between text-sm text-gray-700">
+                      <span>Room Charge</span>
+                      <span>₹{roomCharge.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>GST (12%)</span>
+                      <span>₹{gst.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-amber-300 pt-1.5 mt-1">
+                      <span>Total Amount</span>
+                      <span className="text-[#C9A227]">₹{total.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-green-700">
+                      <span>Advance Paid</span>
+                      <span className="font-semibold">₹{advance.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold text-red-600 border-t border-amber-300 pt-1.5">
+                      <span>Balance Due at Check-In</span>
+                      <span>₹{balance.toLocaleString('en-IN')}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm text-green-700">
-                    <span>Advance Paid</span>
-                    <span className="font-semibold">₹{(parseFloat(bookingModalData.advancePaid) || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-sm font-bold text-red-600 border-t border-amber-300 pt-1.5">
-                    <span>Balance Due at Check-In</span>
-                    <span>₹{Math.max(0, (bookingModalData.totalAmount || 0) - (parseFloat(bookingModalData.advancePaid) || 0)).toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
-              )}
+                )
+              })()}
 
               {/* Payment Method & Special Notes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
