@@ -21,7 +21,7 @@ const seedDefaultAdmin = async () => {
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@1234'
     
     // Check if any admin user exists
-    let admin = await User.findOne({ role: 'admin' })
+    let admin = await User.findOne({ role: 'admin' }).select('+password')
     
     if (!admin) {
       console.log('⏳ No admin user found in database. Initializing default admin...')
