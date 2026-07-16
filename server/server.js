@@ -4,6 +4,7 @@ const cors = require('cors')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const rateLimit = require('express-rate-limit')
+const cookieParser = require('cookie-parser')
 const path = require('path')
 require('dotenv').config()
 
@@ -43,6 +44,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }))
+
+// Cookie parser (must be before routes)
+app.use(cookieParser())
 
 // Rate limiting
 const limiter = rateLimit({

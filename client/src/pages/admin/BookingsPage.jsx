@@ -7,7 +7,7 @@ import {
   FaWhatsapp, FaTimesCircle, FaTrashAlt
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
-import axios from 'axios'
+import { authAxios } from '../../context/AuthContext'
 import { API_BASE_URL } from '../../constants'
 
 const STATUS_STYLES = {
@@ -41,10 +41,8 @@ export default function BookingsPage() {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      const token = localStorage.getItem('token')
-      const headers = token ? { Authorization: `Bearer ${token}` } : {}
       try {
-        const res = await axios.get(`${API_BASE_URL}/bookings?limit=100`, { headers })
+        const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
         if (res.data.success) {
           const mapped = res.data.bookings.map(b => ({
             id: b.bookingId || b._id,
@@ -66,56 +64,14 @@ export default function BookingsPage() {
             createdAt: b.createdAt
           }))
           setBookings(mapped)
-          saveBookings(mapped)
         }
       } catch (err) {
         console.error('Failed to fetch bookings from server:', err)
-        // 401 = token expired or invalid → force re-login
-        if (err.response?.status === 401) {
-          toast.error('Session expired. Please login again.')
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          window.location.href = '/login'
-          return
-        }
-        toast.error('Unable to load bookings from server. Please check the network or login status.')
-        // Fallback: load bookings saved locally (admin or public bookings)
-        const localAdmin = loadBookings()
-        if (localAdmin && localAdmin.length > 0) {
-          setBookings(localAdmin)
-        } else {
-          // Try public/guest saved bookings as last resort
-          try {
-            const publicSaved = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-            const mapped = publicSaved.map(b => ({
-              id: b.id || b.bookingId || 'LOCAL-'+Math.random().toString(36).slice(2,8),
-              guest: b.guest || b.guest?.name || 'Demo Guest',
-              phone: b.phone || b.guest?.phone || '',
-              email: b.email || b.guest?.email || '',
-              room: b.roomSnapshot?.name || b.room || b.room || '—',
-              checkIn: b.checkIn,
-              checkOut: b.checkOut,
-              nights: b.nights || 1,
-              guests: b.guests || 1,
-              amount: b.pricing?.finalAmount || b.amount || 0,
-              status: b.status || 'pending',
-              createdAt: b.createdAt || new Date().toISOString(),
-            }))
-            setBookings(mapped)
-          } catch (e) {}
-        }
+        toast.error('Unable to load bookings from server.')
       }
     }
     fetchBookings()
   }, [])
-
-  // Local save/load helpers for admin bookings fallback
-  const saveBookings = (data) => {
-    try { localStorage.setItem('arlinjai_admin_bookings', JSON.stringify(data)) } catch (e) {}
-  }
-  const loadBookings = () => {
-    try { return JSON.parse(localStorage.getItem('arlinjai_admin_bookings') || '[]') } catch { return [] }
-  }
 
   const filtered = bookings.filter((b) => {
     const q = search.toLowerCase()
@@ -134,26 +90,17 @@ export default function BookingsPage() {
   })
 
   const updateStatus = async (id, newStatus) => {
-    const token = localStorage.getItem('token')
-    const headers = token ? { Authorization: `Bearer ${token}` } : {}
     try {
-      const res = await axios.patch(`${API_BASE_URL}/bookings/${id}/status`, { status: newStatus }, { headers })
+      const res = await authAxios.patch(`${API_BASE_URL}/bookings/${id}/status`, { status: newStatus })
       if (res.data.success) {
         const updated = bookings.map((b) => b.id === id ? { ...b, status: newStatus } : b)
         setBookings(updated)
-        saveBookings(updated)
         if (selectedBooking?.id === id) setSelectedBooking({ ...selectedBooking, status: newStatus })
         toast.success(`Status updated to ${newStatus}`)
-      } else {
-        toast.error(res.data.message || 'Failed to update status')
       }
     } catch (err) {
       console.error(err)
-      const updated = bookings.map((b) => b.id === id ? { ...b, status: newStatus } : b)
-      setBookings(updated)
-      saveBookings(updated)
-      if (selectedBooking?.id === id) setSelectedBooking({ ...selectedBooking, status: newStatus })
-      toast.success(`Status updated locally to ${newStatus}`)
+      toast.error('Failed to update status')
     }
   }
 
@@ -188,22 +135,17 @@ export default function BookingsPage() {
   const handleDelete = async (id, e) => {
     if (e) e.stopPropagation()
     if (window.confirm(`Are you sure you want to permanently delete booking ${id}? This action cannot be undone.`)) {
-      const token = localStorage.getItem('token')
-      const headers = token ? { Authorization: `Bearer ${token}` } : {}
       try {
-        const res = await axios.delete(`${API_BASE_URL}/bookings/${id}`, { headers })
+        const res = await authAxios.delete(`${API_BASE_URL}/bookings/${id}`)
         if (res.data.success) {
           const updated = bookings.filter((b) => b.id !== id)
           setBookings(updated)
-          saveBookings(updated)
           if (selectedBooking?.id === id) setSelectedBooking(null)
           toast.success('Booking deleted successfully')
-        } else {
-          toast.error(res.data.message || 'Failed to delete booking')
         }
       } catch (err) {
         console.error(err)
-        toast.error('Unable to delete booking on server. Please try again.')
+        toast.error('Unable to delete booking. Please try again.')
       }
     }
   }

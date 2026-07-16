@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { FaChevronLeft, FaChevronRight, FaThumbtack, FaCalendarAlt, FaUsers, FaPhoneAlt } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import { authAxios } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '../../constants'
 
@@ -132,7 +132,7 @@ export default function CalendarPage() {
     }
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/bookings`, payload, { headers })
+      const res = await authAxios.post(`${API_BASE_URL}/bookings`, payload)
       if (res.data.success) {
         const newBooking = res.data.booking
         const newBookingId = newBooking.bookingId || newBooking._id
@@ -217,10 +217,8 @@ export default function CalendarPage() {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      const token = localStorage.getItem('token')
-      const headers = token ? { Authorization: `Bearer ${token}` } : {}
       try {
-        const res = await axios.get(`${API_BASE_URL}/bookings?limit=100`, { headers })
+        const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
         if (res.data.success) {
           const mapped = res.data.bookings.map(b => ({
             id: b.bookingId || b._id,
@@ -237,52 +235,8 @@ export default function CalendarPage() {
           setBookings(mapped)
         }
       } catch (err) {
-        // 401 = token expired or invalid → force re-login
-        if (err.response?.status === 401) {
-          toast.error('Session expired. Please login again.')
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          window.location.href = '/login'
-          return
-        }
-        toast.error('Unable to load calendar bookings from the server. Please check your network and login status.')
-        // Fallback to previously saved admin bookings or public bookings
-        try {
-          const adminSaved = JSON.parse(localStorage.getItem('arlinjai_admin_bookings') || '[]')
-          if (adminSaved && adminSaved.length) {
-            setBookings(adminSaved.map(b => ({
-              id: b.id,
-              guest: b.guest,
-              room: b.room,
-              checkIn: b.checkIn,
-              checkOut: b.checkOut,
-              nights: b.nights,
-              guests: b.guests,
-              amount: b.amount,
-              status: b.status,
-              phone: b.phone,
-            })))
-            return
-          }
-        } catch (e) {}
-        try {
-          const publicSaved = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-          if (publicSaved && publicSaved.length) {
-            setBookings(publicSaved.map(b => ({
-              id: b.id || b.bookingId || 'LOCAL-'+Math.random().toString(36).slice(2,8),
-              guest: b.guest || b.guest?.name || 'Demo Guest',
-              room: b.roomSnapshot?.name || b.room || '—',
-              checkIn: b.checkIn,
-              checkOut: b.checkOut,
-              nights: b.nights || 1,
-              guests: b.guests || 1,
-              amount: b.pricing?.finalAmount || b.amount || 0,
-              status: b.status || 'pending',
-              phone: b.phone || '',
-            })))
-            return
-          }
-        } catch (e) {}
+        console.error(err)
+        toast.error('Unable to load calendar bookings from the server.')
       }
     }
     fetchBookings()

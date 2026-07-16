@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -6,30 +7,29 @@ import {
   FaArrowRight, FaShieldAlt
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
-import axios from 'axios'
-import { API_BASE_URL } from '../constants'
+import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { login, user, loading: authLoading } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPw, setShowPw] = useState(false)
   const [remember, setRemember] = useState(false)
   const [loading, setLoading] = useState(false)
   const [focused, setFocused] = useState('')
 
-  // Redirect to admin dashboard if token is already present, or load saved email
+  // If already authenticated, go to admin
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      navigate('/admin')
-      return
+    if (!authLoading && user) {
+      navigate('/admin', { replace: true })
     }
+    // Load remembered email
     const savedEmail = localStorage.getItem('remembered_admin_email')
     if (savedEmail) {
       setForm((prev) => ({ ...prev, email: savedEmail }))
       setRemember(true)
     }
-  }, [navigate])
+  }, [authLoading, user, navigate])
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -37,7 +37,6 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
 
-    // Save/Clear email for remember me
     if (remember) {
       localStorage.setItem('remembered_admin_email', form.email)
     } else {
@@ -45,21 +44,12 @@ export default function LoginPage() {
     }
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/login`, form)
-      localStorage.setItem('token', res.data.token)
-      localStorage.setItem('user', JSON.stringify(res.data.user))
+      await login(form.email, form.password)
       toast.success('Welcome back!')
-      navigate('/admin')
-    } catch {
-      // Fallback credentials for demo/development
-      if ((form.email === 'admin@arlinjaiparadise.com' || form.email === 'Arlinjai Paradise') && form.password === 'Admin@1234') {
-        localStorage.setItem('token', 'demo-token')
-        localStorage.setItem('user', JSON.stringify({ name: 'Admin', role: 'admin', email: form.email }))
-        toast.success('Welcome back, Admin!')
-        navigate('/admin')
-      } else {
-        toast.error('Invalid credentials')
-      }
+      navigate('/admin', { replace: true })
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Invalid credentials'
+      toast.error(msg)
     } finally {
       setLoading(false)
     }

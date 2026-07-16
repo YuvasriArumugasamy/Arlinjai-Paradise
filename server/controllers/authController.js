@@ -1,17 +1,37 @@
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 const User = require('../models/User')
 const { validationResult } = require('express-validator')
 
-// Generate JWT
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d',
+// ── Token helpers ────────────────────────────────────────────────────────────
+
+// Short-lived access token (15 min)
+const generateAccessToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '15m' })
+}
+
+// Opaque refresh token — random hex stored hashed in DB
+const generateRefreshToken = () => crypto.randomBytes(40).toString('hex')
+
+// Hash before saving to DB
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex')
+
+// Set refresh token as HttpOnly cookie
+const setRefreshCookie = (res, token) => {
+  res.cookie('refreshToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    path: '/',
   })
 }
 
+// ── Controllers ──────────────────────────────────────────────────────────────
+
 // @desc    Register user
 // @route   POST /api/auth/register
-// @access  Public (Admin only creates staff)
+// @access  Private (Admin only creates staff)
 const register = async (req, res, next) => {
   try {
     const errors = validationResult(req)
@@ -28,16 +48,18 @@ const register = async (req, res, next) => {
 
     const user = await User.create({ name, email, password, role: role || 'guest', phone })
 
+    const accessToken = generateAccessToken(user._id)
+    const refreshToken = generateRefreshToken()
+    user.refreshToken = hashToken(refreshToken)
+    await user.save({ validateBeforeSave: false })
+
+    setRefreshCookie(res, refreshToken)
+
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
-      token: generateToken(user._id),
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      accessToken,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
     })
   } catch (error) {
     next(error)
@@ -57,11 +79,9 @@ const login = async (req, res, next) => {
     const { email, password } = req.body
 
     const user = await User.findOne({
-      $or: [
-        { email: email },
-        { name: email }
-      ]
+      $or: [{ email }, { name: email }]
     }).select('+password')
+
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
@@ -70,14 +90,22 @@ const login = async (req, res, next) => {
       return res.status(401).json({ message: 'Your account has been deactivated. Contact admin.' })
     }
 
-    // Update last login
+    // Generate tokens
+    const accessToken = generateAccessToken(user._id)
+    const refreshToken = generateRefreshToken()
+
+    // Save hashed refresh token to DB
+    user.refreshToken = hashToken(refreshToken)
     user.lastLogin = new Date()
     await user.save({ validateBeforeSave: false })
+
+    // Send refresh token as HttpOnly cookie
+    setRefreshCookie(res, refreshToken)
 
     res.json({
       success: true,
       message: 'Login successful',
-      token: generateToken(user._id),
+      accessToken,
       user: {
         id: user._id,
         name: user.name,
@@ -127,4 +155,61 @@ const changePassword = async (req, res, next) => {
   }
 }
 
-module.exports = { register, login, getMe, changePassword }
+// @desc    Refresh access token using HttpOnly cookie
+// @route   POST /api/auth/refresh
+// @access  Public (cookie required)
+const refreshAccessToken = async (req, res, next) => {
+  try {
+    const token = req.cookies?.refreshToken
+    if (!token) {
+      return res.status(401).json({ message: 'No refresh token. Please login.' })
+    }
+
+    const hashed = hashToken(token)
+    const user = await User.findOne({ refreshToken: hashed })
+
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'Invalid or expired session. Please login.' })
+    }
+
+    // Issue new access token + rotate refresh token
+    const newAccessToken = generateAccessToken(user._id)
+    const newRefreshToken = generateRefreshToken()
+    user.refreshToken = hashToken(newRefreshToken)
+    await user.save({ validateBeforeSave: false })
+
+    setRefreshCookie(res, newRefreshToken)
+
+    res.json({
+      success: true,
+      accessToken: newAccessToken,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// @desc    Logout - clear refresh token cookie + DB
+// @route   POST /api/auth/logout
+// @access  Public
+const logout = async (req, res, next) => {
+  try {
+    const token = req.cookies?.refreshToken
+    if (token) {
+      const hashed = hashToken(token)
+      await User.findOneAndUpdate({ refreshToken: hashed }, { refreshToken: null })
+    }
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
+    })
+    res.json({ success: true, message: 'Logged out successfully' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+module.exports = { register, login, getMe, changePassword, refreshAccessToken, logout }

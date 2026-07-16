@@ -6,7 +6,7 @@ import {
   FaStar, FaChartBar, FaCog, FaBars, FaTimes,
   FaSignOutAlt, FaBell, FaChevronLeft, FaExternalLinkAlt, FaCalendarDay
 } from 'react-icons/fa'
-import axios from 'axios'
+import { useAuth, authAxios } from '../../context/AuthContext'
 import { API_BASE_URL } from '../../constants'
 
 const navItems = [
@@ -27,26 +27,16 @@ export default function AdminLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-
-  const user = JSON.parse(localStorage.getItem('user') || '{"name":"Admin","role":"admin"}')
-
-  // Protect admin routes: if there's no auth token, redirect to login
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      navigate('/login', { replace: true })
-    }
-  }, [navigate])
+  const { user, logout } = useAuth()
 
   const isActive = (item) => {
     if (item.exact) return location.pathname === item.path
     return location.pathname.startsWith(item.path)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    navigate('/login')
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login', { replace: true })
   }
 
   const currentPage = navItems.find((n) => isActive(n))?.label || 'Dashboard'
@@ -55,30 +45,22 @@ export default function AdminLayout() {
 
   useEffect(() => {
     const checkRealtimeNotifications = async () => {
-      const token = localStorage.getItem('token')
-      if (!token) return
-
       try {
-        const headers = { Authorization: `Bearer ${token}` }
-        
-        // Fetch pending bookings and new messages in parallel
         const [bookingsRes, contactRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/bookings?status=pending&limit=1`, { headers }),
-          axios.get(`${API_BASE_URL}/contact?status=new&limit=1`, { headers })
+          authAxios.get(`${API_BASE_URL}/bookings?status=pending&limit=1`),
+          authAxios.get(`${API_BASE_URL}/contact?status=new&limit=1`),
         ]).catch(() => [null, null])
 
         const pendingCount = bookingsRes?.data?.total || 0
         const newMsgCount = contactRes?.data?.total || 0
-
         setHasPending(pendingCount > 0 || newMsgCount > 0)
-      } catch (err) {
+      } catch {
         setHasPending(false)
       }
     }
 
     checkRealtimeNotifications()
-    const interval = setInterval(checkRealtimeNotifications, 10000) // check every 10s
-    
+    const interval = setInterval(checkRealtimeNotifications, 10000)
     return () => clearInterval(interval)
   }, [])
 
