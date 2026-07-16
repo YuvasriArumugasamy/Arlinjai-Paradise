@@ -32,6 +32,7 @@ import ReviewsAdminPage from './pages/admin/ReviewsAdminPage'
 import ReportsPage from './pages/admin/ReportsPage'
 import SettingsPage from './pages/admin/SettingsPage'
 import NotificationsPage from './pages/admin/NotificationsPage'
+import RequireAdmin from './components/common/RequireAdmin'
 
 const ScrollRestoration = () => {
   const { pathname } = useLocation()
@@ -107,7 +108,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
             <Route index element={<DashboardPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
