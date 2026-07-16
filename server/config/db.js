@@ -39,15 +39,24 @@ const seedDefaultAdmin = async () => {
       console.log(`   Email: ${adminEmail}`)
       console.log(`   Password: ${adminPassword}`)
     } else {
-      // If admin exists, verify password and update if mismatch
+      // If admin exists, verify and update name and password if they are different
+      let updated = false
+      
+      if (admin.name !== 'Arlinjai Paradise') {
+        admin.name = 'Arlinjai Paradise'
+        updated = true
+      }
+      
       const isMatch = await admin.matchPassword(adminPassword)
       if (!isMatch) {
-        console.log('⏳ Admin password mismatch with .env. Updating password in database...')
         admin.password = adminPassword
-        // Ensure name is correct too
-        admin.name = 'Arlinjai Paradise'
+        updated = true
+      }
+      
+      if (updated) {
+        console.log('⏳ Admin details mismatch. Syncing admin details in database...')
         await admin.save()
-        console.log('✅ Admin password updated successfully to match .env!')
+        console.log('✅ Admin details (name/password) updated successfully in database!')
       }
     }
   } catch (error) {
