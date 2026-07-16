@@ -250,8 +250,8 @@ export default function AmenitiesSection() {
             }}
           >
             <img
-              src="/IMG_0435.JPG.webp"
-              alt="Arlinjai Paradise Room"
+              src="/B791C280-016C-4109-AD3A-787851527299.JPG.webp"
+              alt="Arlinjai Paradise Exterior"
               style={{
                 width: '100%', height: '100%',
                 objectFit: 'cover',
