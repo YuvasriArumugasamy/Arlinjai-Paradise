@@ -190,6 +190,28 @@ const refreshAccessToken = async (req, res, next) => {
   }
 }
 
+// @desc    Logout - clear refresh token cookie + DB
+// @route   POST /api/auth/logout
+// @access  Public
+const logout = async (req, res, next) => {
+  try {
+    const token = req.cookies?.refreshToken
+    if (token) {
+      const hashed = hashToken(token)
+      await User.findOneAndUpdate({ refreshToken: hashed }, { refreshToken: null })
+    }
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
+    })
+    res.json({ success: true, message: 'Logged out successfully' })
+  } catch (error) {
+    next(error)
+  }
+}
+
 // @desc    Initialize admin user (only if no users exist)
 // @route   POST /api/auth/initialize-admin
 // @access  Public (only works on first deployment)
