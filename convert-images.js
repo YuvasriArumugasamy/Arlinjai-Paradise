@@ -54,6 +54,30 @@ async function convert() {
     }
   }
 
+  // Generate LQIP placeholders for converted webp files
+  console.log('Step 3: Generating LQIP placeholders...');
+  const placeholders = {};
+  for (const [oldName, newName] of Object.entries(mapping)) {
+    const p = path.join(publicDir, newName);
+    try {
+      const buf = await sharp(p)
+        .resize(20)
+        .webp({ quality: 30 })
+        .toBuffer();
+      const dataUri = `data:image/webp;base64,${buf.toString('base64')}`;
+      placeholders[newName] = dataUri;
+      console.log(`  Placeholder created for ${newName}`);
+    } catch (err) {
+      console.error(`  Failed to create placeholder for ${newName}:`, err.message);
+    }
+  }
+  try {
+    fs.writeFileSync(path.join(publicDir, 'placeholders.json'), JSON.stringify(placeholders, null, 2), 'utf8');
+    console.log('  Wrote public/placeholders.json');
+  } catch (err) {
+    console.error('  Failed to write placeholders.json:', err.message);
+  }
+
   console.log('Step 3: Replacing image references in source code...');
   replaceReferences(clientDir);
   console.log('\nAll conversions and code reference replacements completed successfully!');
