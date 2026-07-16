@@ -14,7 +14,7 @@ const registerValidation = [
 ]
 
 const loginValidation = [
-  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+  body('email').trim().notEmpty().withMessage('Email or Username is required'),
   body('password').notEmpty().withMessage('Password is required'),
 ]
 
