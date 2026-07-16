@@ -17,14 +17,14 @@ const seedDefaultAdmin = async () => {
   try {
     const User = require('../models/User')
     
-    // Check if any admin user exists
-    const adminExists = await User.findOne({ role: 'admin' })
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@arlinjaiparadise.com'
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@1234'
     
-    if (!adminExists) {
+    // Check if any admin user exists
+    let admin = await User.findOne({ role: 'admin' })
+    
+    if (!admin) {
       console.log('⏳ No admin user found in database. Initializing default admin...')
-      
-      const adminEmail = process.env.ADMIN_EMAIL || 'admin@arlinjaiparadise.com'
-      const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@1234'
       
       await User.create({
         name: 'Arlinjai Paradise',
@@ -38,6 +38,17 @@ const seedDefaultAdmin = async () => {
       console.log('✅ Default admin user created successfully!')
       console.log(`   Email: ${adminEmail}`)
       console.log(`   Password: ${adminPassword}`)
+    } else {
+      // If admin exists, verify password and update if mismatch
+      const isMatch = await admin.matchPassword(adminPassword)
+      if (!isMatch) {
+        console.log('⏳ Admin password mismatch with .env. Updating password in database...')
+        admin.password = adminPassword
+        // Ensure name is correct too
+        admin.name = 'Arlinjai Paradise'
+        await admin.save()
+        console.log('✅ Admin password updated successfully to match .env!')
+      }
     }
   } catch (error) {
     console.error('❌ Error seeding default admin:', error.message)
