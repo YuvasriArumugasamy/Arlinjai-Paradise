@@ -613,7 +613,7 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              {/* Guests & Advance Paid */}
+              {/* Guests */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Guests</label>
@@ -626,16 +626,66 @@ export default function CalendarPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Advance Paid (₹)</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Number of Rooms</label>
                   <input 
                     type="number" 
-                    min="0"
-                    value={bookingModalData.advancePaid}
-                    onChange={(e) => setBookingModalData(prev => ({ ...prev, advancePaid: parseFloat(e.target.value) || 0 }))}
+                    min="1"
+                    value={bookingModalData.numRooms}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, numRooms: parseInt(e.target.value) || 1 }))}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
                   />
                 </div>
               </div>
+
+              {/* Live Price Summary */}
+              {bookingModalData.checkIn && bookingModalData.checkOut && (() => {
+                const diff = new Date(bookingModalData.checkOut) - new Date(bookingModalData.checkIn)
+                const nights = Math.max(1, Math.floor(diff / 86400000))
+                const categoryPrices = { 'deluxe-ac': 2500, 'normal-ac': 2000, 'non-ac': 1500 }
+                const pricePerNight = categoryPrices[bookingModalData.roomType] || 1500
+                const basePrice = pricePerNight * nights * (bookingModalData.numRooms || 1)
+                const gstAmount = Math.round(basePrice * 0.12)
+                const totalPrice = basePrice + gstAmount
+                const advance = parseFloat(bookingModalData.advancePaid) || 0
+                const balance = totalPrice - advance
+
+                return (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-1.5">
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">💰 Price Breakdown</p>
+                    <div className="flex justify-between text-sm text-gray-700">
+                      <span>Room Charge ({nights} night{nights > 1 ? 's' : ''} × {bookingModalData.numRooms} room{bookingModalData.numRooms > 1 ? 's' : ''} × ₹{pricePerNight.toLocaleString('en-IN')})</span>
+                      <span className="font-semibold">₹{basePrice.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>GST (12%)</span>
+                      <span>₹{gstAmount.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-amber-300 pt-1.5 mt-1">
+                      <span>Total Amount</span>
+                      <span className="text-[#C9A227]">₹{totalPrice.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-green-700">
+                      <span>Advance Paid</span>
+                      <span className="font-semibold">₹{advance.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold text-red-600 border-t border-amber-300 pt-1.5">
+                      <span>Balance Due at Check-In</span>
+                      <span>₹{Math.max(0, balance).toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* Advance Paid */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Advance Paid (₹)</label>
+                <input 
+                  type="number" 
+                  min="0"
+                  value={bookingModalData.advancePaid}
+                  onChange={(e) => setBookingModalData(prev => ({ ...prev, advancePaid: parseFloat(e.target.value) || 0 }))}
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                /></div>
 
               {/* Payment Method & Special Notes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
