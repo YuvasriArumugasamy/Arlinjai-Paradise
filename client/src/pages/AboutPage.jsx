@@ -122,19 +122,7 @@ export default function AboutPage() {
         padding: 'clamp(80px, 15vw, 200px) 0 clamp(60px, 12vw, 180px)', textAlign: 'center', overflow: 'hidden',
         minHeight: 'clamp(300px, 50vw, 500px)',
       }}>
-        {/* Watermark logo right side */}
-        <div style={{
-          position: 'absolute', right: 48, top: '50%', transform: 'translateY(-50%)',
-          opacity: 0.08, pointerEvents: 'none',
-        }}>
-          <img src="/Elegant monogram with seaside emblem.webp" alt=""
-            style={{ width: 160, height: 160, objectFit: 'contain',
-              filter: 'brightness(0) invert(1)' }} />
-          <p style={{ fontFamily: 'Playfair Display,serif', color: '#fff',
-            fontSize: '0.7rem', letterSpacing: '0.2em', textAlign: 'center', marginTop: 6 }}>
-            ARLINJAI PARADISE
-          </p>
-        </div>
+        {/* watermark removed as requested */}
 
         {/* Bottom glow */}
         <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
