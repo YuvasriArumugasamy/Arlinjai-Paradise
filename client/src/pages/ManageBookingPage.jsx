@@ -393,7 +393,7 @@ export default function ManageBookingPage() {
             </div>
             <p className="font-poppins text-xs text-gray-400 mt-2">
               Your Booking ID was shown after submitting your booking request. It looks like:{' '}
-              <span className="bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-600">AP000001</span>
+              <span className="bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-600">AJ000001</span>
             </p>
           </motion.div>
         </div>

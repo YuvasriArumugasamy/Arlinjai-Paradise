@@ -188,7 +188,7 @@ export default function CalendarPage() {
     } catch (err) {
       console.error(err)
       // Fallback for offline creation
-      const offlineId = 'AP' + String(Date.now()).slice(-6)
+      const offlineId = 'AJ' + String(Date.now()).slice(-6)
       const mappedNewBooking = {
         id: offlineId,
         guest: bookingModalData.name,

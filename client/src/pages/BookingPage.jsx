@@ -741,7 +741,7 @@ export default function BookingPage() {
               try {
                 const payload = { ...bookingData, ...paymentDetails }
                 const res = await axios.post(`${API_BASE_URL}/bookings`, payload)
-                const newBookingId = res.data.bookingId || 'AP' + String(Date.now()).slice(-6)
+                const newBookingId = res.data.bookingId || 'AJ' + String(Date.now()).slice(-6)
                 setBookingId(newBookingId)
 
                 const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
@@ -773,7 +773,7 @@ export default function BookingPage() {
                 localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
                 goToStep(3)
               } catch {
-                const offlineId = 'AP' + String(Date.now()).slice(-6)
+                const offlineId = 'AJ' + String(Date.now()).slice(-6)
                 setBookingId(offlineId)
                 const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
                 savedBookings.unshift({
