@@ -70,6 +70,14 @@ export default function BookingsPage() {
         }
       } catch (err) {
         console.error('Failed to fetch bookings from server:', err)
+        // 401 = token expired or invalid → force re-login
+        if (err.response?.status === 401) {
+          toast.error('Session expired. Please login again.')
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          window.location.href = '/login'
+          return
+        }
         toast.error('Unable to load bookings from server. Please check the network or login status.')
         // Fallback: load bookings saved locally (admin or public bookings)
         const localAdmin = loadBookings()

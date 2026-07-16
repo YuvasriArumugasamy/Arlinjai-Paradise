@@ -236,7 +236,15 @@ export default function CalendarPage() {
           }))
           setBookings(mapped)
         }
-      } catch {
+      } catch (err) {
+        // 401 = token expired or invalid → force re-login
+        if (err.response?.status === 401) {
+          toast.error('Session expired. Please login again.')
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          window.location.href = '/login'
+          return
+        }
         toast.error('Unable to load calendar bookings from the server. Please check your network and login status.')
         // Fallback to previously saved admin bookings or public bookings
         try {
