@@ -157,6 +157,10 @@ export default function AboutPage() {
                 letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 10 }}>
                 Our Story
               </p>
+              <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: '#08111f',
+                fontWeight: 700, marginBottom: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Happy to Stay
+              </p>
               <h2 style={{ fontFamily: 'Playfair Display,serif', fontSize: 'clamp(1.8rem,3vw,2.5rem)',
                 fontWeight: 700, color: '#08111f', marginBottom: 10 }}>
                 Your Home in{' '}
@@ -168,13 +172,12 @@ export default function AboutPage() {
                 lineHeight: 1.8, marginBottom: 14 }}>
                 Arlinjai Paradise was established on{' '}
                 <span style={{ color: '#c9a84c', fontWeight: 600 }}>30th August 2022</span>{' '}
-                with a simple vision – to provide every guest with a comfortable, clean and memorable
-                stay in the divine land of Kanyakumari.
+                with a simple promise: every guest should feel welcomed, cared for, and happy to stay.
               </p>
               <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: '0.87rem', color: '#374151',
                 lineHeight: 1.8, marginBottom: 28 }}>
-                Located close to the major attractions, we offer well-maintained rooms, modern
-                facilities and warm hospitality that make every stay feel like home.
+                Our warm hospitality, modern rooms and thoughtful service make staying with us a
+                memorable experience from arrival to departure.
               </p>
 
               {/* Signature */}
@@ -192,8 +195,8 @@ export default function AboutPage() {
             <motion.div {...fadeUp(0.2)} style={{ position: 'relative' }}>
               <div style={{ borderRadius: 14, overflow: 'hidden',
                 boxShadow: '0 12px 48px rgba(0,0,0,0.16)' }}>
-                <img src="/B791C280-016C-4109-AD3A-787851527299.JPG.webp"
-                  alt="Arlinjai Paradise Hotel"
+                <img src="/ChatGPT Image Jul 16, 2026, 12_52_37 PM.png"
+                  alt="Happy guests at Arlinjai Paradise"
                   style={{ width: '100%', height: 380, objectFit: 'cover', display: 'block' }} />
               </div>
               {/* SINCE badge */}
