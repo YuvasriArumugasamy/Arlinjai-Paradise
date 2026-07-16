@@ -4,6 +4,7 @@ import {
   FaChevronRight
 } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
+import LazyImage from './LazyImage'
 
 const quickLinks = [
   { label: 'Home', path: '/' },
@@ -27,10 +28,12 @@ export default function Footer() {
           {/* ── Brand Column ── */}
           <div className="flex flex-col items-start text-left">
             <div className="flex items-center gap-3 mb-4">
-              <img
+              <LazyImage
                 src="/Elegant monogram with seaside emblem.webp"
                 alt="Arlinjai Paradise Logo"
                 className="w-12 h-12 object-contain rounded-full border-2 border-gold bg-white"
+                width={48}
+                height={48}
               />
               <div>
                 <h3 className="font-playfair font-bold text-base tracking-wider leading-tight text-white uppercase">

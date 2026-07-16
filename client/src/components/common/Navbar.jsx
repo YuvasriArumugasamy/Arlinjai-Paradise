@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FaBars, FaTimes, FaPhoneAlt } from 'react-icons/fa'
 import { HOTEL_INFO } from '../../constants'
 import { StarButtonLink } from './StarButton'
+import LazyImage from './LazyImage'
 
 const navLinks = [
   { label: 'Home', path: '/' },
@@ -53,10 +54,12 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
-              <img
+              <LazyImage
                 src="/Elegant monogram with seaside emblem.webp"
                 alt="Arlinjai Paradise Logo"
                 className="w-10 h-10 lg:w-12 lg:h-12 object-contain rounded-full border-2 border-gold"
+                width={48}
+                height={48}
               />
               <div className="flex flex-col items-start">
                 <span
