@@ -26,6 +26,9 @@ const paymentRoutes = require('./routes/paymentRoutes')
 
 const app = express()
 
+// Trust proxy (for rate limiting behind reverse proxy like Render)
+app.set('trust proxy', 1)
+
 // Connect to MongoDB
 connectDB()
 
@@ -53,12 +56,16 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
   message: { message: 'Too many requests from this IP. Please try again after 15 minutes.' },
+  skip: (req) => process.env.NODE_ENV !== 'production',
+  keyGenerator: (req) => req.ip || req.connection.remoteAddress,
 })
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: { message: 'Too many login attempts. Please try again after 15 minutes.' },
+  skip: (req) => process.env.NODE_ENV !== 'production',
+  keyGenerator: (req) => req.ip || req.connection.remoteAddress,
 })
 
 app.use('/api/', limiter)
