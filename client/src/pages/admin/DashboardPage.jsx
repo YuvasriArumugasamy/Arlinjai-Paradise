@@ -24,41 +24,6 @@ const MOCK_STATS = {
 
 const MOCK_BOOKINGS = [];
 
-// Calculate stats from localStorage bookings (offline fallback)
-function calcLocalStats(filter = 'month') {
-  try {
-    const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-    const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const today = new Date(); today.setHours(0,0,0,0)
-    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
-
-    const active = raw.filter(b => b.status !== 'cancelled')
-    const periodBookings = filter === 'all' ? active : active.filter(b => new Date(b.createdAt) >= startOfMonth)
-
-    const totalRevenue = periodBookings.reduce((s, b) => s + (b.amount || 0), 0)
-    const totalBookings = periodBookings.length
-    const totalGuests = periodBookings.reduce((s, b) => s + (b.guests || 0), 0)
-    const todayStr = new Date().toLocaleDateString('en-CA')
-    const currentlyCheckedIn = active.filter(b => b.status === 'checked-in').length
-    const checkInsToday = active.filter(b => {
-      const dStr = new Date(b.checkIn).toLocaleDateString('en-CA')
-      return dStr === todayStr && (b.status === 'confirmed' || b.status === 'pending')
-    }).length
-    const checkOutsToday = active.filter(b => {
-      const dStr = new Date(b.checkOut).toLocaleDateString('en-CA')
-      return dStr === todayStr && (b.status === 'checked-in' || b.status === 'checked-out')
-    }).length
-
-    return {
-      totalRevenue, totalBookings, totalGuests,
-      currentlyCheckedIn, checkInsToday, checkOutsToday,
-      availableRooms: 15 - currentlyCheckedIn,
-      revenueGrowth: 0, bookingGrowth: 0,
-    }
-  } catch { return null }
-}
-
 const STATUS_STYLES = {
   confirmed: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Confirmed' },
   pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Pending' },
@@ -148,24 +113,7 @@ export default function DashboardPage() {
         }))
         setBookings(mapped)
       } catch {
-        // Fallback: use localStorage bookings
-        const localStats = calcLocalStats(filterMode)
-        if (localStats) setStats(prev => ({ ...prev, ...localStats }))
-        const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-        const mapped = raw
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 10)
-          .map(b => ({
-            id: b.id,
-            guest: b.guest || '—',
-            room: b.room || '—',
-            checkIn: b.checkIn,
-            checkOut: b.checkOut,
-            amount: b.amount || 0,
-            status: b.status || 'pending',
-            phone: b.phone || '',
-          }))
-        setBookings(mapped)
+        toast.error('Unable to load dashboard data from the server. Please check your network and login status.')
       } finally {
         setLoading(false)
       }

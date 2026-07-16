@@ -152,86 +152,19 @@ export default function CalendarPage() {
         }
         setBookings(prev => [mappedNewBooking, ...prev])
 
-        // Add to arlinjai_bookings local storage
-        const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-        savedBookings.unshift({
-          id: newBookingId,
-          guest: bookingModalData.name,
-          phone: bookingModalData.phone,
-          email: bookingModalData.email,
-          room: mappedNewBooking.room,
-          checkIn: bookingModalData.checkIn,
-          checkInTime: bookingModalData.checkInTime,
-          checkOut: bookingModalData.checkOut,
-          checkOutTime: bookingModalData.checkOutTime,
-          nights: nights,
-          guests: bookingModalData.guests,
-          basePrice: basePrice,
-          amount: totalPrice,
-          paymentMethod: payload.paymentMethod,
-          specialRequests: bookingModalData.notes,
-          status: 'confirmed',
-          createdAt: new Date().toISOString(),
-        })
-        localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
-
-        // Save physical room assignment
+        // Save physical room assignment locally for calendar room mapping
         const updatedAssignments = { ...roomAssignments, [newBookingId]: bookingModalData.physicalRoomId }
         setRoomAssignments(updatedAssignments)
         localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updatedAssignments))
 
-        toast.success('Offline booking created successfully!')
+        toast.success('Booking created successfully!')
         setShowBookingModal(false)
       } else {
         toast.error(res.data.message || 'Failed to create booking')
       }
     } catch (err) {
       console.error(err)
-      // Fallback for offline creation
-      const offlineId = 'AJ' + String(Date.now()).slice(-6)
-      const mappedNewBooking = {
-        id: offlineId,
-        guest: bookingModalData.name,
-        room: bookingModalData.roomType === 'deluxe-ac' ? 'Deluxe AC Room' : bookingModalData.roomType === 'normal-ac' ? 'Normal AC Room' : 'Non AC Room',
-        checkIn: bookingModalData.checkIn,
-        checkOut: bookingModalData.checkOut,
-        nights: nights,
-        guests: bookingModalData.guests,
-        amount: totalPrice,
-        status: 'confirmed',
-        phone: bookingModalData.phone,
-      }
-      setBookings(prev => [mappedNewBooking, ...prev])
-
-      const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-      savedBookings.unshift({
-        id: offlineId,
-        guest: bookingModalData.name,
-        phone: bookingModalData.phone,
-        email: bookingModalData.email,
-        room: mappedNewBooking.room,
-        checkIn: bookingModalData.checkIn,
-        checkInTime: bookingModalData.checkInTime,
-        checkOut: bookingModalData.checkOut,
-        checkOutTime: bookingModalData.checkOutTime,
-        nights: nights,
-        guests: bookingModalData.guests,
-        basePrice: basePrice,
-        amount: totalPrice,
-        paymentMethod: payload.paymentMethod,
-        specialRequests: bookingModalData.notes,
-        status: 'confirmed',
-        createdAt: new Date().toISOString(),
-      })
-      localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
-
-      // Save physical room assignment
-      const updatedAssignments = { ...roomAssignments, [offlineId]: bookingModalData.physicalRoomId }
-      setRoomAssignments(updatedAssignments)
-      localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updatedAssignments))
-
-      toast.success('Offline booking created locally!')
-      setShowBookingModal(false)
+      toast.error('Unable to create booking on server. Please check your network and try again.')
     } finally {
       setLoading(false)
     }
@@ -304,21 +237,7 @@ export default function CalendarPage() {
           setBookings(mapped)
         }
       } catch {
-        try {
-          const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-          setBookings(raw.map(b => ({
-            id: b.id,
-            guest: b.guest,
-            room: b.room,
-            checkIn: b.checkIn,
-            checkOut: b.checkOut,
-            nights: b.nights,
-            guests: b.guests,
-            amount: b.amount,
-            status: b.status,
-            phone: b.phone,
-          })))
-        } catch {}
+        toast.error('Unable to load calendar bookings from the server. Please check your network and login status.')
       }
     }
     fetchBookings()

@@ -11,9 +11,7 @@ const STATUS_STYLES = {
 
 // Derive customer list from localStorage bookings (offline fallback)
 function deriveCustomersFromLocal() {
-  try {
-    const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-    if (!raw.length) return []
+  return []
     const map = {}
     raw.forEach((b) => {
       const phone = b.phone || b.guest?.phone || 'unknown'
@@ -79,7 +77,7 @@ export default function CustomersPage() {
         list.forEach((c) => { if (c.totalBookings >= 3) c.status = 'VIP' })
         setCustomers(list.sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit)))
       } catch {
-        setCustomers(deriveCustomersFromLocal())
+        toast.error('Unable to load customer data from the server. Please check your network and login status.')
       } finally {
         setLoading(false)
       }

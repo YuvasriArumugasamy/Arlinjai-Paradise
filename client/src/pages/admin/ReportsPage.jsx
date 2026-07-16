@@ -116,21 +116,7 @@ export default function ReportsPage() {
         setTotalBookings(calc.totalBookings)
         setTotalGuests(calc.totalGuests)
       } catch {
-        // Fallback: localStorage
-        const raw = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-        const now = new Date()
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        const periodRaw = filterMode === 'all'
-          ? raw
-          : raw.filter(b => new Date(b.createdAt) >= startOfMonth)
-
-        const calc = calcReportsFromLocal(periodRaw)
-        setMonthlyData(calc.monthlyData)
-        setRoomData(calc.roomData)
-        setStatusData(calc.statusData)
-        setTotalRevenue(calc.totalRevenue)
-        setTotalBookings(calc.totalBookings)
-        setTotalGuests(calc.totalGuests)
+        toast.error('Unable to load report data from the server. Please check your network and login status.')
       } finally {
         setLoading(false)
       }

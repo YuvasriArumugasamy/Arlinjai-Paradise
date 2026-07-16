@@ -64,14 +64,7 @@ export default function AdminLayout() {
 
         setHasPending(pendingCount > 0 || newMsgCount > 0)
       } catch (err) {
-        // Fallback: check localStorage
-        try {
-          const bookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-          const hasNew = bookings.some(b => b.status === 'pending')
-          setHasPending(hasNew)
-        } catch {
-          setHasPending(false)
-        }
+        setHasPending(false)
       }
     }
 

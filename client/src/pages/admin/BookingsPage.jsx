@@ -20,16 +20,6 @@ const STATUS_STYLES = {
 
 const STATUS_OPTIONS = ['all', 'pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled']
 
-const loadBookings = () => {
-  try {
-    return JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
-  } catch { return [] }
-}
-
-const saveBookings = (bookings) => {
-  localStorage.setItem('arlinjai_bookings', JSON.stringify(bookings))
-}
-
 const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN') : '—'
 
 const getAge = (dob) => {
@@ -80,7 +70,7 @@ export default function BookingsPage() {
         }
       } catch (err) {
         console.error('Failed to fetch bookings from server:', err)
-        setBookings(loadBookings())
+        toast.error('Unable to load bookings from server. Please check the network or login status.')
       }
     }
     fetchBookings()
@@ -172,11 +162,7 @@ export default function BookingsPage() {
         }
       } catch (err) {
         console.error(err)
-        const updated = bookings.filter((b) => b.id !== id)
-        setBookings(updated)
-        saveBookings(updated)
-        if (selectedBooking?.id === id) setSelectedBooking(null)
-        toast.success('Booking deleted locally')
+        toast.error('Unable to delete booking on server. Please try again.')
       }
     }
   }
