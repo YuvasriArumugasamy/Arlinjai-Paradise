@@ -75,7 +75,8 @@ export default function LoginPage() {
         transition={{ duration: 2.0, ease: 'easeOut' }}
         className="absolute inset-0 bg-cover bg-center select-none pointer-events-none"
         style={{
-          backgroundImage: `url('/B791C280-016C-4109-AD3A-787851527299.JPG.webp')`,
+          // replaced background with the requested public image
+          backgroundImage: `url('/ChatGPT Image Jul 15, 2026, 05_01_04 PM.png')`,
         }}
       />
 
