@@ -41,8 +41,22 @@ app.use(helmet({
 }))
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.CLIENT_URL,
+].filter(Boolean)
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, mobile apps, server-to-server)
+    if (!origin) return callback(null, true)
+    // Allow any Vercel domain
+    if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
+      return callback(null, true)
+    }
+    return callback(new Error('CORS: Not allowed by policy'))
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
