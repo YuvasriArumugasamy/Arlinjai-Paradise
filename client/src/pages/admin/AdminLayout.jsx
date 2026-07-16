@@ -290,7 +290,9 @@ export default function AdminLayout() {
               </div>
               <div className="hidden sm:block">
                 <p className="text-sm font-medium text-navy leading-tight">{user.name || 'Admin'}</p>
-                <p className="text-xs text-gray-500 capitalize">{user.role || 'admin'}</p>
+                {(user.role && (user.role.toLowerCase() !== (user.name || '').toLowerCase())) && (
+                  <p className="text-xs text-gray-500 capitalize">{user.role || 'admin'}</p>
+                )}
               </div>
             </div>
           </div>
