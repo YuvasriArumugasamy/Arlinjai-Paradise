@@ -613,13 +613,16 @@ const getApiBaseUrl = () => {
   }
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname
-    // If accessed via local IP address (e.g. 192.168.1.15) on Wi-Fi
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      if (/^[0-9.]+$/.test(hostname)) {
-        return `http://${hostname}:5000/api`
-      }
+    // If running locally, target the local API server
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:5000/api'
     }
+
+    // In production, assume API is hosted on the same origin under /api
+    // If your API is on a different host, set VITE_API_URL in the environment.
+    return `${window.location.protocol}//${window.location.host}/api`
   }
+
   return 'http://localhost:5000/api'
 }
 
