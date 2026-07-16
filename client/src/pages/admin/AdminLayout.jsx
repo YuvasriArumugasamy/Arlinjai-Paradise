@@ -65,7 +65,12 @@ export default function AdminLayout() {
   }, [])
 
   return (
-    <div className="flex h-screen bg-lightbg overflow-hidden font-poppins">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="flex h-screen bg-lightbg overflow-hidden font-poppins"
+    >
       {/* Desktop Sidebar */}
       <motion.aside
         animate={{ width: sidebarOpen ? 256 : 72 }}
@@ -290,9 +295,16 @@ export default function AdminLayout() {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <Outlet />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+          >
+            <Outlet />
+          </motion.div>
         </main>
       </div>
-    </div>
+    </motion.div>
   )
 }

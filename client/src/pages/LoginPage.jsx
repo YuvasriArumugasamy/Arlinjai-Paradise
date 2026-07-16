@@ -45,12 +45,17 @@ export default function LoginPage() {
 
     try {
       await login(form.email, form.password)
-      toast.success('Welcome back!')
+      toast.success('Welcome back!', {
+        icon: '✨',
+        duration: 2000,
+      })
+      
+      // Add smooth transition animation before navigation
+      await new Promise(resolve => setTimeout(resolve, 500))
       navigate('/admin', { replace: true })
     } catch (err) {
       const msg = err.response?.data?.message || 'Invalid credentials'
       toast.error(msg)
-    } finally {
       setLoading(false)
     }
   }
