@@ -455,7 +455,7 @@ export const ATTRACTIONS = [
 ]
 
 // Gallery Images
-export const GALLERY_IMAGES = [
+const RAW_GALLERY_IMAGES = [
   {
     id: 1,
     url: '/B791C280-016C-4109-AD3A-787851527299.JPG.webp',
@@ -554,7 +554,26 @@ export const GALLERY_IMAGES = [
     category: 'rooms',
     span: 'col-span-1',
   },
+  {
+    id: 15,
+    url: '/ChatGPT Image Jul 15, 2026, 05_01_04 PM.webp',
+    title: 'New Gallery Image 1',
+    category: 'rooms',
+    span: 'col-span-1',
+  },
+  {
+    id: 16,
+    url: '/ChatGPT Image Jul 15, 2026, 05_13_58 PM.webp',
+    title: 'New Gallery Image 2',
+    category: 'rooms',
+    span: 'col-span-1',
+  },
 ]
+
+export const GALLERY_IMAGES = RAW_GALLERY_IMAGES.map((img) => ({
+  ...img,
+  url: typeof img.url === 'string' ? encodeURI(img.url) : img.url,
+}))
 
 // Stats for Counter Section
 export const STATS = [
