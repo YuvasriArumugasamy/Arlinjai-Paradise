@@ -14,7 +14,7 @@ export default function CallToAction() {
     <section
       className="py-20 relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(8,17,31,0.85), rgba(8,17,31,0.85)), url('/B791C280-016C-4109-AD3A-787851527299.JPG.webp')`,
+        backgroundImage: `linear-gradient(rgba(8,17,31,0.85), rgba(8,17,31,0.85)), url('/Screenshot 2026-07-05 095713.webp')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
