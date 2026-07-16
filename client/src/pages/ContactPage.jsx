@@ -71,7 +71,7 @@ export default function ContactPage() {
       <div
         style={{
           position: 'relative',
-          backgroundImage: `linear-gradient(rgba(8,17,31,0.78), rgba(8,17,31,0.78)), url('/ChatGPT Image Jul 15, 2026, 05_01_04 PM.png')`,
+          backgroundImage: `linear-gradient(rgba(8,17,31,0.78), rgba(8,17,31,0.78)), url('/ChatGPT Image Jul 15, 2026, 05_01_04 PM.webp')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           padding: 'clamp(80px, 15vw, 200px) 0 clamp(60px, 12vw, 180px)',

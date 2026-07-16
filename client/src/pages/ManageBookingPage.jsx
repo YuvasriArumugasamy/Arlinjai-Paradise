@@ -10,7 +10,7 @@ import Breadcrumb from '../components/common/Breadcrumb'
 import { HOTEL_INFO, API_BASE_URL } from '../constants'
 import axios from 'axios'
 import signatureImg from './admin/image.png'
-import bgImage from '../../public/ChatGPT Image Jul 15, 2026, 05_13_58 PM.png'
+import bgImage from '../../public/ChatGPT Image Jul 15, 2026, 05_13_58 PM.webp'
 
 // Dummy fallback for demo (when backend not running)
 const DEMO_BOOKINGS = [
