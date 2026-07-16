@@ -11,7 +11,8 @@ const STATUS_STYLES = {
 
 // Derive customer list from localStorage bookings (offline fallback)
 function deriveCustomersFromLocal() {
-  return []
+  try {
+    const raw = JSON.parse(localStorage.getItem('bookings') || '[]')
     const map = {}
     raw.forEach((b) => {
       const phone = b.phone || b.guest?.phone || 'unknown'
@@ -37,7 +38,9 @@ function deriveCustomersFromLocal() {
     const list = Object.values(map)
     list.forEach((c) => { if (c.totalBookings >= 3) c.status = 'VIP' })
     return list.sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit))
-  } catch { return [] }
+  } catch (e) {
+    return []
+  }
 }
 
 export default function CustomersPage() {
