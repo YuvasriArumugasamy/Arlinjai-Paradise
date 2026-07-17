@@ -75,7 +75,7 @@ export default function RoomsPage() {
         />
 
         {/* Text content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center w-full bg-black/20 sm:bg-transparent rounded-md">
           {/* Label */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -106,6 +106,7 @@ export default function RoomsPage() {
               color: '#ffffff',
               marginBottom: '16px',
               lineHeight: 1.15,
+              textShadow: '0 6px 18px rgba(0,0,0,0.5)'
             }}
           >
             Our{' '}
@@ -140,11 +141,12 @@ export default function RoomsPage() {
             transition={{ duration: 0.6, delay: 0.7 }}
             style={{
               fontFamily: 'Poppins, sans-serif',
-              color: 'rgba(220,220,220,0.8)',
+              color: 'rgba(255,255,255,0.95)',
               fontSize: '0.95rem',
               maxWidth: '480px',
               margin: '0 auto 24px',
               lineHeight: 1.7,
+              textShadow: '0 4px 12px rgba(0,0,0,0.45)'
             }}
           >
             Choose from our carefully designed rooms offering comfort and convenience.
