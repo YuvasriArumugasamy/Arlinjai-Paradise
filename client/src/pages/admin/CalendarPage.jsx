@@ -29,13 +29,7 @@ export default function CalendarPage() {
   const [startDate, setStartDate] = useState(todayStr)
   const [selectedRoomType, setSelectedRoomType] = useState('All')
   const [bookings, setBookings] = useState([])
-  const [roomAssignments, setRoomAssignments] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('arlinjai_room_assignments') || '{}')
-    } catch {
-      return {}
-    }
-  })
+  const [roomAssignments, setRoomAssignments] = useState({})
 
   const [submitting, setSubmitting] = useState(false)
   const [showBookingModal, setShowBookingModal] = useState(false)
@@ -128,7 +122,8 @@ export default function CalendarPage() {
       specialRequests: bookingModalData.notes,
       advancePaid: Number(bookingModalData.advancePaid),
       roomAmount: Number(bookingModalData.roomAmount || 0),
-      status: 'confirmed'
+      status: 'confirmed',
+      assignedRoom: bookingModalData.physicalRoomId || null,
     }
 
     try {
@@ -136,6 +131,7 @@ export default function CalendarPage() {
       if (res.data.success) {
         const newBooking = res.data.booking
         const newBookingId = newBooking?._id || newBooking?.id || newBooking?.bookingId
+        const assignedRoom = newBooking?.assignedRoom || bookingModalData.physicalRoomId || null
         
         // Add to calendar local state
         const mappedNewBooking = {
@@ -150,13 +146,20 @@ export default function CalendarPage() {
           amount: userTotalPrice,
           status: 'confirmed',
           phone: bookingModalData.phone,
+          assignedRoom,
         }
         setBookings(prev => [mappedNewBooking, ...prev])
 
-        // Save physical room assignment locally for calendar room mapping
-        const updatedAssignments = { ...roomAssignments, [newBookingId]: bookingModalData.physicalRoomId }
-        setRoomAssignments(updatedAssignments)
-        localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updatedAssignments))
+        // Save physical room assignment in the booking record for all clients
+        setRoomAssignments(prev => {
+          const updatedAssignments = { ...prev }
+          if (assignedRoom) {
+            updatedAssignments[newBookingId] = assignedRoom
+          } else {
+            delete updatedAssignments[newBookingId]
+          }
+          return updatedAssignments
+        })
 
         // Refresh server bookings (if admin authenticated) so booking persists on reload
         try { await fetchBookings() } catch (e) { /* ignore */ }
@@ -229,6 +232,18 @@ export default function CalendarPage() {
     try {
       const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
       if (res.data.success) {
+        const activeBookingIds = new Set((res.data.bookings || []).map(b => (b._id || b.bookingId).toString()))
+        setRoomAssignments((prevAssignments) => {
+          const cleaned = { ...prevAssignments }
+          Object.keys(cleaned).forEach((key) => {
+            if (!activeBookingIds.has(key)) delete cleaned[key]
+          })
+          if (JSON.stringify(cleaned) !== JSON.stringify(prevAssignments)) {
+            localStorage.setItem('arlinjai_room_assignments', JSON.stringify(cleaned))
+          }
+          return cleaned
+        })
+
         const mapped = res.data.bookings.map(b => ({
           id: b._id || b.bookingId,
           bookingId: b.bookingId,
@@ -241,13 +256,23 @@ export default function CalendarPage() {
           amount: b.pricing?.finalAmount || 0,
           status: b.status,
           phone: b.guest?.phone || b.phone || '',
+          assignedRoom: b.assignedRoom || null,
         }))
         setBookings(mapped)
+        const assignmentMap = {}
+        mapped.forEach((booking) => {
+          if (booking.assignedRoom) assignmentMap[booking.id] = booking.assignedRoom
+        })
+        setRoomAssignments(assignmentMap)
       }
     } catch (err) {
       console.error('Calendar fetch failed:', err?.response?.status, err?.response?.data || err.message)
       setBookings([])
     }
+  }, [])
+
+  useEffect(() => {
+    localStorage.removeItem('arlinjai_room_assignments')
   }, [])
 
   useEffect(() => {
@@ -277,20 +302,39 @@ export default function CalendarPage() {
     }))
   }, [overlappingBookings, roomAssignments])
 
-  const handleAssignRoom = (bookingId, roomId) => {
+  const handleAssignRoom = async (bookingId, roomId) => {
     if (!roomId) return
-    const updated = { ...roomAssignments, [bookingId]: roomId }
-    setRoomAssignments(updated)
-    localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updated))
-    toast.success('Room assigned successfully')
+    try {
+      const res = await authAxios.patch(`${API_BASE_URL}/bookings/${bookingId}/assign-room`, { assignedRoom: roomId })
+      if (res.data.success) {
+        const updatedBooking = res.data.booking
+        setBookings(prev => prev.map((booking) => booking.id === bookingId ? { ...booking, assignedRoom: updatedBooking.assignedRoom } : booking))
+        setRoomAssignments(prev => ({ ...prev, [bookingId]: updatedBooking.assignedRoom }))
+        toast.success('Room assigned successfully')
+      }
+    } catch (err) {
+      console.error('Assign room failed:', err)
+      toast.error('Unable to save room assignment. Please try again.')
+    }
   }
 
-  const handleUnassignRoom = (bookingId) => {
-    const updated = { ...roomAssignments }
-    delete updated[bookingId]
-    setRoomAssignments(updated)
-    localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updated))
-    toast.success('Room unassigned')
+  const handleUnassignRoom = async (bookingId) => {
+    try {
+      const res = await authAxios.patch(`${API_BASE_URL}/bookings/${bookingId}/assign-room`, { assignedRoom: null })
+      if (res.data.success) {
+        const updatedBooking = res.data.booking
+        setBookings(prev => prev.map((booking) => booking.id === bookingId ? { ...booking, assignedRoom: updatedBooking.assignedRoom } : booking))
+        setRoomAssignments(prev => {
+          const updated = { ...prev }
+          delete updated[bookingId]
+          return updated
+        })
+        toast.success('Room unassigned')
+      }
+    } catch (err) {
+      console.error('Unassign room failed:', err)
+      toast.error('Unable to clear room assignment. Please try again.')
+    }
   }
 
   return (

@@ -107,7 +107,7 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Validation failed', errors: errors.array() })
     }
 
-    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, status } = req.body
+    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, status, assignedRoom } = req.body
 
     // Fallback for empty email in offline bookings
     if (!email || email.trim() === '') {
@@ -154,6 +154,7 @@ const createBooking = async (req, res, next) => {
         pricing: { pricePerNight: finalPricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
         paymentMethod: paymentMethod || 'pay_at_hotel',
         status: status || 'pending',
+        assignedRoom: assignedRoom || null,
       })
 
       // Send push notification (async)
@@ -196,6 +197,7 @@ const createBooking = async (req, res, next) => {
       pricing: { pricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
       paymentMethod: paymentMethod || 'pay_at_hotel',
       status: status || 'pending',
+      assignedRoom: assignedRoom || null,
     })
 
     // Send confirmation email (async, don't block response)
@@ -301,6 +303,28 @@ const updateBookingStatus = async (req, res, next) => {
   }
 }
 
+// @desc    Update room assignment for booking
+// @route   PATCH /api/bookings/:id/assign-room
+// @access  Private (Admin/Staff)
+const updateRoomAssignment = async (req, res, next) => {
+  try {
+    const { assignedRoom } = req.body
+    const booking = await Booking.findOneAndUpdate(
+      { $or: [{ _id: req.params.id }, { bookingId: req.params.id }] },
+      { $set: { assignedRoom: assignedRoom || null } },
+      { new: true }
+    )
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' })
+    }
+
+    res.json({ success: true, message: 'Room assignment updated', booking })
+  } catch (error) {
+    next(error)
+  }
+}
+
 // @desc    Delete booking
 // @route   DELETE /api/bookings/:id
 // @access  Private (Admin)
@@ -318,4 +342,4 @@ const deleteBooking = async (req, res, next) => {
   }
 }
 
-module.exports = { createBooking, getBookings, getBooking, updateBookingStatus, deleteBooking }
+module.exports = { createBooking, getBookings, getBooking, updateBookingStatus, updateRoomAssignment, deleteBooking }

@@ -1,6 +1,6 @@
 const express = require('express')
 const { body } = require('express-validator')
-const { createBooking, getBookings, getBooking, updateBookingStatus, deleteBooking } = require('../controllers/bookingController')
+const { createBooking, getBookings, getBooking, updateBookingStatus, updateRoomAssignment, deleteBooking } = require('../controllers/bookingController')
 const { protect } = require('../middleware/authMiddleware')
 const { staffOnly, adminOnly } = require('../middleware/roleMiddleware')
 
@@ -24,5 +24,6 @@ router.route('/:id')
   .delete(protect, adminOnly, deleteBooking)
 
 router.patch('/:id/status', protect, staffOnly, updateBookingStatus)
+router.patch('/:id/assign-room', protect, staffOnly, updateRoomAssignment)
 
 module.exports = router
