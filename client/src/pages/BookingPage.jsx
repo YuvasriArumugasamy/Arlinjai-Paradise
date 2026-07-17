@@ -729,8 +729,8 @@ export default function BookingPage() {
         </div>
       </div>
 
-      <div className="mt-8 flex justify-between">
-        <button onClick={() => goToStep(1)} className="btn-outline-gold flex items-center gap-2 px-6 py-3">
+      <div className="mt-8 flex flex-col sm:flex-row sm:justify-between gap-3">
+        <button onClick={() => goToStep(1)} className="btn-outline-gold flex items-center gap-2 px-6 py-3 w-full sm:w-auto">
           <FaArrowLeft size={14} /> Back
         </button>
         <button
@@ -885,7 +885,7 @@ export default function BookingPage() {
             await finalizeBooking()
           }}
           disabled={loading}
-          className="btn-gold flex items-center gap-2 px-8 py-3.5"
+          className="btn-gold w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5"
         >
           {loading ? (
             <span className="flex items-center gap-2">
