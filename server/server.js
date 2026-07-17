@@ -68,7 +68,8 @@ app.use(cookieParser())
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  // increased limit for local development to avoid accidental 429s
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000,
   message: { message: 'Too many requests from this IP. Please try again after 15 minutes.' },
   skip: (req) => process.env.NODE_ENV !== 'production',
   keyGenerator: (req) => req.ip || req.connection.remoteAddress,
@@ -76,7 +77,8 @@ const limiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  // login attempts: allow more during development
+  max: process.env.NODE_ENV === 'production' ? 10 : 100,
   message: { message: 'Too many login attempts. Please try again after 15 minutes.' },
   skip: (req) => process.env.NODE_ENV !== 'production',
   keyGenerator: (req) => req.ip || req.connection.remoteAddress,
