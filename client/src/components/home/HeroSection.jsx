@@ -40,7 +40,7 @@ export default function HeroSection() {
         }}
       />
       {/* Overlay - stronger for better text clarity */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/80" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/80 to-black/95" />
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-24 flex flex-col items-center text-center">
