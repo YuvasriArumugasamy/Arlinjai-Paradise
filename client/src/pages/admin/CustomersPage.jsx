@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaSearch, FaPhoneAlt, FaEnvelope, FaUser, FaCalendarAlt, FaRupeeSign, FaStar } from 'react-icons/fa'
-import axios from 'axios'
+import toast from 'react-hot-toast'
+import { authAxios } from '../../context/AuthContext'
 import { API_BASE_URL } from '../../constants'
 
 const STATUS_STYLES = {
@@ -51,10 +52,8 @@ export default function CustomersPage() {
 
   useEffect(() => {
     const fetchCustomers = async () => {
-      const token = localStorage.getItem('token')
-      const headers = token ? { Authorization: `Bearer ${token}` } : {}
       try {
-        const res = await axios.get(`${API_BASE_URL}/dashboard/recent-bookings`, { headers })
+        const res = await authAxios.get(`${API_BASE_URL}/dashboard/recent-bookings`)
         const bookings = res.data.bookings || []
         const map = {}
         bookings.forEach((b) => {
