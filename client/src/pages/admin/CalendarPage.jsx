@@ -255,8 +255,12 @@ export default function CalendarPage() {
         // Build assignment map from server data
         const assignmentMap = {}
         mapped.forEach((booking) => {
-          if (booking.assignedRoom) assignmentMap[booking.id] = booking.assignedRoom
+          if (booking.assignedRoom) {
+            assignmentMap[booking.id] = booking.assignedRoom
+            console.log(`Room assignment: booking ${booking.id} (${booking.bookingId}) → room ${booking.assignedRoom}`)
+          }
         })
+        console.log('Final roomAssignments map:', assignmentMap)
         setRoomAssignments(assignmentMap)
       }
     } catch (err) {
@@ -279,10 +283,14 @@ export default function CalendarPage() {
   const maxDate = daysList[daysList.length - 1]
 
   const overlappingBookings = useMemo(() => {
-    return bookings.filter(b => {
+    const result = bookings.filter(b => {
       if (b.status === 'cancelled') return false
-      return b.checkIn <= maxDate && b.checkOut >= minDate
+      const isOverlap = b.checkIn <= maxDate && b.checkOut >= minDate
+      return isOverlap
     })
+    console.log('Calendar date range:', { minDate, maxDate })
+    console.log('Overlapping bookings:', result.length, result)
+    return result
   }, [bookings, minDate, maxDate])
 
   const allocations = useMemo(() => {
@@ -430,7 +438,12 @@ export default function CalendarPage() {
                     const dateStr = d.dateStr
                     // Check if there is an overlapping booking assigned to this physical room on this dateStr
                     const activeBooking = overlappingBookings.find(b => {
-                      return roomAssignments[b.id] === room.id && dateStr >= b.checkIn && dateStr < b.checkOut
+                      const isAssigned = roomAssignments[b.id] === room.id
+                      const isInRange = dateStr >= b.checkIn && dateStr < b.checkOut
+                      if (isAssigned && isInRange) {
+                        console.log(`✓ Booking found: ${b.guest} on ${dateStr} for room ${room.id}`)
+                      }
+                      return isAssigned && isInRange
                     })
 
                     if (activeBooking) {
