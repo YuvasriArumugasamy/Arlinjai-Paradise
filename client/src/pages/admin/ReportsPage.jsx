@@ -76,8 +76,6 @@ export default function ReportsPage() {
 
   useEffect(() => {
     const fetchReports = async () => {
-      const token = localStorage.getItem('token')
-      const headers = token ? { Authorization: `Bearer ${token}` } : {}
       try {
         // Try API first
         const [chartRes, bookingsRes] = await Promise.all([
@@ -115,8 +113,10 @@ export default function ReportsPage() {
         setTotalRevenue(calc.totalRevenue)
         setTotalBookings(calc.totalBookings)
         setTotalGuests(calc.totalGuests)
-      } catch {
-        toast.error('Unable to load report data from the server. Please check your network and login status.')
+      } catch (err) {
+        console.error('Reports fetch failed:', err?.response || err)
+        const message = err?.response?.data?.message || err.message || 'Unable to load report data from the server. Please check your network and login status.'
+        toast.error(message)
       } finally {
         setLoading(false)
       }
