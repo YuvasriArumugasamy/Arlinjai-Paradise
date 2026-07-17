@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { FaTrash, FaBell, FaEnvelopeOpen, FaTimes, FaCalendarAlt } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { authAxios } from '../../context/AuthContext'
-import { API_BASE_URL } from '../../constants'
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([])
@@ -14,13 +13,12 @@ export default function NotificationsPage() {
   const fetchNotifications = async () => {
     try {
       setLoading(true)
-      const res = await authAxios.get(`${API_BASE_URL}/notifications?limit=100`)
-      if (res.data.success) {
-        setNotifications(res.data.notifications || [])
-      }
+      const res = await authAxios.get('/notifications?limit=100')
+      if (res.data.success) setNotifications(res.data.notifications || [])
     } catch (err) {
-      console.error('Failed to fetch notifications:', err.message)
-      toast.error('Unable to load notifications')
+      console.error('Failed to fetch notifications:', err?.response || err)
+      const msg = err?.response?.data?.message || err.message || 'Unable to load notifications'
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -32,33 +30,31 @@ export default function NotificationsPage() {
 
   const markRead = async (id) => {
     try {
-      const res = await authAxios.patch(`${API_BASE_URL}/notifications/${id}/read`)
+      const res = await authAxios.patch(`/notifications/${id}/read`)
       if (res.data.success) {
-        setNotifications((prev) =>
-          prev.map((n) => (n._id === id ? { ...n, read: true } : n))
-        )
-        if (selectedNotification?._id === id) {
-          setSelectedNotification((prev) => ({ ...prev, read: true }))
-        }
+        setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)))
+        if (selectedNotification?._id === id) setSelectedNotification((prev) => ({ ...prev, read: true }))
       }
     } catch (err) {
-      console.error('Failed to mark read:', err.message)
-      toast.error('Unable to mark notification read')
+      console.error('Failed to mark read:', err?.response || err)
+      const msg = err?.response?.data?.message || 'Unable to mark notification read'
+      toast.error(msg)
     }
   }
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this notification?')) return
     try {
-      const res = await authAxios.delete(`${API_BASE_URL}/notifications/${id}`)
+      const res = await authAxios.delete(`/notifications/${id}`)
       if (res.data.success) {
         setNotifications((prev) => prev.filter((n) => n._id !== id))
         if (selectedNotification?._id === id) setSelectedNotification(null)
         toast.success('Notification deleted')
       }
     } catch (err) {
-      console.error('Failed to delete notification:', err.message)
-      toast.error('Failed to delete notification')
+      console.error('Failed to delete notification:', err?.response || err)
+      const msg = err?.response?.data?.message || 'Failed to delete notification'
+      toast.error(msg)
     }
   }
 
