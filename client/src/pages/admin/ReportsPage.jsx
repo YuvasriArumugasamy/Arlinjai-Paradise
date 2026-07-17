@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaDownload, FaCalendarAlt, FaRupeeSign, FaChartBar, FaUsers } from 'react-icons/fa'
-import axios from 'axios'
-import { API_BASE_URL } from '../../constants'
+import toast from 'react-hot-toast'
+import { authAxios } from '../../context/AuthContext'
 
 // ── Derive all report data from localStorage bookings ──────────────────────
 function calcReportsFromLocal(bookings) {
@@ -81,8 +81,8 @@ export default function ReportsPage() {
       try {
         // Try API first
         const [chartRes, bookingsRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/dashboard/revenue-chart`, { headers }),
-          axios.get(`${API_BASE_URL}/dashboard/recent-bookings`, { headers }),
+          authAxios.get('/dashboard/revenue-chart'),
+          authAxios.get('/dashboard/recent-bookings'),
         ])
 
         // Monthly chart data from API
