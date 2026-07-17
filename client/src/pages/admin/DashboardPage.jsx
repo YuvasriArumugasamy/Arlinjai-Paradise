@@ -6,7 +6,8 @@ import {
   FaArrowUp, FaArrowDown, FaClock, FaCheck, FaTimes, FaEye,
   FaWhatsapp
 } from 'react-icons/fa'
-import axios from 'axios'
+import toast from 'react-hot-toast'
+import { authAxios } from '../../context/AuthContext'
 import { API_BASE_URL } from '../../constants'
 
 const MOCK_STATS = {
@@ -92,12 +93,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchDashboard = async () => {
-      const token = localStorage.getItem('token')
-      const headers = token ? { Authorization: `Bearer ${token}` } : {}
       try {
         const [statsRes, bookingsRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/dashboard/stats?filter=${filterMode}`, { headers }),
-          axios.get(`${API_BASE_URL}/dashboard/recent-bookings`, { headers }),
+          authAxios.get(`${API_BASE_URL}/dashboard/stats?filter=${filterMode}`),
+          authAxios.get(`${API_BASE_URL}/dashboard/recent-bookings`),
         ])
         setStats({ ...MOCK_STATS, ...statsRes.data.stats })
         // Map backend booking shape to dashboard table shape
