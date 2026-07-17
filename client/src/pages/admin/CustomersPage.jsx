@@ -53,7 +53,7 @@ export default function CustomersPage() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await authAxios.get(`${API_BASE_URL}/dashboard/recent-bookings`)
+        const res = await authAxios.get('/dashboard/recent-bookings')
         const bookings = res.data.bookings || []
         const map = {}
         bookings.forEach((b) => {
