@@ -199,7 +199,7 @@ export default function DashboardPage() {
       {/* Quick Status Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Available Rooms', value: stats.availableRooms ?? 15, icon: FaBed, color: 'text-green-500' },
+          { label: 'Available Rooms', value: stats.availableRooms || 15, icon: FaBed, color: 'text-green-500' },
           { label: 'Occupied Today', value: stats.currentlyCheckedIn ?? 0, icon: FaCheck, color: 'text-blue-500' },
           { label: 'Pending Check-ins', value: stats.checkInsToday ?? 0, icon: FaClock, color: 'text-yellow-500' },
           { label: 'Check-outs Today', value: stats.checkOutsToday ?? 0, icon: FaArrowUp, color: 'text-red-500' },
