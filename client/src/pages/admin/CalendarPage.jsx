@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { FaChevronLeft, FaChevronRight, FaThumbtack, FaCalendarAlt, FaUsers, FaPhoneAlt } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
-import { authAxios } from '../../context/AuthContext'
+import { authAxios, useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '../../constants'
 
@@ -215,6 +215,8 @@ export default function CalendarPage() {
     ? rooms
     : rooms.filter(room => room.type === selectedRoomType)
 
+  const { loading } = useAuth()
+
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -239,8 +241,12 @@ export default function CalendarPage() {
         toast.error('Unable to load calendar bookings from the server.')
       }
     }
-    fetchBookings()
-  }, [])
+
+    // Wait until auth initialization (refresh) completes so the refresh cookie/token is available
+    if (!loading) {
+      fetchBookings()
+    }
+  }, [loading])
 
   const daysList = days.map(d => d.dateStr)
   const minDate = daysList[0]
