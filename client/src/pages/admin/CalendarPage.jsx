@@ -150,6 +150,11 @@ export default function CalendarPage() {
         }
         setBookings(prev => [mappedNewBooking, ...prev])
 
+        // Also update roomAssignments state immediately if room is assigned
+        if (assignedRoom) {
+          setRoomAssignments(prev => ({ ...prev, [newBookingId]: assignedRoom }))
+        }
+
         // Wait a moment then refresh server bookings to ensure it's persisted and fully loaded
         setTimeout(() => {
           fetchBookings().catch(e => console.error('Refresh after booking failed:', e))
