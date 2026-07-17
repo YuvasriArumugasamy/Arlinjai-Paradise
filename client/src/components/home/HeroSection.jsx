@@ -43,7 +43,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/80" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-12 py-20 md:py-24 flex flex-col items-center justify-center text-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-full py-8 sm:py-12 flex flex-col items-center justify-between text-center md:justify-center">
 
         {/* Logo above heading */}
         <motion.div
@@ -86,7 +86,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.25 }}
-          className="flex flex-row items-center justify-center gap-4 mb-8 sm:mb-12"
+          className="flex flex-row items-center justify-center gap-4 mb-8 sm:mb-10"
         >
           <StarButtonLink to="/booking" className="text-xs uppercase tracking-wider font-bold font-poppins">
             Book Now
@@ -104,7 +104,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="w-full max-w-4xl bg-white rounded-sm shadow-2xl overflow-hidden"
+          className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden mt-8 md:mt-0"
         >
           <div className="bg-gold px-6 py-3">
             <h3 className="font-poppins font-semibold text-white text-sm uppercase tracking-wider text-center">
