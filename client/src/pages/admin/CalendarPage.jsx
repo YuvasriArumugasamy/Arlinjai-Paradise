@@ -37,7 +37,7 @@ export default function CalendarPage() {
     }
   })
 
-  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [bookingModalData, setBookingModalData] = useState({
     name: '',
@@ -97,7 +97,7 @@ export default function CalendarPage() {
 
     const token = localStorage.getItem('token')
     const headers = token ? { Authorization: `Bearer ${token}` } : {}
-    setLoading(true)
+    setSubmitting(true)
 
     // Calculate nights
     const diff = new Date(bookingModalData.checkOut) - new Date(bookingModalData.checkIn)
@@ -166,7 +166,7 @@ export default function CalendarPage() {
       console.error(err)
       toast.error('Unable to create booking on server. Please check your network and try again.')
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
@@ -733,10 +733,10 @@ export default function CalendarPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={submitting}
                 className="w-full bg-[#C9A227] hover:bg-[#A07D10] text-white font-semibold py-3 rounded-lg text-sm transition-colors mt-6 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {loading ? 'Processing...' : 'Confirm Offline Booking'}
+                {submitting ? 'Processing...' : 'Confirm Offline Booking'}
               </button>
             </form>
           </div>
