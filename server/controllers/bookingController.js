@@ -134,7 +134,15 @@ const createBooking = async (req, res, next) => {
       }
 
       const sr = staticRooms[roomId]
-      const nights = Math.max(1, Math.floor((new Date(checkOut) - new Date(checkIn)) / 86400000))
+      
+      const parseLocalDate = (dateStr) => {
+        const [year, month, day] = dateStr.split('-')
+        return new Date(year, parseInt(month) - 1, day)
+      }
+      
+      const checkInDate = parseLocalDate(checkIn)
+      const checkOutDate = parseLocalDate(checkOut)
+      const nights = Math.max(1, Math.floor((checkOutDate - checkInDate) / 86400000))
       
       const customPrice = roomAmount ? parseFloat(roomAmount) : null
       const finalPricePerNight = customPrice !== null ? Math.round(customPrice / nights) : sr.price
@@ -144,9 +152,9 @@ const createBooking = async (req, res, next) => {
         guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
         room: new mongoose.Types.ObjectId('000000000000000000000001'),
         roomSnapshot: { name: sr.name, price: finalPricePerNight, category: sr.category },
-        checkIn: new Date(checkIn),
+        checkIn: checkInDate,
         checkInTime: checkInTime || '12:00 PM',
-        checkOut: new Date(checkOut),
+        checkOut: checkOutDate,
         checkOutTime: checkOutTime || '11:00 AM',
         nights,
         guests: parseInt(guests),
@@ -172,8 +180,13 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Room is not available for the selected dates' })
     }
 
-    const checkInDate = new Date(checkIn)
-    const checkOutDate = new Date(checkOut)
+    const parseLocalDate = (dateStr) => {
+      const [year, month, day] = dateStr.split('-')
+      return new Date(year, parseInt(month) - 1, day)
+    }
+
+    const checkInDate = parseLocalDate(checkIn)
+    const checkOutDate = parseLocalDate(checkOut)
     const nights = Math.max(1, Math.floor((checkOutDate - checkInDate) / 86400000))
 
     const checkInMonth = checkInDate.getMonth()

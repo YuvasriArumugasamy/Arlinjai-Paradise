@@ -150,19 +150,10 @@ export default function CalendarPage() {
         }
         setBookings(prev => [mappedNewBooking, ...prev])
 
-        // Save physical room assignment in the booking record for all clients
-        setRoomAssignments(prev => {
-          const updatedAssignments = { ...prev }
-          if (assignedRoom) {
-            updatedAssignments[newBookingId] = assignedRoom
-          } else {
-            delete updatedAssignments[newBookingId]
-          }
-          return updatedAssignments
-        })
-
-        // Refresh server bookings (if admin authenticated) so booking persists on reload
-        try { await fetchBookings() } catch (e) { /* ignore */ }
+        // Wait a moment then refresh server bookings to ensure it's persisted and fully loaded
+        setTimeout(() => {
+          fetchBookings().catch(e => console.error('Refresh after booking failed:', e))
+        }, 500)
         toast.success('Booking created successfully!')
         setShowBookingModal(false)
       } else {
@@ -232,18 +223,6 @@ export default function CalendarPage() {
     try {
       const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
       if (res.data.success) {
-        const activeBookingIds = new Set((res.data.bookings || []).map(b => (b._id || b.bookingId).toString()))
-        setRoomAssignments((prevAssignments) => {
-          const cleaned = { ...prevAssignments }
-          Object.keys(cleaned).forEach((key) => {
-            if (!activeBookingIds.has(key)) delete cleaned[key]
-          })
-          if (JSON.stringify(cleaned) !== JSON.stringify(prevAssignments)) {
-            localStorage.setItem('arlinjai_room_assignments', JSON.stringify(cleaned))
-          }
-          return cleaned
-        })
-
         const mapped = res.data.bookings.map(b => ({
           id: b._id || b.bookingId,
           bookingId: b.bookingId,
@@ -259,6 +238,8 @@ export default function CalendarPage() {
           assignedRoom: b.assignedRoom || null,
         }))
         setBookings(mapped)
+        
+        // Build assignment map from server data
         const assignmentMap = {}
         mapped.forEach((booking) => {
           if (booking.assignedRoom) assignmentMap[booking.id] = booking.assignedRoom
