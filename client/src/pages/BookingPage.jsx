@@ -270,10 +270,6 @@ export default function BookingPage() {
   const totalPrice = basePrice + gstAmount
 
   const createRazorpayOrder = async () => {
-    if (!import.meta.env.VITE_RAZORPAY_KEY_ID) {
-      throw new Error('Razorpay public key is not configured.')
-    }
-
     const amountInPaise = Math.round(totalPrice * 100)
     if (amountInPaise < 100) {
       throw new Error('Payment amount must be at least ₹1.')
@@ -288,6 +284,10 @@ export default function BookingPage() {
         guest: bookingData.name,
       },
     })
+
+    if (!response.data?.orderId || !response.data?.keyId) {
+      throw new Error('Unable to initialize payment. Please try again.')
+    }
 
     return response.data
   }
@@ -354,7 +354,7 @@ export default function BookingPage() {
     try {
       const orderData = await createRazorpayOrder()
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: orderData.keyId,
         order_id: orderData.orderId,
         amount: orderData.amount,
         currency: orderData.currency,
