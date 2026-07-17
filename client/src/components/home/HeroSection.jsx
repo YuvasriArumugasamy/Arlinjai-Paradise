@@ -43,7 +43,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/80" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-full py-8 sm:py-12 flex flex-col items-center justify-between text-center md:justify-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-full py-12 sm:py-14 flex flex-col items-center justify-start gap-y-8 text-center md:justify-center lg:justify-between">
 
         {/* Logo above heading */}
         <motion.div
