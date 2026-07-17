@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking')
 const Room = require('../models/Room')
+const Notification = require('../models/Notification')
 const { validationResult } = require('express-validator')
 const nodemailer = require('nodemailer')
 const { sendBookingNotification } = require('./notificationController')
