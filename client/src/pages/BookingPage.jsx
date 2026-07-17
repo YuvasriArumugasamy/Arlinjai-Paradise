@@ -253,7 +253,7 @@ export default function BookingPage() {
     idType: '',
     idNumber: '',
     specialRequests: '',
-    paymentMethod: 'pay_at_hotel',
+    paymentMethod: 'razorpay',
   })
 
   const selectedRoom = ROOMS.find((r) => r.id === bookingData.roomId)
@@ -871,35 +871,16 @@ export default function BookingPage() {
 
           <div className="mt-5 pt-5 border-t border-gray-100">
             <h4 className="font-poppins font-semibold text-navy text-sm mb-3">Payment Method</h4>
-            <div className="grid gap-3">
-              <label className={`flex items-center gap-3 p-4 rounded-sm border cursor-pointer transition ${bookingData.paymentMethod === 'razorpay' ? 'border-gold bg-gold bg-opacity-10' : 'border-gray-200 bg-white hover:border-gold'}`}>
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="razorpay"
-                  checked={bookingData.paymentMethod === 'razorpay'}
-                  onChange={() => updateBooking('paymentMethod', 'razorpay')}
-                  className="h-4 w-4 text-gold accent-gold"
-                />
+            <div className="p-4 rounded-sm border border-gold bg-gold bg-opacity-10">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-gold flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-sm">💳</span>
+                </div>
                 <div>
                   <p className="font-poppins text-sm font-semibold text-navy">Pay Online with Razorpay</p>
                   <p className="font-poppins text-xs text-gray-500 mt-0.5">Secure checkout with credit/debit cards, UPI, netbanking, and wallets.</p>
                 </div>
-              </label>
-              <label className={`flex items-center gap-3 p-4 rounded-sm border cursor-pointer transition ${bookingData.paymentMethod === 'pay_at_hotel' ? 'border-gold bg-gold bg-opacity-10' : 'border-gray-200 bg-white hover:border-gold'}`}>
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="pay_at_hotel"
-                  checked={bookingData.paymentMethod === 'pay_at_hotel'}
-                  onChange={() => updateBooking('paymentMethod', 'pay_at_hotel')}
-                  className="h-4 w-4 text-gold accent-gold"
-                />
-                <div>
-                  <p className="font-poppins text-sm font-semibold text-navy">Pay at Hotel</p>
-                  <p className="font-poppins text-xs text-gray-500 mt-0.5">Pay directly at the front desk upon arrival.</p>
-                </div>
-              </label>
+              </div>
             </div>
             {paymentError && (
               <div className="mt-4 rounded-sm bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
