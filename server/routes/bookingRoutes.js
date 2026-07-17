@@ -8,7 +8,7 @@ const router = express.Router()
 
 const bookingValidation = [
   body('name').trim().notEmpty().withMessage('Guest name is required'),
-  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+  body('email').optional({ checkFalsy: true }).isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('phone').trim().notEmpty().withMessage('Phone number is required'),
   body('checkIn').isISO8601().withMessage('Valid check-in date required'),
   body('checkOut').isISO8601().withMessage('Valid check-out date required'),
