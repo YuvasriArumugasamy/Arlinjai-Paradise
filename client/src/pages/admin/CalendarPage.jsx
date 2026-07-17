@@ -163,8 +163,13 @@ export default function CalendarPage() {
         toast.error(res.data.message || 'Failed to create booking')
       }
     } catch (err) {
-      console.error(err)
-      toast.error('Unable to create booking on server. Please check your network and try again.')
+      console.error('Booking create error:', err)
+      // Prefer server-provided message (or validation errors), fall back to generic
+      const serverMsg = err?.response?.data?.message
+      const validationErrors = err?.response?.data?.errors
+      const validationMsg = Array.isArray(validationErrors) ? validationErrors.map(e => e.msg).join(', ') : null
+      const msg = serverMsg || validationMsg || err.message || 'Unable to create booking on server. Please check your network and try again.'
+      toast.error(msg)
     } finally {
       setSubmitting(false)
     }
