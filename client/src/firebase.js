@@ -1,5 +1,4 @@
 import { initializeApp } from 'firebase/app'
-import { getMessaging, isSupported } from 'firebase/messaging'
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,14 +11,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 
-// messaging is only available in browsers that support service workers
-// Returns null if not supported (prevents app crash)
-let messaging = null
-isSupported().then((supported) => {
-  if (supported) {
-    messaging = getMessaging(app)
-  }
-}).catch(() => {})
-
-export { messaging }
+// Do NOT import `firebase/messaging` at module load — that module
+// assumes browser APIs and can crash during build/SSR. Consumers
+// should dynamically import messaging when needed (see `useFCM`).
 export default app
+
+// Helper if a consumer wants a safe messaging instance.
+export async function getSafeMessaging() {
+  try {
+    const { isSupported, getMessaging } = await import('firebase/messaging')
+    const supported = await isSupported()
+    if (!supported) return null
+    return getMessaging(app)
+  } catch (err) {
+    return null
+  }
+}
