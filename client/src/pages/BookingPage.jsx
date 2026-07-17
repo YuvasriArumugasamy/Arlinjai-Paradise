@@ -200,18 +200,23 @@ export default function BookingPage() {
   const [bookingId, setBookingId] = useState(null)
   const formRef = useRef(null)
 
-  // Load Razorpay script on mount (Commented out as we are using direct booking now)
-  /*
+  const [isRazorpayLoaded, setRazorpayLoaded] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
+
   useEffect(() => {
     const script = document.createElement('script')
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'
     script.async = true
+    script.onload = () => setRazorpayLoaded(true)
+    script.onerror = () => {
+      console.error('Failed to load Razorpay checkout script')
+      setPaymentError('Unable to load Razorpay checkout script. Please refresh the page.')
+    }
     document.body.appendChild(script)
     return () => {
       document.body.removeChild(script)
     }
   }, [])
-  */
 
   const scrollToForm = () => {
     if (formRef.current) {
@@ -263,6 +268,157 @@ export default function BookingPage() {
   const basePrice = selectedRoom ? selectedRoom.price * nights : 0
   const gstAmount = Math.round(basePrice * 0.12)
   const totalPrice = basePrice + gstAmount
+
+  const createRazorpayOrder = async () => {
+    if (!import.meta.env.VITE_RAZORPAY_KEY_ID) {
+      throw new Error('Razorpay public key is not configured.')
+    }
+
+    const amountInPaise = Math.round(totalPrice * 100)
+    if (amountInPaise < 100) {
+      throw new Error('Payment amount must be at least ₹1.')
+    }
+
+    const response = await axios.post(`${API_BASE_URL}/payments/create-order`, {
+      amount: amountInPaise,
+      currency: 'INR',
+      receipt: `receipt_${Date.now()}`,
+      notes: {
+        room: selectedRoom?.name || bookingData.roomId,
+        guest: bookingData.name,
+      },
+    })
+
+    return response.data
+  }
+
+  const verifyRazorpayPayment = async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/payments/verify`, payload)
+    return response.data
+  }
+
+  const finalizeBooking = async (paymentDetails = {}) => {
+    setLoading(true)
+    try {
+      const payload = { ...bookingData, ...paymentDetails }
+      const res = await axios.post(`${API_BASE_URL}/bookings`, payload)
+      const newBookingId = res.data.bookingId || 'AJ' + String(Date.now()).slice(-6)
+      setBookingId(newBookingId)
+
+      const savedBookings = JSON.parse(localStorage.getItem('arlinjai_bookings') || '[]')
+      savedBookings.unshift({
+        id: newBookingId,
+        guest: bookingData.name,
+        gender: bookingData.gender,
+        dob: bookingData.dob,
+        email: bookingData.email,
+        phone: bookingData.phone,
+        idType: bookingData.idType,
+        idNumber: bookingData.idNumber,
+        address: bookingData.address,
+        room: selectedRoom?.name || bookingData.roomId,
+        checkIn: bookingData.checkIn,
+        checkInTime: bookingData.checkInTime,
+        checkOut: bookingData.checkOut,
+        checkOutTime: bookingData.checkOutTime,
+        nights,
+        guests: bookingData.guests,
+        basePrice: basePrice,
+        amount: totalPrice,
+        paymentMethod: bookingData.paymentMethod,
+        specialRequests: bookingData.specialRequests,
+        status: paymentDetails.razorpay_payment_id ? 'confirmed' : 'pending',
+        razorpayPaymentId: paymentDetails.razorpay_payment_id || null,
+        createdAt: new Date().toISOString(),
+      })
+      localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
+      goToStep(3)
+    } catch (error) {
+      toast.error('Unable to confirm booking. Please try again.')
+      console.error('Booking save error:', error)
+    } finally {
+      setLoading(false)
+      setPaymentLoading(false)
+    }
+  }
+
+  const handleRazorpayCheckout = async () => {
+    if (!isRazorpayLoaded || !window.Razorpay) {
+      toast.error('Payment gateway is not ready. Please refresh the page and try again.')
+      return
+    }
+
+    setPaymentError('')
+    setPaymentLoading(true)
+
+    try {
+      const orderData = await createRazorpayOrder()
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        order_id: orderData.orderId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: HOTEL_INFO.name,
+        description: `Room Booking — ${selectedRoom?.name || bookingData.roomId}`,
+        image: '/logo.png',
+        handler: async (response) => {
+          try {
+            await verifyRazorpayPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            })
+
+            await finalizeBooking({
+              paymentMethod: 'razorpay',
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+            })
+            toast.success('Payment completed and booking confirmed.')
+          } catch (verifyError) {
+            console.error('Payment verification failed:', verifyError)
+            toast.error(verifyError?.response?.data?.message || 'Payment verification failed')
+            setPaymentLoading(false)
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setPaymentLoading(false)
+            toast.error('Payment cancelled. Booking not confirmed.')
+          },
+        },
+        prefill: {
+          name: bookingData.name,
+          email: bookingData.email,
+          contact: bookingData.phone,
+        },
+        notes: {
+          room: selectedRoom?.name || bookingData.roomId,
+        },
+        theme: { color: '#C9A96E' },
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.on('payment.failed', (response) => {
+        console.error('Razorpay payment failed', response)
+        setPaymentLoading(false)
+        toast.error(response.error?.description || 'Payment failed. Please try again.')
+      })
+      rzp.open()
+    } catch (err) {
+      console.error('Razorpay checkout error:', err)
+      setPaymentLoading(false)
+      toast.error(err?.response?.data?.message || err.message || 'Unable to start payment.')
+    }
+  }
+
+  const handleConfirmBooking = async () => {
+    if (bookingData.paymentMethod === 'razorpay') {
+      await handleRazorpayCheckout()
+    } else {
+      await finalizeBooking()
+    }
+  }
 
   const updateBooking = (field, value) =>
     setBookingData((prev) => ({ ...prev, [field]: value }))
@@ -713,18 +869,43 @@ export default function BookingPage() {
             ))}
           </div>
 
-          {/* Payment Method — Pay at Hotel */}
           <div className="mt-5 pt-5 border-t border-gray-100">
             <h4 className="font-poppins font-semibold text-navy text-sm mb-3">Payment Method</h4>
-            <div className="flex items-center gap-3 p-4 rounded-sm border border-gold bg-gold bg-opacity-5">
-              <div className="w-8 h-8 rounded-full bg-gold flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-sm">🏨</span>
-              </div>
-              <div>
-                <p className="font-poppins text-sm font-semibold text-navy">Pay at Hotel / Cash on Arrival</p>
-                <p className="font-poppins text-xs text-gray-500 mt-0.5">No immediate online payment required. Pay directly at the front desk upon check-in.</p>
-              </div>
+            <div className="grid gap-3">
+              <label className={`flex items-center gap-3 p-4 rounded-sm border cursor-pointer transition ${bookingData.paymentMethod === 'razorpay' ? 'border-gold bg-gold bg-opacity-10' : 'border-gray-200 bg-white hover:border-gold'}`}>
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="razorpay"
+                  checked={bookingData.paymentMethod === 'razorpay'}
+                  onChange={() => updateBooking('paymentMethod', 'razorpay')}
+                  className="h-4 w-4 text-gold accent-gold"
+                />
+                <div>
+                  <p className="font-poppins text-sm font-semibold text-navy">Pay Online with Razorpay</p>
+                  <p className="font-poppins text-xs text-gray-500 mt-0.5">Secure checkout with credit/debit cards, UPI, netbanking, and wallets.</p>
+                </div>
+              </label>
+              <label className={`flex items-center gap-3 p-4 rounded-sm border cursor-pointer transition ${bookingData.paymentMethod === 'pay_at_hotel' ? 'border-gold bg-gold bg-opacity-10' : 'border-gray-200 bg-white hover:border-gold'}`}>
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="pay_at_hotel"
+                  checked={bookingData.paymentMethod === 'pay_at_hotel'}
+                  onChange={() => updateBooking('paymentMethod', 'pay_at_hotel')}
+                  className="h-4 w-4 text-gold accent-gold"
+                />
+                <div>
+                  <p className="font-poppins text-sm font-semibold text-navy">Pay at Hotel</p>
+                  <p className="font-poppins text-xs text-gray-500 mt-0.5">Pay directly at the front desk upon arrival.</p>
+                </div>
+              </label>
             </div>
+            {paymentError && (
+              <div className="mt-4 rounded-sm bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
+                {paymentError}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -882,9 +1063,9 @@ export default function BookingPage() {
             rzp.open()
             */
 
-            await finalizeBooking()
+            await handleConfirmBooking()
           }}
-          disabled={loading}
+          disabled={loading || paymentLoading}
           className="btn-gold w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5"
         >
           {loading ? (

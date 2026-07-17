@@ -1,56 +1,24 @@
-const https = require('https')
+const Razorpay = require('razorpay')
 const crypto = require('crypto')
 
-// ─── Helper: Razorpay API request (no npm package needed) ─────────────────────
-function razorpayRequest(method, path, body = null) {
-  return new Promise((resolve, reject) => {
-    const auth = Buffer.from(
-      `${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`
-    ).toString('base64')
-
-    const options = {
-      hostname: 'api.razorpay.com',
-      port: 443,
-      path: `/v1${path}`,
-      method,
-      headers: {
-        Authorization: `Basic ${auth}`,
-        'Content-Type': 'application/json',
-      },
-    }
-
-    const req = https.request(options, (res) => {
-      let data = ''
-      res.on('data', (chunk) => (data += chunk))
-      res.on('end', () => {
-        try {
-          const parsed = JSON.parse(data)
-          if (res.statusCode >= 400) return reject(parsed)
-          resolve(parsed)
-        } catch (e) {
-          reject(e)
-        }
-      })
-    })
-
-    req.on('error', reject)
-    if (body) req.write(JSON.stringify(body))
-    req.end()
-  })
-}
+const razorpayClient = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+})
 
 // ─── Create Razorpay Order ────────────────────────────────────────────────────
 // POST /api/payments/create-order
 exports.createOrder = async (req, res) => {
   try {
     const { amount, currency = 'INR', receipt, notes = {} } = req.body
+    const paise = Number(amount)
 
-    if (!amount || isNaN(amount) || amount <= 0) {
-      return res.status(400).json({ message: 'Valid amount is required' })
+    if (!paise || isNaN(paise) || paise < 100) {
+      return res.status(400).json({ message: 'Amount must be at least 100 paise' })
     }
 
-    const order = await razorpayRequest('POST', '/orders', {
-      amount: Math.round(amount * 100), // Razorpay expects paise
+    const order = await razorpayClient.orders.create({
+      amount: Math.round(paise),
       currency,
       receipt: receipt || `receipt_${Date.now()}`,
       notes,
@@ -65,7 +33,8 @@ exports.createOrder = async (req, res) => {
     })
   } catch (err) {
     console.error('Razorpay create-order error:', err)
-    res.status(500).json({
+    const statusCode = err?.statusCode === 401 ? 401 : 500
+    res.status(statusCode).json({
       message: err?.error?.description || 'Failed to create payment order',
     })
   }
