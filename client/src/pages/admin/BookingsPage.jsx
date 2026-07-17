@@ -45,7 +45,8 @@ export default function BookingsPage() {
         const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
         if (res.data.success) {
           const mapped = res.data.bookings.map(b => ({
-            id: b.bookingId || b._id,
+            id: b._id || b.bookingId,
+            bookingId: b.bookingId || b._id,
             guest: b.guest?.name || b.guest || '—',
             gender: b.guest?.gender || b.gender || '',
             dob: b.guest?.dob || b.dob || '',
@@ -77,7 +78,7 @@ export default function BookingsPage() {
     const q = search.toLowerCase()
     const matchSearch = !q ||
       (b.guest || '').toLowerCase().includes(q) ||
-      (b.id || '').toLowerCase().includes(q) ||
+      (b.bookingId || b.id || '').toLowerCase().includes(q) ||
       (b.email || '').toLowerCase().includes(q) ||
       (b.phone || '').includes(q)
     const matchStatus = statusFilter === 'all' || b.status === statusFilter
@@ -119,7 +120,7 @@ export default function BookingsPage() {
       : '—'
     const statusLabel = STATUS_STYLES[booking.status]?.label || booking.status
 
-    const message = `\u2705 *Arlinjai Paradise – Booking Update*\n\nDear ${booking.guest || 'Guest'},\n\nRegarding your booking (ID: *${booking.id}*):\n\n\u{1F6CF}\uFE0F Room: *${booking.room}*\n\u{1F4C5} Check-in: *${checkInDate}*\n\u{1F4C5} Check-out: *${checkOutDate}*\n\u{1F4CA} Status: *${statusLabel}*\n\n\u{1F4CC} Arlinjai Paradise, No. 5/69, Beach Road, Kanyakumari – 629702, Tamil Nadu, India\n\nThank you! \u{1F64F}`
+    const message = `\u2705 *Arlinjai Paradise – Booking Update*\n\nDear ${booking.guest || 'Guest'},\n\nRegarding your booking (ID: *${booking.bookingId || booking.id}*):\n\n\u{1F6CF}\uFE0F Room: *${booking.room}*\n\u{1F4C5} Check-in: *${checkInDate}*\n\u{1F4C5} Check-out: *${checkOutDate}*\n\u{1F4CA} Status: *${statusLabel}*\n\n\u{1F4CC} Arlinjai Paradise, No. 5/69, Beach Road, Kanyakumari – 629702, Tamil Nadu, India\n\nThank you! \u{1F64F}`
     
     const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank')
@@ -127,14 +128,14 @@ export default function BookingsPage() {
 
   const handleCancel = (booking, e) => {
     if (e) e.stopPropagation()
-    if (window.confirm(`Are you sure you want to cancel booking ${booking.id}?`)) {
+    if (window.confirm(`Are you sure you want to cancel booking ${booking.bookingId || booking.id}?`)) {
       updateStatus(booking.id, 'cancelled')
     }
   }
 
   const handleDelete = async (id, e) => {
     if (e) e.stopPropagation()
-    if (window.confirm(`Are you sure you want to permanently delete booking ${id}? This action cannot be undone.`)) {
+    if (window.confirm(`Are you sure you want to permanently delete booking ${bookings.find((b) => b.id === id)?.bookingId || id}? This action cannot be undone.`)) {
       try {
         const res = await authAxios.delete(`${API_BASE_URL}/bookings/${id}`)
         if (res.data.success) {
@@ -154,7 +155,7 @@ export default function BookingsPage() {
     const headers = ['ID', 'Guest', 'Gender', 'DOB', 'Phone', 'Email', 'ID Type', 'ID Number',
       'Room', 'Check In', 'Check Out', 'Nights', 'Guests', 'Amount', 'Payment', 'Status', 'Booked On']
     const rows = bookings.map((b) => [
-      b.id, b.guest, b.gender || '', b.dob || '', b.phone, b.email,
+      b.bookingId || b.id, b.guest, b.gender || '', b.dob || '', b.phone, b.email,
       b.idType || '', b.idNumber || '', b.room,
       fmt(b.checkIn), fmt(b.checkOut), b.nights, b.guests,
       b.amount, b.paymentMethod, b.status, fmt(b.createdAt),
@@ -247,7 +248,7 @@ export default function BookingsPage() {
                     onClick={() => setSelectedBooking(booking)}
                   >
                     <td className="px-3 py-3 font-poppins text-sm font-semibold text-gold whitespace-nowrap">
-                      {booking.id}
+                      {booking.bookingId || booking.id}
                     </td>
                     <td className="px-3 py-3">
                       <p className="font-poppins text-sm font-medium text-navy">{booking.guest}</p>
@@ -301,7 +302,7 @@ export default function BookingsPage() {
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <p className="font-poppins text-xs text-gray-500 mb-0.5">Booking ID</p>
-                  <p className="font-poppins font-bold text-gold text-sm">{booking.id}</p>
+                  <p className="font-poppins font-bold text-gold text-sm">{booking.bookingId || booking.id}</p>
                 </div>
                 <span className={`font-poppins text-[10px] font-semibold px-2.5 py-1 rounded-full ${st.bg} ${st.text}`}>
                   {st.label}
@@ -373,7 +374,7 @@ export default function BookingsPage() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0 bg-navy rounded-t-xl">
               <div>
                 <p className="font-poppins text-xs text-gray-400 uppercase tracking-wider">Booking ID</p>
-                <h3 className="font-playfair font-bold text-gold text-xl">{selectedBooking.id}</h3>
+                <h3 className="font-playfair font-bold text-gold text-xl">{selectedBooking.bookingId || selectedBooking.id}</h3>
               </div>
               <div className="flex items-center gap-3">
                 <span className={`font-poppins text-xs font-medium px-3 py-1 rounded-full

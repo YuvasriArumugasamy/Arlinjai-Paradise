@@ -84,7 +84,7 @@ export default function DashboardPage() {
       : '—'
     const statusLabel = STATUS_STYLES[booking.status]?.label || booking.status
 
-    const message = `\u2705 *Arlinjai Paradise – Booking Update*\n\nDear ${booking.guest || 'Guest'},\n\nRegarding your booking (ID: *${booking.id}*):\n\n\u{1F6CF}\uFE0F Room: *${booking.room}*\n\u{1F4C5} Check-in: *${checkInDate}*\n\u{1F4C5} Check-out: *${checkOutDate}*\n\u{1F4CA} Status: *${statusLabel}*\n\n\u{1F4CC} Arlinjai Paradise, No. 5/69, Beach Road, Kanyakumari – 629702, Tamil Nadu, India\n\nThank you! \u{1F64F}`
+    const message = `\u2705 *Arlinjai Paradise – Booking Update*\n\nDear ${booking.guest || 'Guest'},\n\nRegarding your booking (ID: *${booking.bookingId || booking.id}*):\n\n\u{1F6CF}\uFE0F Room: *${booking.room}*\n\u{1F4C5} Check-in: *${checkInDate}*\n\u{1F4C5} Check-out: *${checkOutDate}*\n\u{1F4CA} Status: *${statusLabel}*\n\n\u{1F4CC} Arlinjai Paradise, No. 5/69, Beach Road, Kanyakumari – 629702, Tamil Nadu, India\n\nThank you! \u{1F64F}`
     
     const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank')
@@ -102,7 +102,8 @@ export default function DashboardPage() {
         setStats({ ...MOCK_STATS, ...statsRes.data.stats })
         // Map backend booking shape to dashboard table shape
         const mapped = (bookingsRes.data.bookings || []).map(b => ({
-          id: b.bookingId || b._id,
+          id: b._id || b.bookingId,
+          bookingId: b.bookingId || b._id,
           guest: b.guest?.name || b.guest || '—',
           room: b.roomSnapshot?.name || b.room?.name || '—',
           checkIn: b.checkIn,
@@ -271,7 +272,7 @@ export default function DashboardPage() {
                 const status = STATUS_STYLES[booking.status] || STATUS_STYLES.pending
                 return (
                   <tr key={booking.id} className="hover:bg-lightbg transition-colors">
-                    <td className="px-6 py-4 font-poppins text-sm font-medium text-navy">{booking.id}</td>
+                    <td className="px-6 py-4 font-poppins text-sm font-medium text-navy">{booking.bookingId || booking.id}</td>
                     <td className="px-6 py-4 font-poppins text-sm text-gray-700">{booking.guest}</td>
                     <td className="px-6 py-4 font-poppins text-sm text-gray-600">{booking.room}</td>
                     <td className="px-6 py-4 font-poppins text-sm text-gray-600">
@@ -325,7 +326,7 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <p className="font-poppins text-[10px] text-gray-400 uppercase tracking-wider">Booking ID</p>
-                        <p className="font-poppins text-sm font-semibold text-[#08111F]">{booking.id}</p>
+                        <p className="font-poppins text-sm font-semibold text-[#08111F]">{booking.bookingId || booking.id}</p>
                       </div>
                       <span className={`font-poppins text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${status.bg} ${status.text}`}>
                         {status.label}

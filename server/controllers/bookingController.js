@@ -306,7 +306,9 @@ const updateBookingStatus = async (req, res, next) => {
 // @access  Private (Admin)
 const deleteBooking = async (req, res, next) => {
   try {
-    const booking = await Booking.findByIdAndDelete(req.params.id)
+    const booking = await Booking.findOneAndDelete({
+      $or: [{ _id: req.params.id }, { bookingId: req.params.id }],
+    })
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' })
     }

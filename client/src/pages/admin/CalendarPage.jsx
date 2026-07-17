@@ -135,11 +135,12 @@ export default function CalendarPage() {
       const res = await authAxios.post(`${API_BASE_URL}/bookings`, payload)
       if (res.data.success) {
         const newBooking = res.data.booking
-        const newBookingId = newBooking.bookingId || newBooking._id
+        const newBookingId = newBooking?._id || newBooking?.id || newBooking?.bookingId
         
         // Add to calendar local state
         const mappedNewBooking = {
           id: newBookingId,
+          bookingId: newBooking.bookingId,
           guest: newBooking.guest?.name || newBooking.guest || bookingModalData.name,
           room: newBooking.roomSnapshot?.name || newBooking.room?.name || (bookingModalData.roomType === 'deluxe-ac' ? 'Deluxe AC Room' : bookingModalData.roomType === 'normal-ac' ? 'Normal AC Room' : 'Non AC Room'),
           checkIn: bookingModalData.checkIn,
@@ -229,7 +230,8 @@ export default function CalendarPage() {
       const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
       if (res.data.success) {
         const mapped = res.data.bookings.map(b => ({
-          id: b.bookingId || b._id,
+          id: b._id || b.bookingId,
+          bookingId: b.bookingId,
           guest: b.guest?.name || b.guest || '—',
           room: b.roomSnapshot?.name || b.room?.name || '—',
           checkIn: toDateStr(new Date(b.checkIn)),
