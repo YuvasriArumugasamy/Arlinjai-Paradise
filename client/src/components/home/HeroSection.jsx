@@ -31,7 +31,7 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="relative h-screen min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -43,7 +43,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/80" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-full py-12 sm:py-14 flex flex-col items-center justify-start gap-y-8 text-center md:justify-center lg:justify-between">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-24 flex flex-col items-center text-center">
 
         {/* Logo above heading */}
         <motion.div
@@ -86,7 +86,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.25 }}
-          className="flex flex-row items-center justify-center gap-4 mb-8 sm:mb-10"
+          className="flex flex-row items-center justify-center gap-4 mb-8 sm:mb-12"
         >
           <StarButtonLink to="/booking" className="text-xs uppercase tracking-wider font-bold font-poppins">
             Book Now
@@ -104,15 +104,15 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden mt-8 md:mt-0"
+          className="w-full max-w-4xl bg-white rounded-sm shadow-2xl overflow-hidden"
         >
-          <div className="bg-gold px-6 py-3 rounded-t-3xl">
+          <div className="bg-gold px-6 py-3">
             <h3 className="font-poppins font-semibold text-white text-sm uppercase tracking-wider text-center">
               Check Availability & Book Now
             </h3>
           </div>
-          <form onSubmit={handleSearch} className="p-4 md:p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <form onSubmit={handleSearch} className="p-5 md:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="flex flex-col gap-1 text-left">
                 <label className="label-text flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
                   <FaCalendarAlt className="text-gold" size={12} />
@@ -182,7 +182,7 @@ export default function HeroSection() {
             <div className="mt-4 flex justify-center">
               <StarButton
                 type="submit"
-                className="px-12 py-3.5 text-sm uppercase tracking-widest w-full rounded-b-3xl"
+                className="px-10 py-3.5 text-sm uppercase tracking-widest w-full"
               >
                 Check Availability
               </StarButton>
