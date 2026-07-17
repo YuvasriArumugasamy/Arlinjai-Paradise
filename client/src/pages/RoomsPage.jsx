@@ -66,12 +66,11 @@ export default function RoomsPage() {
           backgroundPosition: 'center',
         }}
       >
-        {/* Very light overlay so background appears clearer (mobile-friendly) */}
+        {/* Dark gradient overlay (further lightened so content remains clear) */}
         <div
           style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(120deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.04) 100%)',
-            backdropFilter: 'none',
+            background: 'linear-gradient(120deg, rgba(5,10,20,0.15) 20%, rgba(5,10,20,0.05) 100%)',
           }}
         />
 
