@@ -223,20 +223,28 @@ export default function CalendarPage() {
     try {
       const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
       if (res.data.success) {
-        const mapped = res.data.bookings.map(b => ({
-          id: b._id || b.bookingId,
-          bookingId: b.bookingId,
-          guest: b.guest?.name || b.guest || '—',
-          room: b.roomSnapshot?.name || b.room?.name || '—',
-          checkIn: toDateStr(new Date(b.checkIn)),
-          checkOut: toDateStr(new Date(b.checkOut)),
-          nights: b.nights,
-          guests: b.guests,
-          amount: b.pricing?.finalAmount || 0,
-          status: b.status,
-          phone: b.guest?.phone || b.phone || '',
-          assignedRoom: b.assignedRoom || null,
-        }))
+        const mapped = res.data.bookings.map(b => {
+          // Safely parse dates from server
+          const checkInDate = b.checkIn ? toDateStr(new Date(b.checkIn)) : null
+          const checkOutDate = b.checkOut ? toDateStr(new Date(b.checkOut)) : null
+          
+          return {
+            id: b._id || b.bookingId,
+            bookingId: b.bookingId,
+            guest: b.guest?.name || b.guest || '—',
+            room: b.roomSnapshot?.name || b.room?.name || '—',
+            checkIn: checkInDate,
+            checkOut: checkOutDate,
+            nights: b.nights,
+            guests: b.guests,
+            amount: b.pricing?.finalAmount || 0,
+            status: b.status,
+            phone: b.guest?.phone || b.phone || '',
+            assignedRoom: b.assignedRoom || null,
+          }
+        }).filter(b => b.checkIn && b.checkOut) // Only include valid bookings
+        
+        console.log('Fetched bookings:', mapped)
         setBookings(mapped)
         
         // Build assignment map from server data
@@ -249,6 +257,7 @@ export default function CalendarPage() {
     } catch (err) {
       console.error('Calendar fetch failed:', err?.response?.status, err?.response?.data || err.message)
       setBookings([])
+      setRoomAssignments({})
     }
   }, [])
 
@@ -272,15 +281,20 @@ export default function CalendarPage() {
   }, [bookings, minDate, maxDate])
 
   const allocations = useMemo(() => {
-    return overlappingBookings.filter(b => !roomAssignments[b.id]).map(b => ({
-      id: b.id,
-      name: b.guest,
-      type: b.room,
-      dates: `${new Date(b.checkIn).toLocaleDateString('en-IN')} to ${new Date(b.checkOut).toLocaleDateString('en-IN')}`,
-      guests: `${b.guests} Guest(s)`,
-      phone: b.phone || '—',
-      booking: b,
-    }))
+    return overlappingBookings.filter(b => !roomAssignments[b.id]).map(b => {
+      // Parse date strings correctly (YYYY-MM-DD format is already local)
+      const checkInDate = new Date(b.checkIn + 'T00:00:00')
+      const checkOutDate = new Date(b.checkOut + 'T00:00:00')
+      return {
+        id: b.id,
+        name: b.guest,
+        type: b.room,
+        dates: `${checkInDate.toLocaleDateString('en-IN')} to ${checkOutDate.toLocaleDateString('en-IN')}`,
+        guests: `${b.guests} Guest(s)`,
+        phone: b.phone || '—',
+        booking: b,
+      }
+    })
   }, [overlappingBookings, roomAssignments])
 
   const handleAssignRoom = async (bookingId, roomId) => {
