@@ -1,8 +1,9 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaTrash, FaBell, FaEnvelopeOpen, FaTimes, FaCalendarAlt } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { authAxios } from '../../context/AuthContext'
+import { API_BASE_URL } from '../../constants'
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([])
@@ -13,7 +14,7 @@ export default function NotificationsPage() {
   const fetchNotifications = async () => {
     try {
       setLoading(true)
-      const res = await authAxios.get('/notifications?limit=100')
+      const res = await authAxios.get(`${API_BASE_URL}/notifications?limit=100`)
       if (res.data.success) setNotifications(res.data.notifications || [])
     } catch (err) {
       console.error('Failed to fetch notifications:', err?.response || err)
@@ -30,7 +31,7 @@ export default function NotificationsPage() {
 
   const markRead = async (id) => {
     try {
-      const res = await authAxios.patch(`/notifications/${id}/read`)
+      const res = await authAxios.patch(`${API_BASE_URL}/notifications/${id}/read`)
       if (res.data.success) {
         setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)))
         if (selectedNotification?._id === id) setSelectedNotification((prev) => ({ ...prev, read: true }))
@@ -45,7 +46,7 @@ export default function NotificationsPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this notification?')) return
     try {
-      const res = await authAxios.delete(`/notifications/${id}`)
+      const res = await authAxios.delete(`${API_BASE_URL}/notifications/${id}`)
       if (res.data.success) {
         setNotifications((prev) => prev.filter((n) => n._id !== id))
         if (selectedNotification?._id === id) setSelectedNotification(null)
