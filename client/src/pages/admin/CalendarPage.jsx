@@ -242,8 +242,11 @@ export default function CalendarPage() {
           setBookings(mapped)
         }
       } catch (err) {
-        console.error(err)
-        toast.error('Unable to load calendar bookings from the server.')
+        // Fail silently for calendar load failures to avoid noisy toast on protected routes
+        // Log full error for debugging in Console
+        console.error('Calendar fetch failed:', err?.response?.status, err?.response?.data || err.message)
+        // keep bookings state unchanged (or empty) — do not show toast
+        setBookings([])
       }
     }
 
