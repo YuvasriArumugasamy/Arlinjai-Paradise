@@ -56,7 +56,7 @@ export default function RoomsPage() {
     <div className="min-h-screen bg-lightbg">
       {/* ── Premium Page Header ── */}
       <div
-        className="relative overflow-hidden min-h-[420px] sm:min-h-[340px]"
+        className="relative overflow-hidden min-h-[520px] sm:min-h-[340px]"
         style={{
           display: 'flex',
           alignItems: 'center',
