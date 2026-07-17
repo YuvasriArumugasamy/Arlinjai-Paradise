@@ -106,13 +106,13 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden mt-8 md:mt-0"
         >
-          <div className="bg-gold px-6 py-3">
+          <div className="bg-gold px-6 py-3 rounded-t-3xl">
             <h3 className="font-poppins font-semibold text-white text-sm uppercase tracking-wider text-center">
               Check Availability & Book Now
             </h3>
           </div>
-          <form onSubmit={handleSearch} className="p-5 md:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <form onSubmit={handleSearch} className="p-4 md:p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="flex flex-col gap-1 text-left">
                 <label className="label-text flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
                   <FaCalendarAlt className="text-gold" size={12} />
@@ -182,7 +182,7 @@ export default function HeroSection() {
             <div className="mt-4 flex justify-center">
               <StarButton
                 type="submit"
-                className="px-10 py-3.5 text-sm uppercase tracking-widest w-full"
+                className="px-12 py-3.5 text-sm uppercase tracking-widest w-full rounded-b-3xl"
               >
                 Check Availability
               </StarButton>
