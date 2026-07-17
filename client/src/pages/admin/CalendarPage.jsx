@@ -24,6 +24,10 @@ const STATUS_STYLES = {
   cancelled:    { bg: 'bg-red-400',    text: 'text-white',   label: 'Cancelled' },
 }
 
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 export default function CalendarPage() {
   const navigate = useNavigate()
   const [startDate, setStartDate] = useState(todayStr)
@@ -80,6 +84,7 @@ export default function CalendarPage() {
       physicalRoomName: room.name,
     })
     setShowBookingModal(true)
+    scrollToTop()
   }
 
   const handleConfirmBooking = async (e) => {
@@ -161,6 +166,7 @@ export default function CalendarPage() {
         }, 500)
         toast.success('Booking created successfully!')
         setShowBookingModal(false)
+        scrollToTop()
       } else {
         toast.error(res.data.message || 'Failed to create booking')
       }
@@ -196,9 +202,13 @@ export default function CalendarPage() {
     const base = new Date(startDate + 'T00:00:00')
     base.setDate(base.getDate() + dir * 14)
     setStartDate(toDateStr(base))
+    scrollToTop()
   }
 
-  const goToToday = () => setStartDate(todayStr)
+  const goToToday = () => {
+    setStartDate(todayStr)
+    scrollToTop()
+  }
 
   const rooms = [
     { id: '101', name: 'Room 101', type: 'Deluxe AC', typeColor: 'text-blue-500' },
@@ -319,6 +329,7 @@ export default function CalendarPage() {
         setBookings(prev => prev.map((booking) => booking.id === bookingId ? { ...booking, assignedRoom: updatedBooking.assignedRoom } : booking))
         setRoomAssignments(prev => ({ ...prev, [bookingId]: updatedBooking.assignedRoom }))
         toast.success('Room assigned successfully')
+        scrollToTop()
       }
     } catch (err) {
       console.error('Assign room failed:', err)
@@ -338,6 +349,7 @@ export default function CalendarPage() {
           return updated
         })
         toast.success('Room unassigned')
+        scrollToTop()
       }
     } catch (err) {
       console.error('Unassign room failed:', err)
