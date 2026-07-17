@@ -112,8 +112,10 @@ export default function DashboardPage() {
           phone: b.guest?.phone || b.phone || '',
         }))
         setBookings(mapped)
-      } catch {
-        toast.error('Unable to load dashboard data from the server. Please check your network and login status.')
+      } catch (err) {
+        console.error('Failed to load dashboard:', err)
+        const msg = err?.response?.data?.message || err.message || 'Unable to load dashboard data'
+        toast.error(`Dashboard Error: ${msg}`)
       } finally {
         setLoading(false)
       }
