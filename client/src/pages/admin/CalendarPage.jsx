@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { FaChevronLeft, FaChevronRight, FaThumbtack, FaCalendarAlt, FaUsers, FaPhoneAlt } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import { authAxios, useAuth } from '../../context/AuthContext'
@@ -157,6 +157,8 @@ export default function CalendarPage() {
         setRoomAssignments(updatedAssignments)
         localStorage.setItem('arlinjai_room_assignments', JSON.stringify(updatedAssignments))
 
+        // Refresh server bookings (if admin authenticated) so booking persists on reload
+        try { await fetchBookings() } catch (e) { /* ignore */ }
         toast.success('Booking created successfully!')
         setShowBookingModal(false)
       } else {
@@ -222,39 +224,33 @@ export default function CalendarPage() {
 
   const { loading } = useAuth()
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
-        if (res.data.success) {
-          const mapped = res.data.bookings.map(b => ({
-            id: b.bookingId || b._id,
-            guest: b.guest?.name || b.guest || '—',
-            room: b.roomSnapshot?.name || b.room?.name || '—',
-            checkIn: toDateStr(new Date(b.checkIn)),
-            checkOut: toDateStr(new Date(b.checkOut)),
-            nights: b.nights,
-            guests: b.guests,
-            amount: b.pricing?.finalAmount || 0,
-            status: b.status,
-            phone: b.guest?.phone || b.phone || '',
-          }))
-          setBookings(mapped)
-        }
-      } catch (err) {
-        // Fail silently for calendar load failures to avoid noisy toast on protected routes
-        // Log full error for debugging in Console
-        console.error('Calendar fetch failed:', err?.response?.status, err?.response?.data || err.message)
-        // keep bookings state unchanged (or empty) — do not show toast
-        setBookings([])
+  const fetchBookings = useCallback(async () => {
+    try {
+      const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
+      if (res.data.success) {
+        const mapped = res.data.bookings.map(b => ({
+          id: b.bookingId || b._id,
+          guest: b.guest?.name || b.guest || '—',
+          room: b.roomSnapshot?.name || b.room?.name || '—',
+          checkIn: toDateStr(new Date(b.checkIn)),
+          checkOut: toDateStr(new Date(b.checkOut)),
+          nights: b.nights,
+          guests: b.guests,
+          amount: b.pricing?.finalAmount || 0,
+          status: b.status,
+          phone: b.guest?.phone || b.phone || '',
+        }))
+        setBookings(mapped)
       }
+    } catch (err) {
+      console.error('Calendar fetch failed:', err?.response?.status, err?.response?.data || err.message)
+      setBookings([])
     }
+  }, [])
 
-    // Wait until auth initialization (refresh) completes so the refresh cookie/token is available
-    if (!loading) {
-      fetchBookings()
-    }
-  }, [loading])
+  useEffect(() => {
+    if (!loading) fetchBookings()
+  }, [loading, fetchBookings])
 
   const daysList = days.map(d => d.dateStr)
   const minDate = daysList[0]
