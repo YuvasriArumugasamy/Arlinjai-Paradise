@@ -25,6 +25,7 @@ const initFirebase = () => {
         .trim();
       
       // 2. Break base64 string into 64-character chunks
+      console.log('DEBUG: keyBody length:', keyBody.length)
       const chunks = keyBody.match(/.{1,64}/g);
       
       if (!chunks) {
