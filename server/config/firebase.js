@@ -17,10 +17,24 @@ const initFirebase = () => {
   try {
     const serviceAccountObj = JSON.parse(serviceAccount)
     if (serviceAccountObj.private_key) {
-      console.log('DEBUG: Private Key Value:', JSON.stringify(serviceAccountObj.private_key))
+      // 1. Strip headers, footers and all whitespace/newlines
+      const keyBody = serviceAccountObj.private_key
+        .replace('-----BEGIN PRIVATE KEY-----', '')
+        .replace('-----END PRIVATE KEY-----', '')
+        .replace(/\s+/g, '') // removes \r, \n, spaces, tabs
+        .trim();
       
-      serviceAccountObj.private_key = serviceAccountObj.private_key.replace(/\\n/g, '\n')
+      // 2. Break base64 string into 64-character chunks
+      const chunks = keyBody.match(/.{1,64}/g);
+      
+      if (!chunks) {
+        throw new Error('Private key body is empty or invalid base64');
+      }
+      
+      // 3. Reconstruct clean PEM format with standard newlines
+      serviceAccountObj.private_key = `-----BEGIN PRIVATE KEY-----\n${chunks.join('\n')}\n-----END PRIVATE KEY-----\n`;
     }
+    
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccountObj),
     })
