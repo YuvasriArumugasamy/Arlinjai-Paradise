@@ -4,9 +4,15 @@ const crypto = require('crypto')
 let razorpayClient = null
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
   try {
+    const keyId = process.env.RAZORPAY_KEY_ID.trim()
+    const keySecret = process.env.RAZORPAY_KEY_SECRET.trim()
+    console.log('DEBUG: Razorpay Key ID Length:', keyId.length)
+    console.log('DEBUG: Razorpay Key ID Prefix:', keyId.substring(0, 9))
+    console.log('DEBUG: Razorpay Key Secret Length:', keySecret.length)
+    
     razorpayClient = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
+      key_id: keyId,
+      key_secret: keySecret,
     })
   } catch (err) {
     console.error('❌ Failed to initialize Razorpay Client:', err.message)
