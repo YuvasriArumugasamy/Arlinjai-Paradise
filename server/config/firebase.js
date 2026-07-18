@@ -15,8 +15,12 @@ const initFirebase = () => {
   }
 
   try {
+    const serviceAccountObj = JSON.parse(serviceAccount)
+    if (serviceAccountObj.private_key) {
+      serviceAccountObj.private_key = serviceAccountObj.private_key.replace(/\\n/g, '\n')
+    }
     admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(serviceAccount)),
+      credential: admin.credential.cert(serviceAccountObj),
     })
     initialized = true
     console.log('✅ Firebase Admin SDK initialized')
