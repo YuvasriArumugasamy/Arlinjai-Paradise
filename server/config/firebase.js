@@ -17,6 +17,12 @@ const initFirebase = () => {
   try {
     const serviceAccountObj = JSON.parse(serviceAccount)
     if (serviceAccountObj.private_key) {
+      console.log('DEBUG: Private Key Length:', serviceAccountObj.private_key.length)
+      console.log('DEBUG: Starts with header:', serviceAccountObj.private_key.startsWith('-----BEGIN PRIVATE KEY-----'))
+      console.log('DEBUG: Ends with footer:', serviceAccountObj.private_key.trim().endsWith('-----END PRIVATE KEY-----'))
+      console.log('DEBUG: Contains real newlines:', serviceAccountObj.private_key.includes('\n'))
+      console.log('DEBUG: Contains escaped newlines:', serviceAccountObj.private_key.includes('\\n'))
+      
       serviceAccountObj.private_key = serviceAccountObj.private_key.replace(/\\n/g, '\n')
     }
     admin.initializeApp({
