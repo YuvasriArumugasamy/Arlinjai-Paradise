@@ -110,6 +110,7 @@ const getNotifications = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit))
+      .lean()
 
     res.json({ success: true, count: notifications.length, total, notifications })
   } catch (error) {

@@ -11,7 +11,7 @@ const getGallery = async (req, res, next) => {
     const query = { isPublished: true }
     if (category) query.category = category
 
-    const images = await Gallery.find(query).sort({ order: 1, createdAt: -1 })
+    const images = await Gallery.find(query).sort({ order: 1, createdAt: -1 }).lean()
     res.json({ success: true, count: images.length, images })
   } catch (error) {
     next(error)

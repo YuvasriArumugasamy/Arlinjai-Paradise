@@ -17,7 +17,7 @@ const getRooms = async (req, res, next) => {
       if (maxPrice) query.price.$lte = Number(maxPrice)
     }
 
-    const rooms = await Room.find(query).sort({ price: 1 })
+    const rooms = await Room.find(query).sort({ price: 1 }).lean()
     res.json({ success: true, count: rooms.length, rooms })
   } catch (error) {
     next(error)
@@ -33,8 +33,8 @@ const getRoom = async (req, res, next) => {
     const isObjectId = idOrSlug.match(/^[0-9a-fA-F]{24}$/)
 
     const room = isObjectId
-      ? await Room.findById(idOrSlug)
-      : await Room.findOne({ slug: idOrSlug })
+      ? await Room.findById(idOrSlug).lean()
+      : await Room.findOne({ slug: idOrSlug }).lean()
 
     if (!room) {
       return res.status(404).json({ message: 'Room not found' })

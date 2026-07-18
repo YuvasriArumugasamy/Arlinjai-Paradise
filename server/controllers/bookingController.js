@@ -269,6 +269,7 @@ const getBookings = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit)
+      .lean()
 
     res.json({
       success: true,

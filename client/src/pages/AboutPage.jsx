@@ -195,7 +195,7 @@ export default function AboutPage() {
             <motion.div {...fadeUp(0.2)} style={{ position: 'relative' }}>
               <div style={{ borderRadius: 14, overflow: 'hidden',
                 boxShadow: '0 12px 48px rgba(0,0,0,0.16)' }}>
-                <img src="/ChatGPT Image Jul 16, 2026, 12_52_37 PM.png"
+                <img src="/ChatGPT Image Jul 16, 2026, 12_52_37 PM.webp"
                   alt="Happy guests at Arlinjai Paradise"
                   className="about-story-img" />
               </div>
