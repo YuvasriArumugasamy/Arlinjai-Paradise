@@ -56,7 +56,7 @@ export default function RoomsPage() {
     <div className="min-h-screen bg-lightbg">
       {/* ── Premium Page Header ── */}
       <div
-        className="relative overflow-hidden min-h-[520px] sm:min-h-[340px]"
+        className="relative overflow-hidden min-h-[360px] sm:min-h-[300px]"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -74,7 +74,7 @@ export default function RoomsPage() {
         />
 
         {/* Text content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center w-full bg-black/20 sm:bg-transparent rounded-md">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center w-full bg-black/20 sm:bg-transparent rounded-md">
           {/* Label */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
