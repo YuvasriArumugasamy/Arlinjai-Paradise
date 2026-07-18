@@ -51,8 +51,14 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (Postman, mobile apps, server-to-server)
     if (!origin) return callback(null, true)
-    // Allow any Vercel domain
-    if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
+    
+    // Check if origin matches the production domain or its subdomains
+    const isCustomDomain = origin === 'https://arlinjaiparadise.in' || 
+                           origin === 'http://arlinjaiparadise.in' || 
+                           origin.endsWith('.arlinjaiparadise.in')
+
+    // Allow any Vercel domain, the custom production domain, or other allowed origins
+    if (origin.endsWith('.vercel.app') || isCustomDomain || allowedOrigins.includes(origin)) {
       return callback(null, true)
     }
     return callback(new Error('CORS: Not allowed by policy'))
