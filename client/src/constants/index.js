@@ -7,7 +7,7 @@ export const LOCAL_PHOTOS = {
   room2: '/IMG_0436.JPG.webp',
   room3: '/IMG_0437.JPG.webp',
   room4: '/IMG_0472.JPG.webp',
-  room5: '/IMG_0594.PNG',
+  room5: '/IMG_0435.JPG.webp',
   newRoom1: '/ChatGPT Image Jul 5, 2026, 12_17_37 PM.webp',
   newRoom2: '/ChatGPT Image Jul 5, 2026, 12_17_46 PM.webp',
   newRoom3: '/Modern hotel bedroom with tropical view.webp',
@@ -123,7 +123,7 @@ export const ROOMS = [
     images: [
       '/Modern hotel bedroom with tropical view.webp',
       '/IMG_0436.JPG.webp',
-      '/IMG_0594.PNG',
+      '/IMG_0435.JPG.webp',
     ],
     description:
       'The Normal AC Room combines affordability with comfort. Equipped with essential modern amenities, it provides a clean and refreshing stay for travelers and families exploring Kanyakumari.',
