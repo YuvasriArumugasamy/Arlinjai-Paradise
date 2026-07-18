@@ -65,11 +65,11 @@ export default function RoomsPage() {
           backgroundPosition: 'center',
         }}
       >
-        {/* Dark gradient overlay (further lightened so content remains clear) */}
+        {/* Dark gradient overlay to ensure text is fully readable */}
         <div
           style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(120deg, rgba(5,10,20,0.15) 20%, rgba(5,10,20,0.05) 100%)',
+            background: 'linear-gradient(120deg, rgba(5, 10, 20, 0.65) 20%, rgba(5, 10, 20, 0.45) 100%)',
           }}
         />
 
