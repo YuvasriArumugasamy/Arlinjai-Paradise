@@ -122,12 +122,31 @@ const createBooking = async (req, res, next) => {
       room = await Room.findById(roomId)
     }
 
+    const parseLocalDate = (dateStr) => {
+      const [year, month, day] = dateStr.split('-')
+      return new Date(year, parseInt(month, 10) - 1, day)
+    }
+
+    const datesOverlap = (existingStart, existingEnd, requestedStart, requestedEnd) => {
+      return existingStart < requestedEnd && existingEnd > requestedStart
+    }
+
+    const checkInDate = parseLocalDate(checkIn)
+    const checkOutDate = parseLocalDate(checkOut)
+    const nights = Math.max(1, Math.floor((checkOutDate - checkInDate) / 86400000))
+
+    const availabilityQuery = {
+      status: { $ne: 'cancelled' },
+      checkIn: { $lt: checkOutDate },
+      checkOut: { $gt: checkInDate },
+    }
+
     if (!room) {
       // Static lookup for frontend string IDs (e.g. 'deluxe-ac')
       const staticRooms = {
-        'deluxe-ac': { _id: 'deluxe-ac', name: 'Deluxe AC Room', price: 2500, category: 'deluxe' },
-        'normal-ac': { _id: 'normal-ac', name: 'Normal AC Room', price: 2000, category: 'standard' },
-        'non-ac':    { _id: 'non-ac',    name: 'Non AC Room',    price: 1500, category: 'budget'   },
+        'deluxe-ac': { _id: 'deluxe-ac', name: 'Deluxe AC Room', price: 2500, category: 'deluxe', totalUnits: 5 },
+        'normal-ac': { _id: 'normal-ac', name: 'Normal AC Room', price: 2000, category: 'standard', totalUnits: 6 },
+        'non-ac':    { _id: 'non-ac',    name: 'Non AC Room',    price: 1500, category: 'budget',   totalUnits: 4 },
       }
 
       if (!staticRooms[roomId]) {
@@ -135,16 +154,14 @@ const createBooking = async (req, res, next) => {
       }
 
       const sr = staticRooms[roomId]
-      
-      const parseLocalDate = (dateStr) => {
-        const [year, month, day] = dateStr.split('-')
-        return new Date(year, parseInt(month) - 1, day)
+      availabilityQuery.room = new mongoose.Types.ObjectId('000000000000000000000001')
+      availabilityQuery['roomSnapshot.category'] = sr.category
+
+      const bookedCount = await Booking.countDocuments(availabilityQuery)
+      if (bookedCount >= sr.totalUnits) {
+        return res.status(400).json({ message: `${sr.name} is not available for the selected dates` })
       }
-      
-      const checkInDate = parseLocalDate(checkIn)
-      const checkOutDate = parseLocalDate(checkOut)
-      const nights = Math.max(1, Math.floor((checkOutDate - checkInDate) / 86400000))
-      
+
       const customPrice = roomAmount ? parseFloat(roomAmount) : null
       const finalPricePerNight = customPrice !== null ? Math.round(customPrice / nights) : sr.price
       const totalAmount = customPrice !== null ? customPrice : sr.price * nights
@@ -181,14 +198,13 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Room is not available for the selected dates' })
     }
 
-    const parseLocalDate = (dateStr) => {
-      const [year, month, day] = dateStr.split('-')
-      return new Date(year, parseInt(month) - 1, day)
-    }
+    availabilityQuery.room = room._id
 
-    const checkInDate = parseLocalDate(checkIn)
-    const checkOutDate = parseLocalDate(checkOut)
-    const nights = Math.max(1, Math.floor((checkOutDate - checkInDate) / 86400000))
+    const bookedCount = await Booking.countDocuments(availabilityQuery)
+    const totalUnits = room.totalUnits || 1
+    if (bookedCount >= totalUnits) {
+      return res.status(400).json({ message: `${room.name} is not available for the selected dates` })
+    }
 
     const checkInMonth = checkInDate.getMonth()
     const isHighSeason = [11, 0].includes(checkInMonth)
