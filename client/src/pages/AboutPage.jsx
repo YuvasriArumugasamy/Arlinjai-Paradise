@@ -197,7 +197,7 @@ export default function AboutPage() {
                 boxShadow: '0 12px 48px rgba(0,0,0,0.16)' }}>
                 <img src="/ChatGPT Image Jul 16, 2026, 12_52_37 PM.png"
                   alt="Happy guests at Arlinjai Paradise"
-                  style={{ width: '100%', height: 380, objectFit: 'cover', display: 'block' }} />
+                  className="about-story-img" />
               </div>
               {/* SINCE badge */}
               <div style={{
@@ -290,7 +290,7 @@ export default function AboutPage() {
                 boxShadow: '0 12px 48px rgba(0,0,0,0.14)' }}>
               <img src="/Screenshot 2026-07-04 223125.webp"
                 alt="Our Promise"
-                style={{ width: '100%', height: 420, objectFit: 'cover', display: 'block' }} />
+                className="about-promise-img" />
             </motion.div>
 
             {/* Right content */}
@@ -314,7 +314,7 @@ export default function AboutPage() {
                 business trip, we promise you a relaxing and memorable experience.
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ gap: 16 }} className="about-promises-grid">
                 {PROMISES.map((p, i) => {
                   const Icon = p.icon
                   return (
@@ -351,10 +351,30 @@ export default function AboutPage() {
 
       {/* Responsive */}
       <style>{`
+        .about-promises-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+        .about-story-img {
+          width: 100%;
+          height: 380px;
+          object-fit: cover;
+          display: block;
+        }
+        .about-promise-img {
+          width: 100%;
+          height: 420px;
+          object-fit: cover;
+          display: block;
+        }
         @media (max-width: 900px) {
           .about-story-grid, .about-promise-grid { grid-template-columns: 1fr !important; }
           .features-grid { grid-template-columns: repeat(3, 1fr) !important; }
           .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 600px) {
+          .about-promises-grid { grid-template-columns: 1fr !important; }
+          .about-story-img, .about-promise-img { height: 240px !important; }
         }
         @media (max-width: 540px) {
           .features-grid { grid-template-columns: repeat(2, 1fr) !important; }
