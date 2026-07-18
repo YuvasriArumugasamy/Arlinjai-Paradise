@@ -1,15 +1,27 @@
 const Razorpay = require('razorpay')
 const crypto = require('crypto')
 
-const razorpayClient = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-})
+let razorpayClient = null
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  try {
+    razorpayClient = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    })
+  } catch (err) {
+    console.error('❌ Failed to initialize Razorpay Client:', err.message)
+  }
+} else {
+  console.warn('⚠️ Razorpay credentials not found in environment variables. Payment functionality will be disabled.')
+}
 
 // ─── Create Razorpay Order ────────────────────────────────────────────────────
 // POST /api/payments/create-order
 exports.createOrder = async (req, res) => {
   try {
+    if (!razorpayClient) {
+      return res.status(503).json({ message: 'Payment gateway is not configured' })
+    }
     const { amount, currency = 'INR', receipt, notes = {} } = req.body
     const paise = Number(amount)
 
@@ -44,6 +56,9 @@ exports.createOrder = async (req, res) => {
 // POST /api/payments/verify
 exports.verifyPayment = async (req, res) => {
   try {
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(503).json({ message: 'Payment gateway secret is not configured' })
+    }
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
