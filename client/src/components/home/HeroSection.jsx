@@ -115,8 +115,7 @@ export default function HeroSection() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="flex flex-col gap-1 text-left">
                 <label className="label-text flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  <FaCalendarAlt className="text-gold" size={12} />
-                  Check In
+                  <span>🗓️</span> Check-in Date *
                 </label>
                 <input
                   type="date"
@@ -130,8 +129,7 @@ export default function HeroSection() {
               </div>
               <div className="flex flex-col gap-1 text-left">
                 <label className="label-text flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  <FaCalendarAlt className="text-gold" size={12} />
-                  Check Out
+                  <span>🗓️</span> Check-out Date *
                 </label>
                 <input
                   type="date"

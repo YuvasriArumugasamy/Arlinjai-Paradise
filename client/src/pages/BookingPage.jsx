@@ -432,8 +432,7 @@ export default function BookingPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-white rounded-sm shadow-card p-6">
         <div>
           <label className="label-text flex items-center gap-2">
-            <FaCalendarAlt size={11} className="text-gold" />
-            Check In *
+            <span>🗓️</span> Check-in Date *
           </label>
           <input
             type="date"
@@ -445,8 +444,7 @@ export default function BookingPage() {
         </div>
         <div>
           <label className="label-text flex items-center gap-2">
-            <FaCalendarAlt size={11} className="text-gold" />
-            Check Out *
+            <span>🗓️</span> Check-out Date *
           </label>
           <input
             type="date"

@@ -214,10 +214,9 @@ export default function RoomDetailsPage() {
 
               {/* Booking Form */}
               <div className="space-y-4">
-                <div>
+                 <div>
                   <label className="label-text flex items-center gap-2">
-                    <FaCalendarAlt size={11} className="text-gold" />
-                    Check In
+                    <span>🗓️</span> Check-in Date *
                   </label>
                   <input
                     type="date"
@@ -229,8 +228,7 @@ export default function RoomDetailsPage() {
                 </div>
                 <div>
                   <label className="label-text flex items-center gap-2">
-                    <FaCalendarAlt size={11} className="text-gold" />
-                    Check Out
+                    <span>🗓️</span> Check-out Date *
                   </label>
                   <input
                     type="date"
