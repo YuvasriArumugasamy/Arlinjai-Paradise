@@ -7,7 +7,7 @@ import {
   FaWhatsapp
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
-import { authAxios } from '../../context/AuthContext'
+import { authAxios, useAuth } from '../../context/AuthContext'
 import { API_BASE_URL } from '../../constants'
 
 const MOCK_STATS = {
@@ -65,6 +65,7 @@ function StatCard({ title, value, prefix, suffix, growth, icon: Icon, color, del
 }
 
 export default function DashboardPage() {
+  const { loading: authLoading } = useAuth()
   const [filterMode, setFilterMode] = useState('month')
   const [stats, setStats] = useState(MOCK_STATS)
   const [bookings, setBookings] = useState(MOCK_BOOKINGS)
@@ -92,6 +93,8 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    if (authLoading) return
+
     const fetchDashboard = async () => {
       try {
         const [statsRes, bookingsRes] = await Promise.all([
@@ -124,7 +127,7 @@ export default function DashboardPage() {
     // Refresh every 2 minutes to reduce request volume
     const interval = setInterval(fetchDashboard, 120000)
     return () => clearInterval(interval)
-  }, [filterMode])
+  }, [authLoading, filterMode])
 
   const today = new Date().toLocaleDateString('en-IN', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
