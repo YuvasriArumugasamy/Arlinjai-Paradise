@@ -31,16 +31,16 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#03070e]">
+      {/* Background Image - height reduced on mobile to show the image fully and avoid excessive zooming */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute top-0 left-0 w-full h-[65vh] sm:h-full bg-cover bg-top sm:bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('/ChatGPT Image Jul 5, 2026, 12_17_46 PM.webp')`,
         }}
       />
-      {/* Overlay - stronger for better text clarity */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/80 to-black/95" />
+      {/* Overlay - fades from top into the dark page background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/85 to-[#03070e]" />
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-24 flex flex-col items-center text-center">
