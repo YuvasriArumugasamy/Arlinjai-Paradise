@@ -67,7 +67,7 @@ export default function AdminLayout() {
     }
 
     checkRealtimeNotifications()
-    const interval = setInterval(checkRealtimeNotifications, 10000)
+    const interval = setInterval(checkRealtimeNotifications, 60000)
     return () => clearInterval(interval)
   }, [])
 

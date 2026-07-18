@@ -121,8 +121,8 @@ export default function DashboardPage() {
       }
     }
     fetchDashboard()
-    // Refresh every 60 seconds
-    const interval = setInterval(fetchDashboard, 60000)
+    // Refresh every 2 minutes to reduce request volume
+    const interval = setInterval(fetchDashboard, 120000)
     return () => clearInterval(interval)
   }, [filterMode])
 
