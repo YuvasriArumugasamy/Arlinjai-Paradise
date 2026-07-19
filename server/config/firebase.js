@@ -17,23 +17,24 @@ const initFirebase = () => {
   try {
     const serviceAccountObj = JSON.parse(serviceAccount)
     if (serviceAccountObj.private_key) {
-      // 1. Strip headers, footers and all whitespace/newlines
-      const keyBody = serviceAccountObj.private_key
-        .replace('-----BEGIN PRIVATE KEY-----', '')
-        .replace('-----END PRIVATE KEY-----', '')
-        .replace(/\s+/g, '') // removes \r, \n, spaces, tabs
-        .trim();
+      let key = serviceAccountObj.private_key
+      // Convert double escaped newlines to real newlines (common in Render environment variables)
+      key = key.replace(/\\n/g, '\n')
       
-      // 2. Break base64 string into 64-character chunks
-      console.log('DEBUG: keyBody length:', keyBody.length)
-      const chunks = keyBody.match(/.{1,64}/g);
-      
-      if (!chunks) {
-        throw new Error('Private key body is empty or invalid base64');
+      // If it doesn't have standard newlines, rebuild it in PEM format
+      if (!key.includes('\n') || key.split('\n').length < 3) {
+        const body = key
+          .replace('-----BEGIN PRIVATE KEY-----', '')
+          .replace('-----END PRIVATE KEY-----', '')
+          .replace(/\s+/g, '')
+          .trim()
+        const chunks = body.match(/.{1,64}/g)
+        if (chunks) {
+          key = `-----BEGIN PRIVATE KEY-----\n${chunks.join('\n')}\n-----END PRIVATE KEY-----\n`
+        }
       }
       
-      // 3. Reconstruct clean PEM format with standard newlines
-      serviceAccountObj.private_key = `-----BEGIN PRIVATE KEY-----\n${chunks.join('\n')}\n-----END PRIVATE KEY-----\n`;
+      serviceAccountObj.private_key = key
     }
     
     admin.initializeApp({
