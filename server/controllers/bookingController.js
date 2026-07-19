@@ -120,6 +120,14 @@ const createBooking = async (req, res, next) => {
     const mongoose = require('mongoose')
     if (mongoose.Types.ObjectId.isValid(roomId)) {
       room = await Room.findById(roomId)
+    } else {
+      const slugMap = {
+        'deluxe-ac': 'deluxe-ac-room',
+        'normal-ac': 'normal-ac-room',
+        'non-ac': 'non-ac-room'
+      }
+      const slug = slugMap[roomId] || roomId
+      room = await Room.findOne({ slug })
     }
 
     const parseLocalDate = (dateStr) => {
@@ -198,7 +206,10 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Room is not available for the selected dates' })
     }
 
-    availabilityQuery.room = room._id
+    availabilityQuery.$or = [
+      { room: room._id },
+      { room: new mongoose.Types.ObjectId('000000000000000000000001'), 'roomSnapshot.category': room.category }
+    ]
 
     const bookedCount = await Booking.countDocuments(availabilityQuery)
     const totalUnits = room.totalUnits || 1

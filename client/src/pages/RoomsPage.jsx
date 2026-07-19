@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -6,9 +6,10 @@ import {
   FaArrowRight, FaTimes, FaSnowflake, FaFan
 } from 'react-icons/fa'
 import Breadcrumb from '../components/common/Breadcrumb'
-import { ROOMS } from '../constants'
+import { ROOMS, API_BASE_URL } from '../constants'
 import { StarButtonLink } from '../components/common/StarButton'
 import useSEO from '../hooks/useSEO'
+import axios from 'axios'
 
 const CATEGORIES = [
   { value: 'all', label: 'All Rooms' },
@@ -35,9 +36,37 @@ export default function RoomsPage() {
   const [priceRange, setPriceRange] = useState('all')
   const [guests, setGuests] = useState('any')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [dbRooms, setDbRooms] = useState([])
+
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/rooms`)
+      .then(res => {
+        if (res.data?.success && res.data?.rooms) {
+          setDbRooms(res.data.rooms)
+        }
+      })
+      .catch(err => console.error('Failed to fetch rooms:', err))
+  }, [])
+
+  const mergedRooms = useMemo(() => {
+    return ROOMS.map(staticRoom => {
+      const dbRoom = dbRooms.find(r => r.slug === staticRoom.slug)
+      if (dbRoom) {
+        return {
+          ...staticRoom,
+          get price() {
+            const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
+            return isPeak ? dbRoom.highSeasonPrice : dbRoom.price
+          },
+          highSeasonPrice: dbRoom.highSeasonPrice,
+        }
+      }
+      return staticRoom
+    })
+  }, [dbRooms])
 
   const filteredRooms = useMemo(() => {
-    return ROOMS.filter((room) => {
+    return mergedRooms.filter((room) => {
       if (category !== 'all' && room.category !== category) return false
       if (priceRange !== 'all') {
         const [min, max] = priceRange.split('-').map((v) => (v === '+' ? Infinity : parseInt(v)))
@@ -50,7 +79,7 @@ export default function RoomsPage() {
       if (guests !== 'any' && room.guests < parseInt(guests)) return false
       return true
     })
-  }, [category, priceRange, guests])
+  }, [mergedRooms, category, priceRange, guests])
 
   return (
     <div className="min-h-screen bg-lightbg">

@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState, useEffect, useMemo } from 'react'
 import { FaUsers, FaBed, FaRulerCombined, FaArrowRight, FaCheck } from 'react-icons/fa'
-import { ROOMS } from '../../constants'
+import { ROOMS, API_BASE_URL } from '../../constants'
 import { StarButtonLink } from '../common/StarButton'
+import axios from 'axios'
 
 function RoomCard({ room, index, inView }) {
   return (
@@ -96,6 +97,34 @@ function RoomCard({ room, index, inView }) {
 export default function RoomPreview() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-100px' })
+  const [dbRooms, setDbRooms] = useState([])
+
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/rooms`)
+      .then(res => {
+        if (res.data?.success && res.data?.rooms) {
+          setDbRooms(res.data.rooms)
+        }
+      })
+      .catch(err => console.error('Failed to fetch rooms:', err))
+  }, [])
+
+  const mergedRooms = useMemo(() => {
+    return ROOMS.map(staticRoom => {
+      const dbRoom = dbRooms.find(r => r.slug === staticRoom.slug)
+      if (dbRoom) {
+        return {
+          ...staticRoom,
+          get price() {
+            const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
+            return isPeak ? dbRoom.highSeasonPrice : dbRoom.price
+          },
+          highSeasonPrice: dbRoom.highSeasonPrice,
+        }
+      }
+      return staticRoom
+    })
+  }, [dbRooms])
 
   return (
     <section className="py-20 lg:py-28 bg-white" ref={ref}>
@@ -130,7 +159,7 @@ export default function RoomPreview() {
 
         {/* Cards — 1 col mobile, 2 col tablet, 3 col desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {ROOMS.map((room, i) => (
+          {mergedRooms.map((room, i) => (
             <RoomCard key={room.id} room={room} index={i} inView={inView} />
           ))}
         </div>

@@ -256,7 +256,36 @@ export default function BookingPage() {
     paymentMethod: 'razorpay',
   })
 
-  const selectedRoom = ROOMS.find((r) => r.id === bookingData.roomId)
+  const [dbRooms, setDbRooms] = useState([])
+
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/rooms`)
+      .then(res => {
+        if (res.data?.success && res.data?.rooms) {
+          setDbRooms(res.data.rooms)
+        }
+      })
+      .catch(err => console.error('Failed to fetch rooms:', err))
+  }, [])
+
+  const mergedRooms = useMemo(() => {
+    return ROOMS.map(staticRoom => {
+      const dbRoom = dbRooms.find(r => r.slug === staticRoom.slug)
+      if (dbRoom) {
+        return {
+          ...staticRoom,
+          get price() {
+            const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
+            return isPeak ? dbRoom.highSeasonPrice : dbRoom.price
+          },
+          highSeasonPrice: dbRoom.highSeasonPrice,
+        }
+      }
+      return staticRoom
+    })
+  }, [dbRooms])
+
+  const selectedRoom = mergedRooms.find((r) => r.id === bookingData.roomId)
 
   const getNights = () => {
     if (!bookingData.checkIn || !bookingData.checkOut) return 0
