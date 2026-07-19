@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { FaBed, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaTimes, FaCoins, FaRegCalendarAlt, FaPercentage, FaSun } from 'react-icons/fa'
+import { FaBed, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaTimes, FaCoins, FaRegCalendarAlt, FaPercentage, FaSun, FaCalendarDay } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { authAxios } from '../../context/AuthContext'
 import { API_BASE_URL } from '../../constants'
@@ -47,9 +47,17 @@ export default function RoomsAdminPage() {
   const [categoryForm, setCategoryForm] = useState({ price: 0, highSeasonPrice: 0 })
 
   // Global Settings (Peak Season & GST)
-  const [globalSettings, setGlobalSettings] = useState({ isPeakSeason: false, gstRate: 12 })
+  const [globalSettings, setGlobalSettings] = useState({ isPeakSeason: false, gstRate: 12, specialPrices: [] })
   const [settingsLoading, setSettingsLoading] = useState(true)
   const [gstFormRate, setGstFormRate] = useState(12)
+
+  // Special Date Pricing Form
+  const [specialForm, setSpecialForm] = useState({
+    roomCategory: 'deluxe',
+    startDate: '',
+    endDate: '',
+    price: ''
+  })
 
   const fetchDbRooms = async () => {
     try {
@@ -117,6 +125,67 @@ export default function RoomsAdminPage() {
     } catch (err) {
       console.error(err)
       toast.error('Failed to update GST rate')
+    }
+  }
+
+  // Add Special Price Rule
+  const handleAddSpecialPrice = async (e) => {
+    e.preventDefault()
+    if (!specialForm.startDate || !specialForm.endDate || !specialForm.price) {
+      toast.error('Please fill all special pricing fields')
+      return
+    }
+    if (new Date(specialForm.startDate) > new Date(specialForm.endDate)) {
+      toast.error('Start date cannot be after end date')
+      return
+    }
+
+    const newRule = {
+      roomCategory: specialForm.roomCategory,
+      startDate: new Date(specialForm.startDate),
+      endDate: new Date(specialForm.endDate),
+      price: Number(specialForm.price)
+    }
+
+    const updatedRules = [...(globalSettings.specialPrices || []), newRule]
+
+    try {
+      const res = await authAxios.put(`${API_BASE_URL}/settings`, {
+        specialPrices: updatedRules
+      })
+      if (res.data?.success) {
+        setGlobalSettings(res.data.settings)
+        toast.success('Special date pricing rule added!')
+        setSpecialForm({
+          roomCategory: 'deluxe',
+          startDate: '',
+          endDate: '',
+          price: ''
+        })
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to add special pricing rule')
+    }
+  }
+
+  // Delete Special Price Rule
+  const handleDeleteSpecialPrice = async (ruleId) => {
+    if (!window.confirm('Are you sure you want to delete this special pricing rule?')) return
+
+    const updatedRules = (globalSettings.specialPrices || []).filter(rule => rule._id !== ruleId)
+
+    try {
+      const res = await authAxios.put(`${API_BASE_URL}/settings`, {
+        specialPrices: updatedRules
+      })
+      if (res.data?.success) {
+        setGlobalSettings(res.data.settings)
+        toast.success('Special pricing rule deleted')
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to delete special pricing rule')
     }
   }
 
@@ -342,6 +411,120 @@ export default function RoomsAdminPage() {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ── Special Date Pricing Manager ── */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left 2 Cols: List of Special Pricing Rules */}
+        <div className="lg:col-span-2 space-y-4">
+          <h3 className="font-playfair text-xl font-bold text-navy flex items-center gap-2">
+            <FaRegCalendarAlt className="text-gold" /> Active Special Date Pricing Rules
+          </h3>
+          <p className="font-poppins text-xs text-gray-500">
+            Below are active date-range override rules. Bookings within these dates will use these custom rates instead of the base rates.
+          </p>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-poppins text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200 text-gray-500 font-semibold">
+                  <th className="py-2.5">Category</th>
+                  <th className="py-2.5">Start Date</th>
+                  <th className="py-2.5">End Date</th>
+                  <th className="py-2.5">Rate / Night</th>
+                  <th className="py-2.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-gray-700">
+                {(!globalSettings.specialPrices || globalSettings.specialPrices.length === 0) ? (
+                  <tr>
+                    <td colSpan="5" className="py-6 text-center text-gray-400 italic">No special date pricing rules created yet.</td>
+                  </tr>
+                ) : (
+                  globalSettings.specialPrices.map((rule) => (
+                    <tr key={rule._id} className="hover:bg-gray-50/50">
+                      <td className="py-2.5 capitalize font-medium text-navy">
+                        {rule.roomCategory === 'standard' ? 'Normal AC Room' : rule.roomCategory === 'budget' ? 'Non AC Room' : 'Deluxe AC Room'}
+                      </td>
+                      <td className="py-2.5">{new Date(rule.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                      <td className="py-2.5">{new Date(rule.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                      <td className="py-2.5 font-bold text-gold">₹{rule.price}</td>
+                      <td className="py-2.5 text-right font-semibold">
+                        <button
+                          onClick={() => handleDeleteSpecialPrice(rule._id)}
+                          className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <FaTrash size={12} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Right Col: Add Special Pricing Rule Form */}
+        <div className="border-t lg:border-t-0 lg:border-l border-gray-100 pt-6 lg:pt-0 lg:pl-8">
+          <h3 className="font-playfair text-lg font-bold text-navy mb-4 flex items-center gap-2">
+            <FaCalendarDay className="text-gold" /> Add Date Override Rate
+          </h3>
+          <form onSubmit={handleAddSpecialPrice} className="space-y-4 font-poppins text-xs">
+            <div>
+              <label className="block text-gray-600 font-semibold mb-1.5">Room Category</label>
+              <select
+                value={specialForm.roomCategory}
+                onChange={(e) => setSpecialForm({ ...specialForm, roomCategory: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:border-gold text-gray-700"
+              >
+                <option value="deluxe">Deluxe AC Room</option>
+                <option value="standard">Normal AC Room</option>
+                <option value="budget">Non AC Room</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-600 font-semibold mb-1.5">Start Date</label>
+                <input
+                  type="date"
+                  value={specialForm.startDate}
+                  onChange={(e) => setSpecialForm({ ...specialForm, startDate: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gold text-gray-700"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 font-semibold mb-1.5">End Date</label>
+                <input
+                  type="date"
+                  value={specialForm.endDate}
+                  onChange={(e) => setSpecialForm({ ...specialForm, endDate: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gold text-gray-700"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-600 font-semibold mb-1.5">Rate / Night (₹)</label>
+              <input
+                type="number"
+                min="0"
+                value={specialForm.price}
+                onChange={(e) => setSpecialForm({ ...specialForm, price: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:border-gold text-gray-700"
+                placeholder="e.g. 3500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2.5 bg-navy hover:bg-navy/90 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              Add Date Override
+            </button>
+          </form>
         </div>
       </div>
 

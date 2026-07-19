@@ -25,10 +25,11 @@ const updateSettings = async (req, res, next) => {
       settings = new Settings({ key: 'global' })
     }
 
-    const { isPeakSeason, gstRate } = req.body
+    const { isPeakSeason, gstRate, specialPrices } = req.body
 
     if (isPeakSeason !== undefined) settings.isPeakSeason = isPeakSeason
     if (gstRate !== undefined) settings.gstRate = Number(gstRate)
+    if (specialPrices !== undefined) settings.specialPrices = specialPrices
 
     await settings.save()
 

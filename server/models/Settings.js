@@ -16,6 +16,27 @@ const settingsSchema = new mongoose.Schema(
       type: Number,
       default: 12, // 12% default GST
     },
+    specialPrices: [
+      {
+        roomCategory: {
+          type: String,
+          enum: ['deluxe', 'standard', 'budget'],
+          required: true,
+        },
+        startDate: {
+          type: Date,
+          required: true,
+        },
+        endDate: {
+          type: Date,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

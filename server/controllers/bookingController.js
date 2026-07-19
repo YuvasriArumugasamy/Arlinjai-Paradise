@@ -176,8 +176,26 @@ const createBooking = async (req, res, next) => {
       }
 
       const customPrice = roomAmount ? parseFloat(roomAmount) : null
-      const finalPricePerNight = customPrice !== null ? Math.round(customPrice / nights) : (isPeak ? sr.highSeasonPrice : sr.price)
-      const baseAmount = finalPricePerNight * nights
+      let baseAmount = 0
+      const currentDay = new Date(checkInDate)
+      while (currentDay < checkOutDate) {
+        const specialRule = (globalSettings.specialPrices || []).find(rule => {
+          if (rule.roomCategory !== sr.category) return false
+          const start = new Date(rule.startDate)
+          const end = new Date(rule.endDate)
+          const check = new Date(currentDay.getFullYear(), currentDay.getMonth(), currentDay.getDate())
+          const checkStart = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+          const checkEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+          return check >= checkStart && check <= checkEnd
+        })
+        if (specialRule) {
+          baseAmount += specialRule.price
+        } else {
+          baseAmount += isPeak ? sr.highSeasonPrice : sr.price
+        }
+        currentDay.setDate(currentDay.getDate() + 1)
+      }
+      const finalPricePerNight = Math.round(baseAmount / nights)
       const gstAmount = Math.round(baseAmount * (gstRate / 100))
       const totalAmount = customPrice !== null ? customPrice : (baseAmount + gstAmount)
 
@@ -224,12 +242,29 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: `${room.name} is not available for the selected dates` })
     }
 
-    const checkInMonth = checkInDate.getMonth()
-    const isHighSeason = isPeak || [11, 0].includes(checkInMonth)
-    
     const customPrice = roomAmount ? parseFloat(roomAmount) : null
-    const pricePerNight = customPrice !== null ? Math.round(customPrice / nights) : (isHighSeason ? room.highSeasonPrice : room.price)
-    const baseAmount = pricePerNight * nights
+    let baseAmount = 0
+    const currentDay = new Date(checkInDate)
+    while (currentDay < checkOutDate) {
+      const specialRule = (globalSettings.specialPrices || []).find(rule => {
+        if (rule.roomCategory !== room.category) return false
+        const start = new Date(rule.startDate)
+        const end = new Date(rule.endDate)
+        const check = new Date(currentDay.getFullYear(), currentDay.getMonth(), currentDay.getDate())
+        const checkStart = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+        const checkEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+        return check >= checkStart && check <= checkEnd
+      })
+      if (specialRule) {
+        baseAmount += specialRule.price
+      } else {
+        const month = currentDay.getMonth()
+        const isHighSeason = isPeak || [11, 0].includes(month)
+        baseAmount += isHighSeason ? room.highSeasonPrice : room.price
+      }
+      currentDay.setDate(currentDay.getDate() + 1)
+    }
+    const pricePerNight = Math.round(baseAmount / nights)
     const gstAmount = Math.round(baseAmount * (gstRate / 100))
     const totalAmount = customPrice !== null ? customPrice : (baseAmount + gstAmount)
 

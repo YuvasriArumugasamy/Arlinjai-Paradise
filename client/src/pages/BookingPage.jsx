@@ -302,7 +302,42 @@ export default function BookingPage() {
   }
 
   const nights = getNights()
-  const basePrice = selectedRoom ? selectedRoom.price * nights : 0
+
+  const calculateTotalPrice = () => {
+    if (!selectedRoom || !bookingData.checkIn || !bookingData.checkOut) return 0
+    const checkInDate = new Date(bookingData.checkIn)
+    const checkOutDate = new Date(bookingData.checkOut)
+    const isPeak = globalSettings.isPeakSeason
+    const specialPrices = globalSettings.specialPrices || []
+    
+    let totalBase = 0
+    const current = new Date(checkInDate)
+    
+    while (current < checkOutDate) {
+      const specialRule = specialPrices.find(rule => {
+        if (rule.roomCategory !== selectedRoom.category) return false
+        const start = new Date(rule.startDate)
+        const end = new Date(rule.endDate)
+        const check = new Date(current.getFullYear(), current.getMonth(), current.getDate())
+        const checkStart = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+        const checkEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+        return check >= checkStart && check <= checkEnd
+      })
+      
+      if (specialRule) {
+        totalBase += specialRule.price
+      } else {
+        const month = current.getMonth()
+        const isHighSeason = isPeak || [11, 0].includes(month)
+        totalBase += isHighSeason ? selectedRoom.highSeasonPrice : selectedRoom.price
+      }
+      current.setDate(current.getDate() + 1)
+    }
+    
+    return totalBase
+  }
+
+  const basePrice = calculateTotalPrice()
   const gstAmount = Math.round(basePrice * (globalSettings.gstRate / 100))
   const totalPrice = basePrice + gstAmount
 
