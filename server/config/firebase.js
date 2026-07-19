@@ -38,6 +38,7 @@ const initFirebase = () => {
     
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccountObj),
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'arlinjai-paradise.firebasestorage.app',
     })
     initialized = true
     console.log('✅ Firebase Admin SDK initialized')

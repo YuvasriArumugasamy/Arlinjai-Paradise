@@ -7,10 +7,12 @@ const { sendBookingNotification } = require('./notificationController')
 
 // Email transporter
 const createTransporter = () => {
+  const port = parseInt(process.env.EMAIL_PORT)
+  const isSecure = port === 465 || process.env.EMAIL_SECURE === 'true'
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT),
-    secure: false,
+    port: port,
+    secure: isSecure,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -135,44 +137,121 @@ const createBooking = async (req, res, next) => {
       room = await Room.findOne({ slug })
     }
 
-    const parseLocalDate = (dateStr) => {
-      const [year, month, day] = dateStr.split('-')
-      return new Date(year, parseInt(month, 10) - 1, day)
+    let category = 'deluxe'
+    const staticRooms = {
+      'deluxe-ac': { _id: 'deluxe-ac', name: 'Deluxe AC Room', price: 2500, category: 'deluxe', totalUnits: 5 },
+      'normal-ac': { _id: 'normal-ac', name: 'Normal AC Room', price: 2000, category: 'standard', totalUnits: 6 },
+      'non-ac':    { _id: 'non-ac',    name: 'Non AC Room',    price: 1500, category: 'budget',   totalUnits: 4 },
     }
 
-    const datesOverlap = (existingStart, existingEnd, requestedStart, requestedEnd) => {
-      return existingStart < requestedEnd && existingEnd > requestedStart
+    if (room) {
+      category = room.category
+    } else if (staticRooms[roomId]) {
+      category = staticRooms[roomId].category
     }
 
-    const checkInDate = parseLocalDate(checkIn)
-    const checkOutDate = parseLocalDate(checkOut)
-    const nights = Math.max(1, Math.floor((checkOutDate - checkInDate) / 86400000))
+    const { bookingLocks } = require('../utils/lockUtil')
+    const release = await bookingLocks[category].acquire()
 
-    const availabilityQuery = {
-      status: { $ne: 'cancelled' },
-      checkIn: { $lt: checkOutDate },
-      checkOut: { $gt: checkInDate },
-    }
-
-    if (!room) {
-      // Static lookup for frontend string IDs (e.g. 'deluxe-ac')
-      const staticRooms = {
-        'deluxe-ac': { _id: 'deluxe-ac', name: 'Deluxe AC Room', price: 2500, category: 'deluxe', totalUnits: 5 },
-        'normal-ac': { _id: 'normal-ac', name: 'Normal AC Room', price: 2000, category: 'standard', totalUnits: 6 },
-        'non-ac':    { _id: 'non-ac',    name: 'Non AC Room',    price: 1500, category: 'budget',   totalUnits: 4 },
+    try {
+      const parseLocalDate = (dateStr) => {
+        const [year, month, day] = dateStr.split('-')
+        return new Date(year, parseInt(month, 10) - 1, day)
       }
 
-      if (!staticRooms[roomId]) {
-        return res.status(404).json({ message: 'Room not found' })
+      const datesOverlap = (existingStart, existingEnd, requestedStart, requestedEnd) => {
+        return existingStart < requestedEnd && existingEnd > requestedStart
       }
 
-      const sr = staticRooms[roomId]
-      availabilityQuery.room = new mongoose.Types.ObjectId('000000000000000000000001')
-      availabilityQuery['roomSnapshot.category'] = sr.category
+      const checkInDate = parseLocalDate(checkIn)
+      const checkOutDate = parseLocalDate(checkOut)
+      const nights = Math.max(1, Math.floor((checkOutDate - checkInDate) / 86400000))
+
+      const availabilityQuery = {
+        status: { $ne: 'cancelled' },
+        checkIn: { $lt: checkOutDate },
+        checkOut: { $gt: checkInDate },
+      }
+
+      if (!room) {
+        if (!staticRooms[roomId]) {
+          return res.status(404).json({ message: 'Room not found' })
+        }
+
+        const sr = staticRooms[roomId]
+        availabilityQuery.room = new mongoose.Types.ObjectId('000000000000000000000001')
+        availabilityQuery['roomSnapshot.category'] = sr.category
+
+        const bookedCount = await Booking.countDocuments(availabilityQuery)
+        if (bookedCount >= sr.totalUnits) {
+          return res.status(400).json({ message: `${sr.name} is not available for the selected dates` })
+        }
+
+        const customPrice = roomAmount ? parseFloat(roomAmount) : null
+        let baseAmount = 0
+        const currentDay = new Date(checkInDate)
+        while (currentDay < checkOutDate) {
+          const specialRule = (globalSettings.specialPrices || []).find(rule => {
+            if (rule.roomCategory !== sr.category) return false
+            const start = new Date(rule.startDate)
+            const end = new Date(rule.endDate)
+            const check = new Date(currentDay.getFullYear(), currentDay.getMonth(), currentDay.getDate())
+            const checkStart = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+            const checkEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+            return check >= checkStart && check <= checkEnd
+          })
+          if (specialRule) {
+            baseAmount += specialRule.price
+          } else {
+            baseAmount += isPeak ? sr.highSeasonPrice : sr.price
+          }
+          currentDay.setDate(currentDay.getDate() + 1)
+        }
+        const finalPricePerNight = Math.round(baseAmount / nights)
+        const gstAmount = Math.round(baseAmount * (gstRate / 100))
+        const totalAmount = customPrice !== null ? customPrice : (baseAmount + gstAmount)
+
+        const booking = await Booking.create({
+          guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
+          room: new mongoose.Types.ObjectId('000000000000000000000001'),
+          roomSnapshot: { name: sr.name, price: finalPricePerNight, category: sr.category },
+          checkIn: checkInDate,
+          checkInTime: checkInTime || '12:00 PM',
+          checkOut: checkOutDate,
+          checkOutTime: checkOutTime || '11:00 AM',
+          nights,
+          guests: parseInt(guests),
+          specialRequests,
+          pricing: { pricePerNight: finalPricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
+          paymentMethod: paymentMethod || 'pay_at_hotel',
+          status: status || 'pending',
+          assignedRoom: assignedRoom || null,
+        })
+
+        // Send push notification (async)
+        sendBookingNotification(booking)
+
+        return res.status(201).json({
+          success: true,
+          message: 'Booking created successfully',
+          bookingId: booking.bookingId,
+          booking,
+        })
+      }
+
+      if (!room.isAvailable) {
+        return res.status(400).json({ message: 'Room is not available for the selected dates' })
+      }
+
+      availabilityQuery.$or = [
+        { room: room._id },
+        { room: new mongoose.Types.ObjectId('000000000000000000000001'), 'roomSnapshot.category': room.category }
+      ]
 
       const bookedCount = await Booking.countDocuments(availabilityQuery)
-      if (bookedCount >= sr.totalUnits) {
-        return res.status(400).json({ message: `${sr.name} is not available for the selected dates` })
+      const totalUnits = room.totalUnits || 1
+      if (bookedCount >= totalUnits) {
+        return res.status(400).json({ message: `${room.name} is not available for the selected dates` })
       }
 
       const customPrice = roomAmount ? parseFloat(roomAmount) : null
@@ -180,7 +259,7 @@ const createBooking = async (req, res, next) => {
       const currentDay = new Date(checkInDate)
       while (currentDay < checkOutDate) {
         const specialRule = (globalSettings.specialPrices || []).find(rule => {
-          if (rule.roomCategory !== sr.category) return false
+          if (rule.roomCategory !== room.category) return false
           const start = new Date(rule.startDate)
           const end = new Date(rule.endDate)
           const check = new Date(currentDay.getFullYear(), currentDay.getMonth(), currentDay.getDate())
@@ -191,18 +270,20 @@ const createBooking = async (req, res, next) => {
         if (specialRule) {
           baseAmount += specialRule.price
         } else {
-          baseAmount += isPeak ? sr.highSeasonPrice : sr.price
+          const month = currentDay.getMonth()
+          const isHighSeason = isPeak || [11, 0].includes(month)
+          baseAmount += isHighSeason ? room.highSeasonPrice : room.price
         }
         currentDay.setDate(currentDay.getDate() + 1)
       }
-      const finalPricePerNight = Math.round(baseAmount / nights)
+      const pricePerNight = Math.round(baseAmount / nights)
       const gstAmount = Math.round(baseAmount * (gstRate / 100))
       const totalAmount = customPrice !== null ? customPrice : (baseAmount + gstAmount)
 
       const booking = await Booking.create({
         guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
-        room: new mongoose.Types.ObjectId('000000000000000000000001'),
-        roomSnapshot: { name: sr.name, price: finalPricePerNight, category: sr.category },
+        room: room._id,
+        roomSnapshot: { name: room.name, price: pricePerNight, category: room.category },
         checkIn: checkInDate,
         checkInTime: checkInTime || '12:00 PM',
         checkOut: checkOutDate,
@@ -210,93 +291,27 @@ const createBooking = async (req, res, next) => {
         nights,
         guests: parseInt(guests),
         specialRequests,
-        pricing: { pricePerNight: finalPricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
+        pricing: { pricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
         paymentMethod: paymentMethod || 'pay_at_hotel',
         status: status || 'pending',
         assignedRoom: assignedRoom || null,
       })
 
+      // Send confirmation email (async, don't block response)
+      sendConfirmationEmail(booking, room)
+
       // Send push notification (async)
       sendBookingNotification(booking)
 
-      return res.status(201).json({
+      res.status(201).json({
         success: true,
-        message: 'Booking created successfully',
+        message: 'Booking created successfully! Confirmation email sent.',
         bookingId: booking.bookingId,
         booking,
       })
+    } finally {
+      release()
     }
-
-    if (!room.isAvailable) {
-      return res.status(400).json({ message: 'Room is not available for the selected dates' })
-    }
-
-    availabilityQuery.$or = [
-      { room: room._id },
-      { room: new mongoose.Types.ObjectId('000000000000000000000001'), 'roomSnapshot.category': room.category }
-    ]
-
-    const bookedCount = await Booking.countDocuments(availabilityQuery)
-    const totalUnits = room.totalUnits || 1
-    if (bookedCount >= totalUnits) {
-      return res.status(400).json({ message: `${room.name} is not available for the selected dates` })
-    }
-
-    const customPrice = roomAmount ? parseFloat(roomAmount) : null
-    let baseAmount = 0
-    const currentDay = new Date(checkInDate)
-    while (currentDay < checkOutDate) {
-      const specialRule = (globalSettings.specialPrices || []).find(rule => {
-        if (rule.roomCategory !== room.category) return false
-        const start = new Date(rule.startDate)
-        const end = new Date(rule.endDate)
-        const check = new Date(currentDay.getFullYear(), currentDay.getMonth(), currentDay.getDate())
-        const checkStart = new Date(start.getFullYear(), start.getMonth(), start.getDate())
-        const checkEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate())
-        return check >= checkStart && check <= checkEnd
-      })
-      if (specialRule) {
-        baseAmount += specialRule.price
-      } else {
-        const month = currentDay.getMonth()
-        const isHighSeason = isPeak || [11, 0].includes(month)
-        baseAmount += isHighSeason ? room.highSeasonPrice : room.price
-      }
-      currentDay.setDate(currentDay.getDate() + 1)
-    }
-    const pricePerNight = Math.round(baseAmount / nights)
-    const gstAmount = Math.round(baseAmount * (gstRate / 100))
-    const totalAmount = customPrice !== null ? customPrice : (baseAmount + gstAmount)
-
-    const booking = await Booking.create({
-      guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
-      room: room._id,
-      roomSnapshot: { name: room.name, price: pricePerNight, category: room.category },
-      checkIn: checkInDate,
-      checkInTime: checkInTime || '12:00 PM',
-      checkOut: checkOutDate,
-      checkOutTime: checkOutTime || '11:00 AM',
-      nights,
-      guests: parseInt(guests),
-      specialRequests,
-      pricing: { pricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
-      paymentMethod: paymentMethod || 'pay_at_hotel',
-      status: status || 'pending',
-      assignedRoom: assignedRoom || null,
-    })
-
-    // Send confirmation email (async, don't block response)
-    sendConfirmationEmail(booking, room)
-
-    // Send push notification (async)
-    sendBookingNotification(booking)
-
-    res.status(201).json({
-      success: true,
-      message: 'Booking created successfully! Confirmation email sent.',
-      bookingId: booking.bookingId,
-      booking,
-    })
   } catch (error) {
     next(error)
   }

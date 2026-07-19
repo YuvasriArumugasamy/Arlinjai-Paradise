@@ -24,6 +24,12 @@ const STATUS_STYLES = {
   cancelled:    { bg: 'bg-red-400',    text: 'text-white',   label: 'Cancelled' },
 }
 
+const ROOM_NAME_TO_TYPE = {
+  'Deluxe AC Room': 'Deluxe AC',
+  'Normal AC Room': 'Normal AC',
+  'Non AC Room': 'Non AC'
+}
+
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -551,7 +557,7 @@ export default function CalendarPage() {
                       className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs text-gray-700 outline-none cursor-pointer"
                     >
                       <option value="">-- Select a Room --</option>
-                      {rooms.filter(r => r.type === alloc.type).map(r => (
+                      {rooms.filter(r => r.type === (ROOM_NAME_TO_TYPE[alloc.type] || alloc.type)).map(r => (
                         <option key={r.id} value={r.id}>
                           {r.name}
                         </option>

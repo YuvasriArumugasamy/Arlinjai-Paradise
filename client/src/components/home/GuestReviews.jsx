@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Pagination } from 'swiper/modules'
 import { FaStar, FaQuoteLeft } from 'react-icons/fa'
-import { REVIEWS } from '../../constants'
+import { REVIEWS, API_BASE_URL } from '../../constants'
+import axios from 'axios'
 import 'swiper/css'
 import 'swiper/css/pagination'
 
@@ -53,6 +54,29 @@ function ReviewCard({ review }) {
 export default function GuestReviews() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
+  const [reviews, setReviews] = useState([])
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/reviews?approved=true&limit=10`)
+        if (res.data?.success && res.data?.reviews?.length > 0) {
+          const mapped = res.data.reviews.map(r => ({
+            ...r,
+            id: r._id,
+            avatar: r.name ? r.name.charAt(0).toUpperCase() : 'G'
+          }))
+          setReviews(mapped)
+        } else {
+          setReviews(REVIEWS.map(r => ({ ...r, avatar: r.avatar || r.name?.charAt(0) || 'G' })))
+        }
+      } catch (err) {
+        console.error('Failed to fetch guest reviews, fallback to constants:', err)
+        setReviews(REVIEWS.map(r => ({ ...r, avatar: r.avatar || r.name?.charAt(0) || 'G' })))
+      }
+    }
+    fetchReviews()
+  }, [])
 
   return (
     <section className="py-20 lg:py-28 bg-lightbg" ref={ref}>
@@ -108,7 +132,7 @@ export default function GuestReviews() {
             }}
             className="pb-12"
           >
-            {REVIEWS.map((review) => (
+            {reviews.map((review) => (
               <SwiperSlide key={review.id} className="h-auto">
                 <ReviewCard review={review} />
               </SwiperSlide>

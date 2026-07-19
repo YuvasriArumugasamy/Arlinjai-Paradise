@@ -2,51 +2,39 @@ import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaTrash, FaUpload, FaPlus, FaTimes, FaImage, FaCheckCircle } from 'react-icons/fa'
 import toast from 'react-hot-toast'
-import { GALLERY_IMAGES } from '../../constants'
+import { GALLERY_IMAGES, API_BASE_URL } from '../../constants'
+import { authAxios } from '../../context/AuthContext'
 
 const CATEGORIES = ['exterior', 'rooms', 'interior', 'nearby']
-const STORAGE_KEY = 'arlinjai_gallery_images'
-
-// Load from localStorage or fall back to default
-const loadImages = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      return parsed.map(img => {
-        if (img.url && (img.url.endsWith('.jpeg') || img.url.endsWith('.jpg') || img.url.endsWith('.png')) && !img.url.startsWith('data:')) {
-          // Only replace the last extension with .webp
-          const lastDot = img.url.lastIndexOf('.')
-          return { ...img, url: img.url.substring(0, lastDot) + '.webp' }
-        }
-        return img
-      })
-    }
-  } catch {}
-  return GALLERY_IMAGES
-}
-
-// Save to localStorage
-const saveImages = (images) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(images))
-  } catch {
-    console.warn('localStorage save failed (storage full?)')
-  }
-}
 
 export default function GalleryAdminPage() {
-  const [images, setImages] = useState(loadImages)
+  const [images, setImages] = useState([])
   const [showUpload, setShowUpload] = useState(false)
   const [newImage, setNewImage] = useState({ title: '', category: 'rooms', url: '' })
   const [previewUrl, setPreviewUrl] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const fileRef = useRef(null)
 
-  // Auto-save to localStorage whenever images change
+  const fetchImages = async () => {
+    try {
+      const res = await authAxios.get(`${API_BASE_URL}/gallery`)
+      if (res.data?.success && res.data?.images) {
+        const mapped = res.data.images.map(img => {
+          const url = img.url.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${img.url}` : img.url
+          return { ...img, id: img._id, url }
+        })
+        setImages(mapped)
+      }
+    } catch (err) {
+      console.error('Failed to fetch gallery:', err)
+      toast.error('Failed to load gallery images')
+    }
+  }
+
   useEffect(() => {
-    saveImages(images)
-  }, [images])
+    fetchImages()
+  }, [])
 
   // Read file → base64 preview (no backend needed)
   const processFile = (file) => {
@@ -77,18 +65,42 @@ export default function GalleryAdminPage() {
     processFile(e.dataTransfer.files?.[0])
   }
 
-  const handleAdd = () => {
-    if (!newImage.url) {
-      toast.error('Please upload or enter an image URL')
-      return
-    }
+  const handleAdd = async () => {
     if (!newImage.title.trim()) {
       toast.error('Please enter an image title')
       return
     }
-    setImages((prev) => [{ ...newImage, id: Date.now() }, ...prev])
-    toast.success('Image added to gallery!')
-    closeModal()
+
+    setSubmitting(true)
+    const formData = new FormData()
+    formData.append('title', newImage.title)
+    formData.append('category', newImage.category)
+
+    if (fileRef.current?.files?.[0]) {
+      formData.append('image', fileRef.current.files[0])
+    } else if (newImage.url) {
+      formData.append('url', newImage.url)
+    } else {
+      toast.error('Please upload an image file or enter a URL')
+      setSubmitting(false)
+      return
+    }
+
+    try {
+      const res = await authAxios.post(`${API_BASE_URL}/gallery`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      if (res.data?.success) {
+        toast.success('Image added to gallery!')
+        fetchImages()
+        closeModal()
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error(err?.response?.data?.message || 'Failed to upload image')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const closeModal = () => {
@@ -98,10 +110,18 @@ export default function GalleryAdminPage() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Delete this image?')) {
-      setImages((prev) => prev.filter((img) => img.id !== id))
-      toast.success('Image deleted')
+      try {
+        const res = await authAxios.delete(`${API_BASE_URL}/gallery/${id}`)
+        if (res.data?.success) {
+          toast.success('Image deleted')
+          fetchImages()
+        }
+      } catch (err) {
+        console.error(err)
+        toast.error('Failed to delete image')
+      }
     }
   }
 

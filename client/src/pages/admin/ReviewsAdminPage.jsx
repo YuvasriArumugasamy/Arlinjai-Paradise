@@ -1,22 +1,63 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaStar, FaCheck, FaTimes, FaTrash } from 'react-icons/fa'
 import toast from 'react-hot-toast'
-import { REVIEWS } from '../../constants'
+import { REVIEWS, API_BASE_URL } from '../../constants'
+import { authAxios } from '../../context/AuthContext'
 
 export default function ReviewsAdminPage() {
-  const [reviews, setReviews] = useState(
-    REVIEWS.map((r) => ({ ...r, approved: true, pending: false }))
-  )
+  const [reviews, setReviews] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const handleApprove = (id) => {
-    setReviews((prev) => prev.map((r) => r.id === id ? { ...r, approved: true, pending: false } : r))
-    toast.success('Review approved and published')
+  const fetchReviews = async () => {
+    try {
+      const res = await authAxios.get(`${API_BASE_URL}/reviews?limit=100`)
+      if (res.data?.success && res.data?.reviews) {
+        const mapped = res.data.reviews.map(r => ({
+          ...r,
+          id: r._id,
+          avatar: r.name ? r.name.charAt(0).toUpperCase() : 'G'
+        }))
+        setReviews(mapped)
+      }
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err)
+      toast.error('Failed to load reviews')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleReject = (id) => {
-    setReviews((prev) => prev.filter((r) => r.id !== id))
-    toast.success('Review removed')
+  useEffect(() => {
+    fetchReviews()
+  }, [])
+
+  const handleApprove = async (id) => {
+    try {
+      const res = await authAxios.patch(`${API_BASE_URL}/reviews/${id}/approve`, { approved: true })
+      if (res.data?.success) {
+        toast.success('Review approved and published')
+        fetchReviews()
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to approve review')
+    }
+  }
+
+  const handleReject = async (id) => {
+    if (window.confirm('Delete this review permanently?')) {
+      try {
+        const res = await authAxios.delete(`${API_BASE_URL}/reviews/${id}`)
+        if (res.data?.success) {
+          toast.success('Review deleted')
+          fetchReviews()
+        }
+      } catch (err) {
+        console.error(err)
+        toast.error('Failed to delete review')
+      }
+    }
   }
 
   const avgRating = reviews.length > 0

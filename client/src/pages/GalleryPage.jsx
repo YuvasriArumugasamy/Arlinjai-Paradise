@@ -1,29 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaExpand, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import Breadcrumb from '../components/common/Breadcrumb'
-import { GALLERY_IMAGES } from '../constants'
+import { GALLERY_IMAGES, API_BASE_URL } from '../constants'
+import axios from 'axios'
 
 const CATEGORIES = ['all', 'exterior', 'rooms', 'interior', 'nearby']
-
-// Load gallery — admin additions from localStorage take priority
-const loadGalleryImages = () => {
-  try {
-    const saved = localStorage.getItem('arlinjai_gallery_images')
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      return parsed.map(img => {
-        if (img.url && (img.url.endsWith('.jpeg') || img.url.endsWith('.jpg') || img.url.endsWith('.png')) && !img.url.startsWith('data:')) {
-          // Only replace the last extension with .webp
-          const lastDot = img.url.lastIndexOf('.')
-          return { ...img, url: img.url.substring(0, lastDot) + '.webp' }
-        }
-        return img
-      })
-    }
-  } catch {}
-  return GALLERY_IMAGES
-}
 
 /* ── Arrow button with hover-preview thumbnail ── */
 function ArrowBtn({ direction, onClick, previewSrc, previewTitle }) {
@@ -150,9 +132,28 @@ function ArrowBtn({ direction, onClick, previewSrc, previewTitle }) {
 export default function GalleryPage() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [lightboxIndex, setLightboxIndex] = useState(null)
+  const [allImages, setAllImages] = useState([])
 
-  // Load from localStorage (admin additions) or fall back to constants
-  const allImages = loadGalleryImages()
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/gallery`)
+        if (res.data?.success && res.data?.images?.length > 0) {
+          const mapped = res.data.images.map(img => {
+            const url = img.url.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${img.url}` : img.url
+            return { ...img, id: img._id, url }
+          })
+          setAllImages(mapped)
+        } else {
+          setAllImages(GALLERY_IMAGES)
+        }
+      } catch (err) {
+        console.error('Failed to fetch gallery from server, fallback to static:', err)
+        setAllImages(GALLERY_IMAGES)
+      }
+    }
+    fetchImages()
+  }, [])
 
   const filtered = activeCategory === 'all'
     ? allImages

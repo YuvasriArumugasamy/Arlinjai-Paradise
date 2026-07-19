@@ -9,17 +9,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir)
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase()
-    const timestamp = Date.now()
-    const random = Math.round(Math.random() * 1e6)
-    cb(null, `arlinjai_${timestamp}_${random}${ext}`)
-  },
-})
+const storage = multer.memoryStorage()
 
 // File filter - images only
 const fileFilter = (req, file, cb) => {

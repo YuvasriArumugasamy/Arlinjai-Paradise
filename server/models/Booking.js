@@ -114,8 +114,13 @@ const bookingSchema = new mongoose.Schema(
 // Auto-generate booking ID
 bookingSchema.pre('save', async function (next) {
   if (!this.bookingId) {
-    const count = await mongoose.model('Booking').countDocuments()
-    this.bookingId = `AJ${String(count + 1).padStart(6, '0')}`
+    const Counter = require('./Counter')
+    const counter = await Counter.findOneAndUpdate(
+      { id: 'bookingId' },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    )
+    this.bookingId = `AJ${String(counter.seq).padStart(6, '0')}`
   }
   next()
 })

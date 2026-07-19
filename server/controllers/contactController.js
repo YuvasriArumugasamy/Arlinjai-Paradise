@@ -4,10 +4,12 @@ const nodemailer = require('nodemailer')
 
 const sendAcknowledgementEmail = async (contact) => {
   try {
+    const port = parseInt(process.env.EMAIL_PORT)
+    const isSecure = port === 465 || process.env.EMAIL_SECURE === 'true'
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: parseInt(process.env.EMAIL_PORT),
-      secure: false,
+      port: port,
+      secure: isSecure,
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
     })
 
