@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { FaBed, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaTimes, FaCoins, FaRegCalendarAlt } from 'react-icons/fa'
+import { FaBed, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaTimes, FaCoins, FaRegCalendarAlt, FaPercentage, FaSun } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { authAxios } from '../../context/AuthContext'
 import { API_BASE_URL } from '../../constants'
@@ -33,8 +33,6 @@ const STATUS_STYLES = {
   maintenance: { bg: 'bg-red-100',    text: 'text-red-600',    label: 'Maintenance' },
 }
 
-const ROOM_TYPES = ['Deluxe AC', 'Normal AC', 'Non AC']
-
 export default function RoomsAdminPage() {
   const [rooms, setRooms] = useState(INITIAL_ROOMS)
   const [dbRooms, setDbRooms] = useState([])
@@ -43,9 +41,15 @@ export default function RoomsAdminPage() {
   const [showModal, setShowModal] = useState(false)
   const [editRoom, setEditRoom] = useState(null)
 
+  // Category Pricing
   const [showCategoryModal, setShowCategoryModal] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null)
   const [categoryForm, setCategoryForm] = useState({ price: 0, highSeasonPrice: 0 })
+
+  // Global Settings (Peak Season & GST)
+  const [globalSettings, setGlobalSettings] = useState({ isPeakSeason: false, gstRate: 12 })
+  const [settingsLoading, setSettingsLoading] = useState(true)
+  const [gstFormRate, setGstFormRate] = useState(12)
 
   const fetchDbRooms = async () => {
     try {
@@ -62,9 +66,59 @@ export default function RoomsAdminPage() {
     }
   }
 
+  const fetchSettings = async () => {
+    try {
+      setSettingsLoading(true)
+      const res = await authAxios.get(`${API_BASE_URL}/settings`)
+      if (res.data?.success && res.data?.settings) {
+        setGlobalSettings(res.data.settings)
+        setGstFormRate(res.data.settings.gstRate)
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to load global settings')
+    } finally {
+      setSettingsLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchDbRooms()
+    fetchSettings()
   }, [])
+
+  // Toggle Peak Season
+  const handleTogglePeakSeason = async () => {
+    try {
+      const nextVal = !globalSettings.isPeakSeason
+      const res = await authAxios.put(`${API_BASE_URL}/settings`, {
+        isPeakSeason: nextVal
+      })
+      if (res.data?.success) {
+        setGlobalSettings(res.data.settings)
+        toast.success(nextVal ? 'Peak season pricing activated!' : 'Peak season pricing deactivated')
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to update peak season setting')
+    }
+  }
+
+  // Update GST Rate
+  const handleSaveGst = async () => {
+    try {
+      const res = await authAxios.put(`${API_BASE_URL}/settings`, {
+        gstRate: Number(gstFormRate)
+      })
+      if (res.data?.success) {
+        setGlobalSettings(res.data.settings)
+        toast.success(`GST rate updated to ${gstFormRate}% successfully!`)
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to update GST rate')
+    }
+  }
 
   // Map individual rooms with prices from DB
   const mappedRooms = useMemo(() => {
@@ -172,51 +226,123 @@ export default function RoomsAdminPage() {
         })}
       </div>
 
-      {/* ── Dynamic Category Pricing Section ── */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="font-playfair text-xl font-bold text-navy mb-4 flex items-center gap-2">
-          <FaCoins className="text-gold" /> Room Categories Base Pricing
-        </h3>
-        <p className="font-poppins text-xs text-gray-500 mb-6">
-          Set base and peak season prices for the 3 main room categories. Changes made here apply across the entire site instantly.
-        </p>
+      {/* Pricing & Control Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Side: Room Categories Base Pricing Card */}
+        <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+          <div>
+            <h3 className="font-playfair text-xl font-bold text-navy mb-2 flex items-center gap-2">
+              <FaCoins className="text-gold" /> Room Categories Base Pricing
+            </h3>
+            <p className="font-poppins text-xs text-gray-500 mb-6">
+              Set base and peak season prices for the 3 main room categories.
+            </p>
 
-        {dbLoading ? (
-          <div className="flex justify-center py-6">
-            <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {dbRooms.map((category) => (
-              <div key={category._id} className="border border-gray-200 rounded-xl p-5 hover:border-gold transition-colors flex flex-col justify-between">
-                <div>
-                  <span className="bg-gold/10 text-[#c5a028] font-poppins text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                    {category.category}
-                  </span>
-                  <h4 className="font-playfair font-bold text-navy text-lg mt-2 mb-4">{category.name}</h4>
-                  
-                  <div className="space-y-2 font-poppins text-sm text-gray-600 mb-6">
-                    <div className="flex justify-between">
-                      <span>Normal Price:</span>
-                      <strong className="text-navy">₹{category.price}</strong>
+            {dbLoading ? (
+              <div className="flex justify-center py-6">
+                <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {dbRooms.map((category) => (
+                  <div key={category._id} className="border border-gray-200 rounded-xl p-4 hover:border-gold transition-colors flex flex-col justify-between">
+                    <div>
+                      <span className="bg-gold/10 text-[#c5a028] font-poppins text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                        {category.category}
+                      </span>
+                      <h4 className="font-playfair font-bold text-navy text-sm mt-2 mb-3">{category.name}</h4>
+                      
+                      <div className="space-y-1.5 font-poppins text-xs text-gray-600 mb-4">
+                        <div className="flex justify-between">
+                          <span>Normal:</span>
+                          <strong className="text-navy">₹{category.price}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Peak:</span>
+                          <strong className="text-[#c5a028]">₹{category.highSeasonPrice}</strong>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Peak Season:</span>
-                      <strong className="text-[#c5a028]">₹{category.highSeasonPrice}</strong>
-                    </div>
+
+                    <button
+                      onClick={() => handleEditCategoryClick(category)}
+                      className="w-full py-2 bg-navy hover:bg-navy/90 text-white font-poppins font-medium text-[10px] rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <FaEdit size={10} /> Edit Rates
+                    </button>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Side: Seasonal & Tax Controls Card */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+          <div>
+            <h3 className="font-playfair text-xl font-bold text-navy mb-2 flex items-center gap-2">
+              <FaPercentage className="text-gold" /> Tax & Seasonal Controls
+            </h3>
+            <p className="font-poppins text-xs text-gray-500 mb-6">
+              Configure global billing tax rates and season price triggers.
+            </p>
+
+            {settingsLoading ? (
+              <div className="flex justify-center py-6">
+                <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Peak Season Control */}
+                <div className="border border-gray-200 rounded-xl p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="font-poppins text-xs font-semibold text-gray-700">Peak Season Pricing</span>
+                    <span className={`px-2 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider ${
+                      globalSettings.isPeakSeason ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {globalSettings.isPeakSeason ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleTogglePeakSeason}
+                    className={`w-full py-2 px-4 rounded-lg font-poppins text-xs font-semibold transition-colors flex items-center justify-center gap-2 ${
+                      globalSettings.isPeakSeason
+                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    <FaSun size={12} /> Toggle Peak Season
+                  </button>
                 </div>
 
-                <button
-                  onClick={() => handleEditCategoryClick(category)}
-                  className="w-full py-2.5 bg-navy hover:bg-navy/90 text-white font-poppins font-medium text-xs rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <FaEdit size={12} /> Edit Category Pricing
-                </button>
+                {/* GST Percentage Control */}
+                <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+                  <label className="block font-poppins text-xs font-semibold text-gray-700">GST Billing Rate (%)</label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={gstFormRate}
+                        onChange={(e) => setGstFormRate(e.target.value)}
+                        className="w-full border border-gray-200 rounded-lg pl-4 pr-8 py-2 focus:outline-none focus:border-gold font-poppins text-xs text-gray-700"
+                        placeholder="12"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 font-poppins text-xs font-semibold text-gray-400">%</span>
+                    </div>
+                    <button
+                      onClick={handleSaveGst}
+                      className="px-4 bg-navy hover:bg-navy/90 text-white font-poppins font-semibold text-xs rounded-lg transition-colors flex items-center justify-center"
+                    >
+                      Update
+                    </button>
+                  </div>
+                </div>
               </div>
-            ))}
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Room Cards Grid */}
@@ -227,7 +353,7 @@ export default function RoomsAdminPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
           {mappedRooms.sort((a, b) => a.roomNo - b.roomNo).map((room, ri) => {
             const st = STATUS_STYLES[room.status]
-            const isPeak = localStorage.getItem('isPeakSeason') === 'true'
+            const isPeak = globalSettings.isPeakSeason
             const displayPrice = isPeak ? room.peakPrice : room.weekdayPrice
             return (
               <motion.div

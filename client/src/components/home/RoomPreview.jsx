@@ -98,6 +98,7 @@ export default function RoomPreview() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-100px' })
   const [dbRooms, setDbRooms] = useState([])
+  const [globalSettings, setGlobalSettings] = useState({ isPeakSeason: false, gstRate: 12 })
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/rooms`)
@@ -107,6 +108,14 @@ export default function RoomPreview() {
         }
       })
       .catch(err => console.error('Failed to fetch rooms:', err))
+
+    axios.get(`${API_BASE_URL}/settings`)
+      .then(res => {
+        if (res.data?.success && res.data?.settings) {
+          setGlobalSettings(res.data.settings)
+        }
+      })
+      .catch(err => console.error('Failed to fetch settings:', err))
   }, [])
 
   const mergedRooms = useMemo(() => {
@@ -116,15 +125,14 @@ export default function RoomPreview() {
         return {
           ...staticRoom,
           get price() {
-            const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
-            return isPeak ? dbRoom.highSeasonPrice : dbRoom.price
+            return globalSettings.isPeakSeason ? dbRoom.highSeasonPrice : dbRoom.price
           },
           highSeasonPrice: dbRoom.highSeasonPrice,
         }
       }
       return staticRoom
     })
-  }, [dbRooms])
+  }, [dbRooms, globalSettings])
 
   return (
     <section className="py-20 lg:py-28 bg-white" ref={ref}>

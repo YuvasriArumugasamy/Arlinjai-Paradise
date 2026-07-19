@@ -37,6 +37,7 @@ export default function RoomsPage() {
   const [guests, setGuests] = useState('any')
   const [filterOpen, setFilterOpen] = useState(false)
   const [dbRooms, setDbRooms] = useState([])
+  const [globalSettings, setGlobalSettings] = useState({ isPeakSeason: false, gstRate: 12 })
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/rooms`)
@@ -46,6 +47,14 @@ export default function RoomsPage() {
         }
       })
       .catch(err => console.error('Failed to fetch rooms:', err))
+
+    axios.get(`${API_BASE_URL}/settings`)
+      .then(res => {
+        if (res.data?.success && res.data?.settings) {
+          setGlobalSettings(res.data.settings)
+        }
+      })
+      .catch(err => console.error('Failed to fetch settings:', err))
   }, [])
 
   const mergedRooms = useMemo(() => {
@@ -55,15 +64,14 @@ export default function RoomsPage() {
         return {
           ...staticRoom,
           get price() {
-            const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
-            return isPeak ? dbRoom.highSeasonPrice : dbRoom.price
+            return globalSettings.isPeakSeason ? dbRoom.highSeasonPrice : dbRoom.price
           },
           highSeasonPrice: dbRoom.highSeasonPrice,
         }
       }
       return staticRoom
     })
-  }, [dbRooms])
+  }, [dbRooms, globalSettings])
 
   const filteredRooms = useMemo(() => {
     return mergedRooms.filter((room) => {

@@ -257,6 +257,7 @@ export default function BookingPage() {
   })
 
   const [dbRooms, setDbRooms] = useState([])
+  const [globalSettings, setGlobalSettings] = useState({ isPeakSeason: false, gstRate: 12 })
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/rooms`)
@@ -266,6 +267,14 @@ export default function BookingPage() {
         }
       })
       .catch(err => console.error('Failed to fetch rooms:', err))
+
+    axios.get(`${API_BASE_URL}/settings`)
+      .then(res => {
+        if (res.data?.success && res.data?.settings) {
+          setGlobalSettings(res.data.settings)
+        }
+      })
+      .catch(err => console.error('Failed to fetch settings:', err))
   }, [])
 
   const mergedRooms = useMemo(() => {
@@ -275,15 +284,14 @@ export default function BookingPage() {
         return {
           ...staticRoom,
           get price() {
-            const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
-            return isPeak ? dbRoom.highSeasonPrice : dbRoom.price
+            return globalSettings.isPeakSeason ? dbRoom.highSeasonPrice : dbRoom.price
           },
           highSeasonPrice: dbRoom.highSeasonPrice,
         }
       }
       return staticRoom
     })
-  }, [dbRooms])
+  }, [dbRooms, globalSettings])
 
   const selectedRoom = mergedRooms.find((r) => r.id === bookingData.roomId)
 
@@ -295,7 +303,7 @@ export default function BookingPage() {
 
   const nights = getNights()
   const basePrice = selectedRoom ? selectedRoom.price * nights : 0
-  const gstAmount = Math.round(basePrice * 0.12)
+  const gstAmount = Math.round(basePrice * (globalSettings.gstRate / 100))
   const totalPrice = basePrice + gstAmount
 
   const createRazorpayOrder = async () => {

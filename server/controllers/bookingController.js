@@ -110,6 +110,11 @@ const createBooking = async (req, res, next) => {
 
     let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, status, assignedRoom } = req.body
 
+    const Settings = require('../models/Settings')
+    const globalSettings = await Settings.findOne({ key: 'global' })
+    const isPeak = globalSettings ? globalSettings.isPeakSeason : false
+    const gstRate = globalSettings ? globalSettings.gstRate : 12
+
     // Fallback for empty email in offline bookings
     if (!email || email.trim() === '') {
       email = 'offline@arlinjaiparadise.com'
@@ -171,8 +176,10 @@ const createBooking = async (req, res, next) => {
       }
 
       const customPrice = roomAmount ? parseFloat(roomAmount) : null
-      const finalPricePerNight = customPrice !== null ? Math.round(customPrice / nights) : sr.price
-      const totalAmount = customPrice !== null ? customPrice : sr.price * nights
+      const finalPricePerNight = customPrice !== null ? Math.round(customPrice / nights) : (isPeak ? sr.highSeasonPrice : sr.price)
+      const baseAmount = finalPricePerNight * nights
+      const gstAmount = Math.round(baseAmount * (gstRate / 100))
+      const totalAmount = customPrice !== null ? customPrice : (baseAmount + gstAmount)
 
       const booking = await Booking.create({
         guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
@@ -218,11 +225,13 @@ const createBooking = async (req, res, next) => {
     }
 
     const checkInMonth = checkInDate.getMonth()
-    const isHighSeason = [11, 0].includes(checkInMonth)
+    const isHighSeason = isPeak || [11, 0].includes(checkInMonth)
     
     const customPrice = roomAmount ? parseFloat(roomAmount) : null
     const pricePerNight = customPrice !== null ? Math.round(customPrice / nights) : (isHighSeason ? room.highSeasonPrice : room.price)
-    const totalAmount = customPrice !== null ? customPrice : pricePerNight * nights
+    const baseAmount = pricePerNight * nights
+    const gstAmount = Math.round(baseAmount * (gstRate / 100))
+    const totalAmount = customPrice !== null ? customPrice : (baseAmount + gstAmount)
 
     const booking = await Booking.create({
       guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
