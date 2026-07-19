@@ -170,18 +170,17 @@ const sendBookingNotification = async (booking) => {
     const messaging = admin?.messaging()
     if (!messaging) return
 
-    // Find token by guest email if available
-    const tokenDoc = booking.guest?.email
-      ? await FcmToken.findOne({ email: booking.guest.email.toLowerCase() })
-      : null
+    // Broadcast to all registered devices (admins/reception)
+    const tokens = await FcmToken.find({}).select('token')
+    const tokenList = tokens.map((t) => t.token)
 
-    if (!tokenDoc) return
+    if (tokenList.length === 0) return
 
-    await messaging.send({
-      token: tokenDoc.token,
+    const response = await messaging.sendEachForMulticast({
+      tokens: tokenList,
       notification: {
-        title: '✅ Booking Confirmed!',
-        body: `Booking ${booking.bookingId} confirmed for ${booking.roomSnapshot?.name}. Check-in: ${new Date(booking.checkIn).toLocaleDateString('en-IN')}`,
+        title: '🔔 New Booking Received!',
+        body: `Booking ${booking.bookingId} created by ${booking.guest?.name || 'Guest'} for ${booking.roomSnapshot?.name}.`,
       },
       webpush: {
         notification: {
@@ -190,11 +189,20 @@ const sendBookingNotification = async (booking) => {
       },
       data: {
         bookingId: booking.bookingId,
-        type: 'booking_confirmed',
+        type: 'new_booking',
       },
     })
 
-    console.log(`📲 Push notification sent for booking ${booking.bookingId}`)
+    // Clean up invalid/expired tokens
+    const invalidTokens = []
+    response.responses.forEach((r, i) => {
+      if (!r.success) invalidTokens.push(tokenList[i])
+    })
+    if (invalidTokens.length > 0) {
+      await FcmToken.deleteMany({ token: { $in: invalidTokens } })
+    }
+
+    console.log(`📲 Broadcasted push notification for booking ${booking.bookingId}`)
   } catch (err) {
     console.error('Push notification failed:', err.message)
   }
