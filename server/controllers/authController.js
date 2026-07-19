@@ -173,18 +173,13 @@ const refreshAccessToken = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid or expired session. Please login.' })
     }
 
-    // Issue new access token + rotate refresh token
+    // Issue new access token (keep the same refresh token to prevent multi-tab desync logouts)
     const newAccessToken = generateAccessToken(user._id)
-    const newRefreshToken = generateRefreshToken()
-    user.refreshToken = hashToken(newRefreshToken)
-    await user.save({ validateBeforeSave: false })
-
-    setRefreshCookie(res, newRefreshToken)
 
     res.json({
       success: true,
       accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
+      refreshToken: token,
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
     })
   } catch (error) {
