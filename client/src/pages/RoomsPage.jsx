@@ -64,6 +64,19 @@ export default function RoomsPage() {
         return {
           ...staticRoom,
           get price() {
+            const today = new Date()
+            const specialRule = (globalSettings.specialPrices || []).find(rule => {
+              if (rule.roomCategory !== dbRoom.category) return false
+              const start = new Date(rule.startDate)
+              const end = new Date(rule.endDate)
+              const check = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+              const checkStart = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+              const checkEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+              return check >= checkStart && check <= checkEnd
+            })
+            if (specialRule) {
+              return specialRule.price
+            }
             return globalSettings.isPeakSeason ? dbRoom.highSeasonPrice : dbRoom.price
           },
           highSeasonPrice: dbRoom.highSeasonPrice,

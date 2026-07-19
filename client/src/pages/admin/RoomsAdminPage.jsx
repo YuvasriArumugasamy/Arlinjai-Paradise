@@ -199,13 +199,32 @@ export default function RoomsAdminPage() {
       }
       const slug = typeToSlug[room.type]
       const dbRoom = dbRooms.find(r => r.slug === slug)
+      
+      const basePrice = dbRoom ? dbRoom.price : 0
+      const peakPrice = dbRoom ? dbRoom.highSeasonPrice : 0
+      
+      // Check if there is an active special price rule for TODAY
+      const today = new Date()
+      const specialRule = (globalSettings.specialPrices || []).find(rule => {
+        if (!dbRoom || rule.roomCategory !== dbRoom.category) return false
+        const start = new Date(rule.startDate)
+        const end = new Date(rule.endDate)
+        const check = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        const checkStart = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+        const checkEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+        return check >= checkStart && check <= checkEnd
+      })
+      
+      const displayPrice = specialRule ? specialRule.price : (globalSettings.isPeakSeason ? peakPrice : basePrice)
+
       return {
         ...room,
-        weekdayPrice: dbRoom ? dbRoom.price : 0,
-        peakPrice: dbRoom ? dbRoom.highSeasonPrice : 0
+        weekdayPrice: basePrice,
+        peakPrice: peakPrice,
+        displayPrice
       }
     })
-  }, [rooms, dbRooms])
+  }, [rooms, dbRooms, globalSettings])
 
   const totalAvailable   = rooms.filter((r) => r.status === 'available').length
   const totalOccupied    = rooms.filter((r) => r.status === 'occupied').length
@@ -536,8 +555,7 @@ export default function RoomsAdminPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
           {mappedRooms.sort((a, b) => a.roomNo - b.roomNo).map((room, ri) => {
             const st = STATUS_STYLES[room.status]
-            const isPeak = globalSettings.isPeakSeason
-            const displayPrice = isPeak ? room.peakPrice : room.weekdayPrice
+            const displayPrice = room.displayPrice
             return (
               <motion.div
                 key={room.roomNo}
