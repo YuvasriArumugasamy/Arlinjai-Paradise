@@ -30,16 +30,22 @@ export function AuthProvider({ children }) {
     // De-duplicate: if a refresh is already in-flight, wait for it
     if (refreshPromiseRef.current) return refreshPromiseRef.current
 
+    const storedRefreshToken = localStorage.getItem('refreshToken')
+
     refreshPromiseRef.current = axios
-      .post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+      .post(`${API_BASE_URL}/auth/refresh`, { refreshToken: storedRefreshToken }, { withCredentials: true })
       .then((res) => {
         setAccessToken(res.data.accessToken)
         setUser(res.data.user)
+        if (res.data.refreshToken) {
+          localStorage.setItem('refreshToken', res.data.refreshToken)
+        }
         return res.data.accessToken
       })
       .catch(() => {
         setAccessToken(null)
         setUser(null)
+        localStorage.removeItem('refreshToken')
         return null
       })
       .finally(() => {
@@ -63,6 +69,9 @@ export function AuthProvider({ children }) {
     )
     setAccessToken(res.data.accessToken)
     setUser(res.data.user)
+    if (res.data.refreshToken) {
+      localStorage.setItem('refreshToken', res.data.refreshToken)
+    }
     return res.data
   }
 
@@ -75,6 +84,7 @@ export function AuthProvider({ children }) {
     }
     setAccessToken(null)
     setUser(null)
+    localStorage.removeItem('refreshToken')
   }
 
   // ── axios interceptors ───────────────────────────────────────────────────

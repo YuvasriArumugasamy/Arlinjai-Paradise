@@ -106,6 +106,7 @@ const login = async (req, res, next) => {
       success: true,
       message: 'Login successful',
       accessToken,
+      refreshToken,
       user: {
         id: user._id,
         name: user.name,
@@ -160,7 +161,7 @@ const changePassword = async (req, res, next) => {
 // @access  Public (cookie required)
 const refreshAccessToken = async (req, res, next) => {
   try {
-    const token = req.cookies?.refreshToken
+    const token = req.cookies?.refreshToken || req.body?.refreshToken
     if (!token) {
       return res.status(401).json({ message: 'No refresh token. Please login.' })
     }
@@ -183,6 +184,7 @@ const refreshAccessToken = async (req, res, next) => {
     res.json({
       success: true,
       accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
     })
   } catch (error) {
