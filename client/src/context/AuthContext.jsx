@@ -16,8 +16,17 @@ const AuthContext = createContext(null)
 export const authAxios = axios.create({ baseURL: API_BASE_URL, withCredentials: true })
 
 export function AuthProvider({ children }) {
-  const [accessToken, setAccessToken] = useState(null)
-  const [user, setUser] = useState(null)
+  const [accessToken, setAccessToken] = useState(() => {
+    return localStorage.getItem('token') || null
+  })
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('user')
+      return savedUser ? JSON.parse(savedUser) : null
+    } catch {
+      return null
+    }
+  })
   const [loading, setLoading] = useState(true) // true until initial refresh check done
 
   // Prevent multiple simultaneous refresh calls
@@ -25,7 +34,7 @@ export function AuthProvider({ children }) {
 
   // ── Core: get a valid access token (refresh if needed) ──────────────────
   const getValidToken = useCallback(async () => {
-    if (accessToken) return accessToken
+    const currentToken = accessToken || localStorage.getItem('token')
 
     // De-duplicate: if a refresh is already in-flight, wait for it
     if (refreshPromiseRef.current) return refreshPromiseRef.current
@@ -35,18 +44,34 @@ export function AuthProvider({ children }) {
     refreshPromiseRef.current = axios
       .post(`${API_BASE_URL}/auth/refresh`, { refreshToken: storedRefreshToken }, { withCredentials: true })
       .then((res) => {
-        setAccessToken(res.data.accessToken)
-        setUser(res.data.user)
-        if (res.data.refreshToken) {
-          localStorage.setItem('refreshToken', res.data.refreshToken)
+        const newAccessToken = res.data.accessToken
+        const newUser = res.data.user
+        const newRefreshToken = res.data.refreshToken
+
+        if (newAccessToken) {
+          setAccessToken(newAccessToken)
+          localStorage.setItem('token', newAccessToken)
         }
-        return res.data.accessToken
+        if (newUser) {
+          setUser(newUser)
+          localStorage.setItem('user', JSON.stringify(newUser))
+        }
+        if (newRefreshToken) {
+          localStorage.setItem('refreshToken', newRefreshToken)
+        }
+        return newAccessToken || currentToken
       })
-      .catch(() => {
-        setAccessToken(null)
-        setUser(null)
-        localStorage.removeItem('refreshToken')
-        return null
+      .catch((err) => {
+        // Only clear session if server explicitly returns 401/403
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          setAccessToken(null)
+          setUser(null)
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          localStorage.removeItem('refreshToken')
+          return null
+        }
+        return currentToken
       })
       .finally(() => {
         refreshPromiseRef.current = null
@@ -67,11 +92,15 @@ export function AuthProvider({ children }) {
       { email, password },
       { withCredentials: true }
     )
-    setAccessToken(res.data.accessToken)
-    setUser(res.data.user)
-    if (res.data.refreshToken) {
-      localStorage.setItem('refreshToken', res.data.refreshToken)
-    }
+    const { accessToken: newToken, refreshToken: newRefreshToken, user: newUser } = res.data
+
+    setAccessToken(newToken)
+    setUser(newUser)
+
+    if (newToken) localStorage.setItem('token', newToken)
+    if (newUser) localStorage.setItem('user', JSON.stringify(newUser))
+    if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken)
+
     return res.data
   }
 
@@ -84,6 +113,8 @@ export function AuthProvider({ children }) {
     }
     setAccessToken(null)
     setUser(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
     localStorage.removeItem('refreshToken')
   }
 
@@ -91,8 +122,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // REQUEST: attach access token to every authAxios call
     const reqId = authAxios.interceptors.request.use((config) => {
-      if (accessToken) {
-        config.headers['Authorization'] = `Bearer ${accessToken}`
+      const token = accessToken || localStorage.getItem('token')
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`
       }
       return config
     })
@@ -112,6 +144,9 @@ export function AuthProvider({ children }) {
           // Refresh also failed → redirect to login
           setAccessToken(null)
           setUser(null)
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          localStorage.removeItem('refreshToken')
           window.location.href = '/login'
         }
         return Promise.reject(error)
