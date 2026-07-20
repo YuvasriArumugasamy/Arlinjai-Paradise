@@ -342,8 +342,8 @@ export default function BookingPage() {
 
     const stdInTime = globalSettings?.standardCheckInTime || '11:00'
     const stdOutTime = globalSettings?.standardCheckOutTime || '09:00'
-    const earlyFeeVal = globalSettings?.earlyCheckInFee !== undefined ? globalSettings.earlyCheckInFee : 500
-    const lateFeeVal = globalSettings?.lateCheckOutFee !== undefined ? globalSettings.lateCheckOutFee : 500
+    const earlyFeeVal = globalSettings?.earlyCheckInFee !== undefined ? Number(globalSettings.earlyCheckInFee) : 500
+    const lateFeeVal = globalSettings?.lateCheckOutFee !== undefined ? Number(globalSettings.lateCheckOutFee) : 500
 
     if (bookingData.checkInTime) {
       const parts = bookingData.checkInTime.split(':')

@@ -112,15 +112,15 @@ export default function SettingsPage() {
   })
 
   useEffect(() => {
-    authAxios.get('/settings')
+    authAxios.get(`${API_BASE_URL}/settings`)
       .then(res => {
         if (res.data?.success && res.data?.settings) {
           const s = res.data.settings
           setTimingRules({
             standardCheckInTime: s.standardCheckInTime || '11:00',
             standardCheckOutTime: s.standardCheckOutTime || '09:00',
-            earlyCheckInFee: s.earlyCheckInFee !== undefined ? s.earlyCheckInFee : 500,
-            lateCheckOutFee: s.lateCheckOutFee !== undefined ? s.lateCheckOutFee : 500,
+            earlyCheckInFee: s.earlyCheckInFee !== undefined ? Number(s.earlyCheckInFee) : 500,
+            lateCheckOutFee: s.lateCheckOutFee !== undefined ? Number(s.lateCheckOutFee) : 500,
           })
         }
       })
@@ -129,7 +129,22 @@ export default function SettingsPage() {
 
   const handleSaveTimingRules = async () => {
     try {
-      await authAxios.put('/settings', timingRules)
+      const payload = {
+        standardCheckInTime: timingRules.standardCheckInTime,
+        standardCheckOutTime: timingRules.standardCheckOutTime,
+        earlyCheckInFee: Number(timingRules.earlyCheckInFee),
+        lateCheckOutFee: Number(timingRules.lateCheckOutFee),
+      }
+      const res = await authAxios.put(`${API_BASE_URL}/settings`, payload)
+      if (res.data?.success && res.data?.settings) {
+        const s = res.data.settings
+        setTimingRules({
+          standardCheckInTime: s.standardCheckInTime || '11:00',
+          standardCheckOutTime: s.standardCheckOutTime || '09:00',
+          earlyCheckInFee: s.earlyCheckInFee !== undefined ? Number(s.earlyCheckInFee) : 500,
+          lateCheckOutFee: s.lateCheckOutFee !== undefined ? Number(s.lateCheckOutFee) : 500,
+        })
+      }
       toast.success('Check-in / Check-out timing and fee settings updated successfully!')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update timing rules')
