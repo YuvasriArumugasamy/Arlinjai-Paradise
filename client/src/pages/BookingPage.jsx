@@ -279,13 +279,19 @@ export default function BookingPage() {
     axios.get(`${API_BASE_URL}/settings`)
       .then(res => {
         if (res.data?.success && res.data?.settings) {
-          setGlobalSettings(res.data.settings)
+          const s = res.data.settings
+          setGlobalSettings(prev => ({
+            ...prev,
+            ...s,
+            earlyCheckInFee: (s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) ? Number(s.earlyCheckInFee) : (prev.earlyCheckInFee ?? 500),
+            lateCheckOutFee: (s.lateCheckOutFee !== undefined && s.lateCheckOutFee !== null) ? Number(s.lateCheckOutFee) : (prev.lateCheckOutFee ?? 500),
+          }))
           try {
             localStorage.setItem('arlinjai_timing_rules', JSON.stringify({
-              standardCheckInTime: res.data.settings.standardCheckInTime || '11:00',
-              standardCheckOutTime: res.data.settings.standardCheckOutTime || '09:00',
-              earlyCheckInFee: res.data.settings.earlyCheckInFee !== undefined ? Number(res.data.settings.earlyCheckInFee) : 500,
-              lateCheckOutFee: res.data.settings.lateCheckOutFee !== undefined ? Number(res.data.settings.lateCheckOutFee) : 500,
+              standardCheckInTime: s.standardCheckInTime || '11:00',
+              standardCheckOutTime: s.standardCheckOutTime || '09:00',
+              earlyCheckInFee: (s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) ? Number(s.earlyCheckInFee) : 500,
+              lateCheckOutFee: (s.lateCheckOutFee !== undefined && s.lateCheckOutFee !== null) ? Number(s.lateCheckOutFee) : 500,
             }))
           } catch {}
         }

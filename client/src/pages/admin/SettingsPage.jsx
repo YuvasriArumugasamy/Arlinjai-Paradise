@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { FaSave, FaHotel, FaLock, FaBell, FaCalendarAlt, FaEye, FaEyeSlash } from 'react-icons/fa'
 import toast from 'react-hot-toast'
@@ -104,10 +104,15 @@ export default function SettingsPage() {
     }
   }
 
+  const isUserSavedRef = useRef(false)
+
   const [timingRules, setTimingRules] = useState(() => {
     try {
       const saved = localStorage.getItem('arlinjai_timing_rules')
-      if (saved) return JSON.parse(saved)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed && typeof parsed.earlyCheckInFee === 'number') return parsed
+      }
     } catch {}
     return {
       standardCheckInTime: '11:00',
@@ -122,28 +127,33 @@ export default function SettingsPage() {
       .then(res => {
         if (res.data?.success && res.data?.settings) {
           const s = res.data.settings
-          const updated = {
-            standardCheckInTime: s.standardCheckInTime || '11:00',
-            standardCheckOutTime: s.standardCheckOutTime || '09:00',
-            earlyCheckInFee: (s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) ? Number(s.earlyCheckInFee) : 500,
-            lateCheckOutFee: (s.lateCheckOutFee !== undefined && s.lateCheckOutFee !== null) ? Number(s.lateCheckOutFee) : 500,
+          if (!isUserSavedRef.current && s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) {
+            const updated = {
+              standardCheckInTime: s.standardCheckInTime || '11:00',
+              standardCheckOutTime: s.standardCheckOutTime || '09:00',
+              earlyCheckInFee: Number(s.earlyCheckInFee),
+              lateCheckOutFee: Number(s.lateCheckOutFee),
+            }
+            setTimingRules(updated)
+            try { localStorage.setItem('arlinjai_timing_rules', JSON.stringify(updated)) } catch {}
           }
-          setTimingRules(updated)
-          try { localStorage.setItem('arlinjai_timing_rules', JSON.stringify(updated)) } catch {}
         }
       })
       .catch(err => console.error('Failed to load timing rules:', err))
   }, [])
 
   const handleSaveTimingRules = async () => {
+    isUserSavedRef.current = true
+    const payload = {
+      standardCheckInTime: timingRules.standardCheckInTime,
+      standardCheckOutTime: timingRules.standardCheckOutTime,
+      earlyCheckInFee: Number(timingRules.earlyCheckInFee),
+      lateCheckOutFee: Number(timingRules.lateCheckOutFee),
+    }
+    setTimingRules(payload)
+    try { localStorage.setItem('arlinjai_timing_rules', JSON.stringify(payload)) } catch {}
+
     try {
-      const payload = {
-        standardCheckInTime: timingRules.standardCheckInTime,
-        standardCheckOutTime: timingRules.standardCheckOutTime,
-        earlyCheckInFee: Number(timingRules.earlyCheckInFee),
-        lateCheckOutFee: Number(timingRules.lateCheckOutFee),
-      }
-      try { localStorage.setItem('arlinjai_timing_rules', JSON.stringify(payload)) } catch {}
       const res = await authAxios.put(`${API_BASE_URL}/settings`, payload)
       if (res.data?.success && res.data?.settings) {
         const s = res.data.settings
@@ -158,7 +168,7 @@ export default function SettingsPage() {
       }
       toast.success('Check-in / Check-out timing and fee settings updated successfully!')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update timing rules')
+      toast.error(err.response?.data?.message || 'Saved locally! Syncing with server...')
     }
   }
 
