@@ -7,7 +7,22 @@ const getSettings = async (req, res, next) => {
   try {
     let settings = await Settings.findOne({ key: 'global' })
     if (!settings) {
-      settings = await Settings.create({ key: 'global', isPeakSeason: false, gstRate: 12 })
+      settings = await Settings.create({
+        key: 'global',
+        isPeakSeason: false,
+        gstRate: 12,
+        standardCheckInTime: '11:00',
+        standardCheckOutTime: '09:00',
+        earlyCheckInFee: 500,
+        lateCheckOutFee: 500,
+      })
+    } else {
+      let modified = false
+      if (!settings.standardCheckInTime) { settings.standardCheckInTime = '11:00'; modified = true }
+      if (!settings.standardCheckOutTime) { settings.standardCheckOutTime = '09:00'; modified = true }
+      if (settings.earlyCheckInFee === undefined) { settings.earlyCheckInFee = 500; modified = true }
+      if (settings.lateCheckOutFee === undefined) { settings.lateCheckOutFee = 500; modified = true }
+      if (modified) await settings.save()
     }
     res.json({ success: true, settings })
   } catch (error) {

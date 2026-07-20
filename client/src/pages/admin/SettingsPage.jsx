@@ -4,6 +4,7 @@ import { FaSave, FaHotel, FaLock, FaBell, FaCalendarAlt, FaEye, FaEyeSlash } fro
 import toast from 'react-hot-toast'
 import axios from 'axios'
 import { HOTEL_INFO, API_BASE_URL } from '../../constants'
+import { authAxios } from '../../context/AuthContext'
 import PushNotificationCard from '../../components/admin/PushNotificationCard'
 
 const TABS = [
@@ -111,7 +112,7 @@ export default function SettingsPage() {
   })
 
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/settings`)
+    authAxios.get('/settings')
       .then(res => {
         if (res.data?.success && res.data?.settings) {
           const s = res.data.settings
@@ -128,13 +129,8 @@ export default function SettingsPage() {
 
   const handleSaveTimingRules = async () => {
     try {
-      const token = localStorage.getItem('token')
-      await axios.put(
-        `${API_BASE_URL}/settings`,
-        timingRules,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      toast.success('Check-in / Check-out timing and fee settings updated!')
+      await authAxios.put('/settings', timingRules)
+      toast.success('Check-in / Check-out timing and fee settings updated successfully!')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update timing rules')
     }
