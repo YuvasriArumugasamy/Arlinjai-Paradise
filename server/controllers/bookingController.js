@@ -207,18 +207,34 @@ const createBooking = async (req, res, next) => {
           }
           currentDay.setDate(currentDay.getDate() + 1)
         }
+        let timingFee = 0
+        if (checkInTime) {
+          const parts = checkInTime.split(':')
+          if (parts.length >= 2) {
+            const inMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)
+            if (inMins < 11 * 60) timingFee += 500
+          }
+        }
+        if (checkOutTime) {
+          const parts = checkOutTime.split(':')
+          if (parts.length >= 2) {
+            const outMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)
+            if (outMins > 9 * 60) timingFee += 500
+          }
+        }
         const finalPricePerNight = Math.round(baseAmount / nights)
-        const gstAmount = Math.round(baseAmount * (gstRate / 100))
-        const totalAmount = customPrice !== null ? customPrice : (baseAmount + gstAmount)
+        const subtotal = baseAmount + timingFee
+        const gstAmount = Math.round(subtotal * (gstRate / 100))
+        const totalAmount = customPrice !== null ? customPrice : (subtotal + gstAmount)
 
         const booking = await Booking.create({
           guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
           room: new mongoose.Types.ObjectId('000000000000000000000001'),
           roomSnapshot: { name: sr.name, price: finalPricePerNight, category: sr.category },
           checkIn: checkInDate,
-          checkInTime: checkInTime || '12:00 PM',
+          checkInTime: checkInTime || '11:00',
           checkOut: checkOutDate,
-          checkOutTime: checkOutTime || '11:00 AM',
+          checkOutTime: checkOutTime || '09:00',
           nights,
           guests: parseInt(guests),
           specialRequests,
@@ -276,18 +292,34 @@ const createBooking = async (req, res, next) => {
         }
         currentDay.setDate(currentDay.getDate() + 1)
       }
+      let timingFee = 0
+      if (checkInTime) {
+        const parts = checkInTime.split(':')
+        if (parts.length >= 2) {
+          const inMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)
+          if (inMins < 11 * 60) timingFee += 500
+        }
+      }
+      if (checkOutTime) {
+        const parts = checkOutTime.split(':')
+        if (parts.length >= 2) {
+          const outMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)
+          if (outMins > 9 * 60) timingFee += 500
+        }
+      }
       const pricePerNight = Math.round(baseAmount / nights)
-      const gstAmount = Math.round(baseAmount * (gstRate / 100))
-      const totalAmount = customPrice !== null ? customPrice : (baseAmount + gstAmount)
+      const subtotal = baseAmount + timingFee
+      const gstAmount = Math.round(subtotal * (gstRate / 100))
+      const totalAmount = customPrice !== null ? customPrice : (subtotal + gstAmount)
 
       const booking = await Booking.create({
         guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
         room: room._id,
         roomSnapshot: { name: room.name, price: pricePerNight, category: room.category },
         checkIn: checkInDate,
-        checkInTime: checkInTime || '12:00 PM',
+        checkInTime: checkInTime || '11:00',
         checkOut: checkOutDate,
-        checkOutTime: checkOutTime || '11:00 AM',
+        checkOutTime: checkOutTime || '09:00',
         nights,
         guests: parseInt(guests),
         specialRequests,

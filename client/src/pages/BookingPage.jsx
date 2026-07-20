@@ -240,8 +240,8 @@ export default function BookingPage() {
     roomId: searchParams.get('roomType') || '',
     checkIn: searchParams.get('checkIn') || today,
     checkOut: searchParams.get('checkOut') || '',
-    checkInTime: '',
-    checkOutTime: '',
+    checkInTime: '11:00',
+    checkOutTime: '09:00',
     guests: parseInt(searchParams.get('guests') || '2'),
     name: '',
     gender: '',
@@ -336,9 +336,46 @@ export default function BookingPage() {
     return totalBase
   }
 
+  const getTimingCharges = () => {
+    let earlyCheckInFee = 0
+    let lateCheckOutFee = 0
+
+    if (bookingData.checkInTime) {
+      const parts = bookingData.checkInTime.split(':')
+      if (parts.length >= 2) {
+        const h = parseInt(parts[0], 10)
+        const m = parseInt(parts[1], 10)
+        if (!isNaN(h) && !isNaN(m)) {
+          const inMinutes = h * 60 + m
+          if (inMinutes < 11 * 60) {
+            earlyCheckInFee = 500
+          }
+        }
+      }
+    }
+
+    if (bookingData.checkOutTime) {
+      const parts = bookingData.checkOutTime.split(':')
+      if (parts.length >= 2) {
+        const h = parseInt(parts[0], 10)
+        const m = parseInt(parts[1], 10)
+        if (!isNaN(h) && !isNaN(m)) {
+          const outMinutes = h * 60 + m
+          if (outMinutes > 9 * 60) {
+            lateCheckOutFee = 500
+          }
+        }
+      }
+    }
+
+    return { earlyCheckInFee, lateCheckOutFee, totalTimingFee: earlyCheckInFee + lateCheckOutFee }
+  }
+
   const basePrice = calculateTotalPrice()
-  const gstAmount = Math.round(basePrice * (globalSettings.gstRate / 100))
-  const totalPrice = basePrice + gstAmount
+  const { earlyCheckInFee, lateCheckOutFee, totalTimingFee } = getTimingCharges()
+  const subtotalWithTiming = basePrice + totalTimingFee
+  const gstAmount = Math.round(subtotalWithTiming * ((globalSettings.gstRate || 12) / 100))
+  const totalPrice = subtotalWithTiming + gstAmount
 
   const createRazorpayOrder = async () => {
     const amountInPaise = Math.round(totalPrice * 100)
@@ -775,6 +812,30 @@ export default function BookingPage() {
             <label className="label-text flex items-center gap-2">
               <FaClock size={11} className="text-gold" /> Expected Check-in Time *
             </label>
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => updateBooking('checkInTime', '11:00')}
+                className={`px-3 py-1 text-xs rounded border transition-all ${
+                  bookingData.checkInTime === '11:00'
+                    ? 'bg-gold text-navy font-semibold border-gold'
+                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gold'
+                }`}
+              >
+                11:00 AM (Standard)
+              </button>
+              <button
+                type="button"
+                onClick={() => updateBooking('checkInTime', '12:00')}
+                className={`px-3 py-1 text-xs rounded border transition-all ${
+                  bookingData.checkInTime === '12:00'
+                    ? 'bg-gold text-navy font-semibold border-gold'
+                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gold'
+                }`}
+              >
+                12:00 PM (Standard)
+              </button>
+            </div>
             <input
               type="time"
               value={bookingData.checkInTime}
@@ -782,12 +843,34 @@ export default function BookingPage() {
               className="input-field"
               required
             />
+            {earlyCheckInFee > 0 ? (
+              <p className="text-xs text-amber-600 font-medium mt-1.5 flex items-center gap-1 bg-amber-50 p-2 rounded border border-amber-200">
+                <span>⚠️ Early check-in before 11:00 AM incurs an extra charge (+₹500)</span>
+              </p>
+            ) : (
+              <p className="text-xs text-emerald-600 font-medium mt-1">
+                ✓ Standard Check-in time (11:00 AM - 12:00 PM: Free)
+              </p>
+            )}
           </div>
 
           <div>
             <label className="label-text flex items-center gap-2">
               <FaClock size={11} className="text-gold" /> Expected Check-out Time *
             </label>
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => updateBooking('checkOutTime', '09:00')}
+                className={`px-3 py-1 text-xs rounded border transition-all ${
+                  bookingData.checkOutTime === '09:00'
+                    ? 'bg-gold text-navy font-semibold border-gold'
+                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gold'
+                }`}
+              >
+                09:00 AM (Standard)
+              </button>
+            </div>
             <input
               type="time"
               value={bookingData.checkOutTime}
@@ -795,6 +878,15 @@ export default function BookingPage() {
               className="input-field"
               required
             />
+            {lateCheckOutFee > 0 ? (
+              <p className="text-xs text-amber-600 font-medium mt-1.5 flex items-center gap-1 bg-amber-50 p-2 rounded border border-amber-200">
+                <span>⚠️ Late check-out after 09:00 AM incurs an extra charge (+₹500)</span>
+              </p>
+            ) : (
+              <p className="text-xs text-emerald-600 font-medium mt-1">
+                ✓ Standard Check-out time (09:00 AM: Free)
+              </p>
+            )}
           </div>
 
           {/* Special Requests */}
@@ -902,8 +994,20 @@ export default function BookingPage() {
                 </span>
                 <span className="text-navy">₹{basePrice.toLocaleString()}</span>
               </div>
+              {earlyCheckInFee > 0 && (
+                <div className="flex justify-between font-poppins text-sm text-amber-700">
+                  <span>⚡ Early Check-in Fee (&lt; 11:00 AM)</span>
+                  <span className="font-semibold">+₹{earlyCheckInFee.toLocaleString()}</span>
+                </div>
+              )}
+              {lateCheckOutFee > 0 && (
+                <div className="flex justify-between font-poppins text-sm text-amber-700">
+                  <span>⚡ Late Check-out Fee (&gt; 09:00 AM)</span>
+                  <span className="font-semibold">+₹{lateCheckOutFee.toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between font-poppins text-sm">
-                <span className="text-gray-500">GST (12%)</span>
+                <span className="text-gray-500">GST ({globalSettings.gstRate || 12}%)</span>
                 <span className="text-navy">₹{gstAmount.toLocaleString()}</span>
               </div>
               <div className="flex justify-between font-poppins text-sm border-t pt-2">

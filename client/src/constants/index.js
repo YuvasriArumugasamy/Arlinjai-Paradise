@@ -46,8 +46,8 @@ export const HOTEL_INFO = {
   mapEmbedUrl:
     'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3947.9!2d77.535!3d8.0883!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOMKwMDUnMTcuOSJOIDc3wrAzMicwNi4wIkU!5e0!3m2!1sen!2sin!4v1',
   googleMapsLink: 'https://maps.google.com/?q=Arlinjai+Paradise+Kanyakumari',
-  checkInTime: '12:00 PM',
-  checkOutTime: '11:00 AM',
+  checkInTime: '11:00 AM',
+  checkOutTime: '09:00 AM',
   socialLinks: {
     facebook: 'https://facebook.com',
     instagram: 'https://instagram.com',

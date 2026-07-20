@@ -5,8 +5,8 @@ module.exports = {
     address: 'No. 5/69, Beach Road, Kanyakumari – 629702, Tamil Nadu, India',
     phone: '9486271234',
     email: 'info@arlinjaiparadise.com',
-    checkInTime: '12:00',
-    checkOutTime: '11:00',
+    checkInTime: '11:00',
+    checkOutTime: '09:00',
   },
 
   BOOKING_STATUS: {
