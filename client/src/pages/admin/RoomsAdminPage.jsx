@@ -435,8 +435,70 @@ export default function RoomsAdminPage() {
 
       {/* ── Special Date Pricing Manager ── */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Cols: List of Special Pricing Rules */}
-        <div className="lg:col-span-2 space-y-4">
+        
+        {/* Add Special Pricing Rule Form — Appears FIRST on mobile (order-1), SECOND on desktop (lg:order-2) */}
+        <div className="order-1 lg:order-2 border-b lg:border-b-0 lg:border-l border-gray-100 pb-6 lg:pb-0 lg:pl-8">
+          <h3 className="font-playfair text-lg font-bold text-navy mb-4 flex items-center gap-2">
+            <FaCalendarDay className="text-gold" /> Add Date Override Rate
+          </h3>
+          <form onSubmit={handleAddSpecialPrice} className="space-y-4 font-poppins text-xs">
+            <div>
+              <label className="block text-gray-600 font-semibold mb-1.5">Room Category</label>
+              <select
+                value={specialForm.roomCategory}
+                onChange={(e) => setSpecialForm({ ...specialForm, roomCategory: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:border-gold text-gray-700 cursor-pointer"
+              >
+                <option value="deluxe">Deluxe AC Room</option>
+                <option value="standard">Normal AC Room</option>
+                <option value="budget">Non AC Room</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-600 font-semibold mb-1.5">Start Date</label>
+                <input
+                  type="date"
+                  value={specialForm.startDate}
+                  onChange={(e) => setSpecialForm({ ...specialForm, startDate: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gold text-gray-700"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 font-semibold mb-1.5">End Date</label>
+                <input
+                  type="date"
+                  value={specialForm.endDate}
+                  onChange={(e) => setSpecialForm({ ...specialForm, endDate: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gold text-gray-700"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-600 font-semibold mb-1.5">Rate / Night (₹)</label>
+              <input
+                type="number"
+                min="0"
+                value={specialForm.price}
+                onChange={(e) => setSpecialForm({ ...specialForm, price: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:border-gold text-gray-700"
+                placeholder="e.g. 3500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2.5 bg-navy hover:bg-navy/90 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              Add Date Override
+            </button>
+          </form>
+        </div>
+
+        {/* List of Special Pricing Rules — Appears SECOND on mobile (order-2), FIRST on desktop (lg:order-1) */}
+        <div className="order-2 lg:order-1 lg:col-span-2 space-y-4">
           <h3 className="font-playfair text-xl font-bold text-navy flex items-center gap-2">
             <FaRegCalendarAlt className="text-gold" /> Active Special Date Pricing Rules
           </h3>
@@ -527,66 +589,6 @@ export default function RoomsAdminPage() {
           </div>
         </div>
 
-        {/* Right Col: Add Special Pricing Rule Form */}
-        <div className="border-t lg:border-t-0 lg:border-l border-gray-100 pt-6 lg:pt-0 lg:pl-8">
-          <h3 className="font-playfair text-lg font-bold text-navy mb-4 flex items-center gap-2">
-            <FaCalendarDay className="text-gold" /> Add Date Override Rate
-          </h3>
-          <form onSubmit={handleAddSpecialPrice} className="space-y-4 font-poppins text-xs">
-            <div>
-              <label className="block text-gray-600 font-semibold mb-1.5">Room Category</label>
-              <select
-                value={specialForm.roomCategory}
-                onChange={(e) => setSpecialForm({ ...specialForm, roomCategory: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:border-gold text-gray-700"
-              >
-                <option value="deluxe">Deluxe AC Room</option>
-                <option value="standard">Normal AC Room</option>
-                <option value="budget">Non AC Room</option>
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-gray-600 font-semibold mb-1.5">Start Date</label>
-                <input
-                  type="date"
-                  value={specialForm.startDate}
-                  onChange={(e) => setSpecialForm({ ...specialForm, startDate: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gold text-gray-700"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-600 font-semibold mb-1.5">End Date</label>
-                <input
-                  type="date"
-                  value={specialForm.endDate}
-                  onChange={(e) => setSpecialForm({ ...specialForm, endDate: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gold text-gray-700"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-gray-600 font-semibold mb-1.5">Rate / Night (₹)</label>
-              <input
-                type="number"
-                min="0"
-                value={specialForm.price}
-                onChange={(e) => setSpecialForm({ ...specialForm, price: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:border-gold text-gray-700"
-                placeholder="e.g. 3500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-2.5 bg-navy hover:bg-navy/90 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              Add Date Override
-            </button>
-          </form>
-        </div>
       </div>
 
       {/* Room Cards Grid */}
