@@ -822,25 +822,14 @@ export default function BookingPage() {
             <div className="flex gap-2 mb-2">
               <button
                 type="button"
-                onClick={() => updateBooking('checkInTime', '11:00')}
+                onClick={() => updateBooking('checkInTime', globalSettings?.standardCheckInTime || '11:00')}
                 className={`px-3 py-1 text-xs rounded border transition-all ${
-                  bookingData.checkInTime === '11:00'
+                  bookingData.checkInTime === (globalSettings?.standardCheckInTime || '11:00')
                     ? 'bg-gold text-navy font-semibold border-gold'
                     : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gold'
                 }`}
               >
-                11:00 AM (Standard)
-              </button>
-              <button
-                type="button"
-                onClick={() => updateBooking('checkInTime', '12:00')}
-                className={`px-3 py-1 text-xs rounded border transition-all ${
-                  bookingData.checkInTime === '12:00'
-                    ? 'bg-gold text-navy font-semibold border-gold'
-                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gold'
-                }`}
-              >
-                12:00 PM (Standard)
+                {globalSettings?.standardCheckInTime || '11:00'} (Standard)
               </button>
             </div>
             <input
@@ -852,11 +841,11 @@ export default function BookingPage() {
             />
             {earlyCheckInFee > 0 ? (
               <p className="text-xs text-amber-600 font-medium mt-1.5 flex items-center gap-1 bg-amber-50 p-2 rounded border border-amber-200">
-                <span>⚠️ Early check-in before 11:00 AM incurs an extra charge (+₹500)</span>
+                <span>⚠️ Early check-in before {globalSettings?.standardCheckInTime || '11:00'} incurs an extra charge (+₹{earlyCheckInFee.toLocaleString()})</span>
               </p>
             ) : (
               <p className="text-xs text-emerald-600 font-medium mt-1">
-                ✓ Standard Check-in time (11:00 AM - 12:00 PM: Free)
+                ✓ Standard Check-in time ({globalSettings?.standardCheckInTime || '11:00'}: Free)
               </p>
             )}
           </div>
@@ -868,14 +857,14 @@ export default function BookingPage() {
             <div className="flex gap-2 mb-2">
               <button
                 type="button"
-                onClick={() => updateBooking('checkOutTime', '09:00')}
+                onClick={() => updateBooking('checkOutTime', globalSettings?.standardCheckOutTime || '09:00')}
                 className={`px-3 py-1 text-xs rounded border transition-all ${
-                  bookingData.checkOutTime === '09:00'
+                  bookingData.checkOutTime === (globalSettings?.standardCheckOutTime || '09:00')
                     ? 'bg-gold text-navy font-semibold border-gold'
                     : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gold'
                 }`}
               >
-                09:00 AM (Standard)
+                {globalSettings?.standardCheckOutTime || '09:00'} (Standard)
               </button>
             </div>
             <input
@@ -887,11 +876,11 @@ export default function BookingPage() {
             />
             {lateCheckOutFee > 0 ? (
               <p className="text-xs text-amber-600 font-medium mt-1.5 flex items-center gap-1 bg-amber-50 p-2 rounded border border-amber-200">
-                <span>⚠️ Late check-out after 09:00 AM incurs an extra charge (+₹500)</span>
+                <span>⚠️ Late check-out after {globalSettings?.standardCheckOutTime || '09:00'} incurs an extra charge (+₹{lateCheckOutFee.toLocaleString()})</span>
               </p>
             ) : (
               <p className="text-xs text-emerald-600 font-medium mt-1">
-                ✓ Standard Check-out time (09:00 AM: Free)
+                ✓ Standard Check-out time ({globalSettings?.standardCheckOutTime || '09:00'}: Free)
               </p>
             )}
           </div>
@@ -1003,13 +992,13 @@ export default function BookingPage() {
               </div>
               {earlyCheckInFee > 0 && (
                 <div className="flex justify-between font-poppins text-sm text-amber-700">
-                  <span>⚡ Early Check-in Fee (&lt; 11:00 AM)</span>
+                  <span>⚡ Early Check-in Fee (&lt; {globalSettings?.standardCheckInTime || '11:00'})</span>
                   <span className="font-semibold">+₹{earlyCheckInFee.toLocaleString()}</span>
                 </div>
               )}
               {lateCheckOutFee > 0 && (
                 <div className="flex justify-between font-poppins text-sm text-amber-700">
-                  <span>⚡ Late Check-out Fee (&gt; 09:00 AM)</span>
+                  <span>⚡ Late Check-out Fee (&gt; {globalSettings?.standardCheckOutTime || '09:00'})</span>
                   <span className="font-semibold">+₹{lateCheckOutFee.toLocaleString()}</span>
                 </div>
               )}
