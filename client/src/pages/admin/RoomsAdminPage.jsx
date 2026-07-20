@@ -444,15 +444,16 @@ export default function RoomsAdminPage() {
             Below are active date-range override rules. Bookings within these dates will use these custom rates instead of the base rates.
           </p>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left font-poppins text-xs border-collapse">
               <thead>
                 <tr className="border-b border-gray-200 text-gray-500 font-semibold">
-                  <th className="py-2.5">Category</th>
-                  <th className="py-2.5">Start Date</th>
-                  <th className="py-2.5">End Date</th>
-                  <th className="py-2.5">Rate / Night</th>
-                  <th className="py-2.5 text-right">Action</th>
+                  <th className="py-3 px-3">Category</th>
+                  <th className="py-3 px-3">Start Date</th>
+                  <th className="py-3 px-3">End Date</th>
+                  <th className="py-3 px-3">Rate / Night</th>
+                  <th className="py-3 px-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700">
@@ -463,16 +464,17 @@ export default function RoomsAdminPage() {
                 ) : (
                   globalSettings.specialPrices.map((rule) => (
                     <tr key={rule._id} className="hover:bg-gray-50/50">
-                      <td className="py-2.5 capitalize font-medium text-navy">
+                      <td className="py-3 px-3 capitalize font-semibold text-navy whitespace-nowrap">
                         {rule.roomCategory === 'standard' ? 'Normal AC Room' : rule.roomCategory === 'budget' ? 'Non AC Room' : 'Deluxe AC Room'}
                       </td>
-                      <td className="py-2.5">{new Date(rule.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                      <td className="py-2.5">{new Date(rule.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                      <td className="py-2.5 font-bold text-gold">₹{rule.price}</td>
-                      <td className="py-2.5 text-right font-semibold">
+                      <td className="py-3 px-3 whitespace-nowrap">{new Date(rule.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                      <td className="py-3 px-3 whitespace-nowrap">{new Date(rule.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                      <td className="py-3 px-3 font-bold text-gold whitespace-nowrap">₹{rule.price}</td>
+                      <td className="py-3 px-3 text-right font-semibold whitespace-nowrap">
                         <button
                           onClick={() => handleDeleteSpecialPrice(rule._id)}
                           className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                          title="Delete rule"
                         >
                           <FaTrash size={12} />
                         </button>
@@ -482,6 +484,46 @@ export default function RoomsAdminPage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="sm:hidden space-y-3">
+            {(!globalSettings.specialPrices || globalSettings.specialPrices.length === 0) ? (
+              <div className="py-6 text-center text-gray-400 italic text-xs bg-gray-50 rounded-xl border border-gray-100">
+                No special date pricing rules created yet.
+              </div>
+            ) : (
+              globalSettings.specialPrices.map((rule) => {
+                const categoryName = rule.roomCategory === 'standard'
+                  ? 'Normal AC Room'
+                  : rule.roomCategory === 'budget'
+                  ? 'Non AC Room'
+                  : 'Deluxe AC Room'
+
+                const startStr = new Date(rule.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                const endStr = new Date(rule.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+
+                return (
+                  <div key={rule._id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-poppins font-bold text-sm text-navy">{categoryName}</span>
+                      <button
+                        onClick={() => handleDeleteSpecialPrice(rule._id)}
+                        className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors"
+                        title="Delete rule"
+                      >
+                        <FaTrash size={13} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs font-poppins text-gray-600 pt-1">
+                      <span>📅 {startStr} → {endStr}</span>
+                      <span className="font-bold text-gold text-sm">₹{rule.price} <span className="text-[10px] font-normal text-gray-400">/night</span></span>
+                    </div>
+                  </div>
+                )
+              })
+            )}
           </div>
         </div>
 
