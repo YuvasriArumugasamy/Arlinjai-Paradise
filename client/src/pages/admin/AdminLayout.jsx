@@ -214,9 +214,24 @@ export default function AdminLayout() {
                   )
                 })}
               </nav>
-              <div className="p-3 border-t border-white border-opacity-10">
-                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-red-400">
-                  <FaSignOutAlt size={14} />
+              <div className="p-3 border-t border-white border-opacity-10 space-y-1">
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMobileSidebarOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-sm text-gray-400 
+                             hover:bg-white hover:bg-opacity-5 hover:text-white transition-all duration-200"
+                >
+                  <FaExternalLinkAlt size={14} className="flex-shrink-0" />
+                  <span className="text-sm">View Website</span>
+                </a>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-sm text-gray-400 
+                             hover:bg-red-500 hover:bg-opacity-20 hover:text-red-400 transition-all duration-200"
+                >
+                  <FaSignOutAlt size={14} className="flex-shrink-0" />
                   <span className="text-sm">Sign Out</span>
                 </button>
               </div>
