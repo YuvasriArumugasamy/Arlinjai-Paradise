@@ -256,7 +256,16 @@ export default function BookingPage() {
   })
 
   const [dbRooms, setDbRooms] = useState([])
-  const [globalSettings, setGlobalSettings] = useState({ isPeakSeason: false, gstRate: 12 })
+  const [globalSettings, setGlobalSettings] = useState(() => {
+    try {
+      const savedTiming = localStorage.getItem('arlinjai_timing_rules')
+      if (savedTiming) {
+        const parsed = JSON.parse(savedTiming)
+        return { isPeakSeason: false, gstRate: 12, ...parsed }
+      }
+    } catch {}
+    return { isPeakSeason: false, gstRate: 12 }
+  })
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/rooms`)
@@ -271,6 +280,14 @@ export default function BookingPage() {
       .then(res => {
         if (res.data?.success && res.data?.settings) {
           setGlobalSettings(res.data.settings)
+          try {
+            localStorage.setItem('arlinjai_timing_rules', JSON.stringify({
+              standardCheckInTime: res.data.settings.standardCheckInTime || '11:00',
+              standardCheckOutTime: res.data.settings.standardCheckOutTime || '09:00',
+              earlyCheckInFee: res.data.settings.earlyCheckInFee !== undefined ? Number(res.data.settings.earlyCheckInFee) : 500,
+              lateCheckOutFee: res.data.settings.lateCheckOutFee !== undefined ? Number(res.data.settings.lateCheckOutFee) : 500,
+            }))
+          } catch {}
         }
       })
       .catch(err => console.error('Failed to fetch settings:', err))

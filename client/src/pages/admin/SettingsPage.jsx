@@ -104,24 +104,32 @@ export default function SettingsPage() {
     }
   }
 
-  const [timingRules, setTimingRules] = useState({
-    standardCheckInTime: '11:00',
-    standardCheckOutTime: '09:00',
-    earlyCheckInFee: 500,
-    lateCheckOutFee: 500,
+  const [timingRules, setTimingRules] = useState(() => {
+    try {
+      const saved = localStorage.getItem('arlinjai_timing_rules')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    return {
+      standardCheckInTime: '11:00',
+      standardCheckOutTime: '09:00',
+      earlyCheckInFee: 500,
+      lateCheckOutFee: 500,
+    }
   })
 
   useEffect(() => {
-    authAxios.get(`${API_BASE_URL}/settings`)
+    axios.get(`${API_BASE_URL}/settings`)
       .then(res => {
         if (res.data?.success && res.data?.settings) {
           const s = res.data.settings
-          setTimingRules({
+          const updated = {
             standardCheckInTime: s.standardCheckInTime || '11:00',
             standardCheckOutTime: s.standardCheckOutTime || '09:00',
             earlyCheckInFee: (s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) ? Number(s.earlyCheckInFee) : 500,
             lateCheckOutFee: (s.lateCheckOutFee !== undefined && s.lateCheckOutFee !== null) ? Number(s.lateCheckOutFee) : 500,
-          })
+          }
+          setTimingRules(updated)
+          try { localStorage.setItem('arlinjai_timing_rules', JSON.stringify(updated)) } catch {}
         }
       })
       .catch(err => console.error('Failed to load timing rules:', err))
@@ -135,15 +143,18 @@ export default function SettingsPage() {
         earlyCheckInFee: Number(timingRules.earlyCheckInFee),
         lateCheckOutFee: Number(timingRules.lateCheckOutFee),
       }
+      try { localStorage.setItem('arlinjai_timing_rules', JSON.stringify(payload)) } catch {}
       const res = await authAxios.put(`${API_BASE_URL}/settings`, payload)
       if (res.data?.success && res.data?.settings) {
         const s = res.data.settings
-        setTimingRules({
-          standardCheckInTime: s.standardCheckInTime || '11:00',
-          standardCheckOutTime: s.standardCheckOutTime || '09:00',
-          earlyCheckInFee: (s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) ? Number(s.earlyCheckInFee) : Number(timingRules.earlyCheckInFee),
-          lateCheckOutFee: (s.lateCheckOutFee !== undefined && s.lateCheckOutFee !== null) ? Number(s.lateCheckOutFee) : Number(timingRules.lateCheckOutFee),
-        })
+        const updated = {
+          standardCheckInTime: s.standardCheckInTime || payload.standardCheckInTime,
+          standardCheckOutTime: s.standardCheckOutTime || payload.standardCheckOutTime,
+          earlyCheckInFee: (s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) ? Number(s.earlyCheckInFee) : payload.earlyCheckInFee,
+          lateCheckOutFee: (s.lateCheckOutFee !== undefined && s.lateCheckOutFee !== null) ? Number(s.lateCheckOutFee) : payload.lateCheckOutFee,
+        }
+        setTimingRules(updated)
+        try { localStorage.setItem('arlinjai_timing_rules', JSON.stringify(updated)) } catch {}
       }
       toast.success('Check-in / Check-out timing and fee settings updated successfully!')
     } catch (err) {
