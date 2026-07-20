@@ -66,6 +66,29 @@ export default function PushNotificationCard() {
     }
   }
 
+  const playNotificationSound = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime)
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15)
+
+      gain.gain.setValueAtTime(0.3, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+
+      osc.start()
+      osc.stop(ctx.currentTime + 0.5)
+    } catch (e) {
+      console.warn('Audio chime error:', e)
+    }
+  }
+
   const handleTestNotification = async () => {
     if (!('Notification' in window)) {
       toast.error('Push notifications are not supported in this browser.')
@@ -86,6 +109,10 @@ export default function PushNotificationCard() {
     try {
       setLoading(true)
 
+      // 1. Play notification bell chime
+      playNotificationSound()
+
+      // 2. Fire native browser notification
       const title = '🔔 Test Notification'
       const options = {
         body: 'Arlinjai Paradise: Push notifications are working perfectly on this device!',
@@ -93,7 +120,6 @@ export default function PushNotificationCard() {
         tag: 'test-notification-' + Date.now(),
       }
 
-      // Fire native browser notification
       if ('serviceWorker' in navigator) {
         try {
           const registration = await navigator.serviceWorker.ready
@@ -109,7 +135,7 @@ export default function PushNotificationCard() {
         new Notification(title, options)
       }
 
-      // Trigger server push notification test if available
+      // 3. Trigger server push notification test
       try {
         await authAxios.post(`${API_BASE_URL}/notifications/send`, {
           title: '🔔 Push Notification Test',
@@ -119,7 +145,15 @@ export default function PushNotificationCard() {
         console.warn('Backend notification send result:', backendErr?.response?.data || backendErr?.message)
       }
 
-      toast.success('Test notification triggered!')
+      // 4. Show on-screen toast alert for immediate feedback
+      toast.success('🔔 Test Notification Triggered! (Check your system tray & audio)', {
+        duration: 5000,
+        style: {
+          background: '#0C1E3C',
+          color: '#fff',
+          border: '1px solid #C9A227',
+        },
+      })
     } catch (err) {
       console.error('Test notification error:', err)
       toast.error('Failed to trigger test notification: ' + (err.message || 'Unknown error'))
