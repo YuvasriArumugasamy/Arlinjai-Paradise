@@ -15,6 +15,15 @@ const AuthContext = createContext(null)
 // Shared axios instance used by all admin API calls
 export const authAxios = axios.create({ baseURL: API_BASE_URL, withCredentials: true })
 
+// ALWAYS attach token from localStorage to every authAxios call immediately
+authAxios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
+  }
+  return config
+})
+
 export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(() => {
     return localStorage.getItem('token') || null
@@ -118,18 +127,8 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('refreshToken')
   }
 
-  // ── axios interceptors ───────────────────────────────────────────────────
+  // ── Response interceptor for automatic 401 retry ─────────────────────────
   useEffect(() => {
-    // REQUEST: attach access token to every authAxios call
-    const reqId = authAxios.interceptors.request.use((config) => {
-      const token = accessToken || localStorage.getItem('token')
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`
-      }
-      return config
-    })
-
-    // RESPONSE: on 401, try one silent refresh then retry original request
     const resId = authAxios.interceptors.response.use(
       (response) => response,
       async (error) => {
@@ -154,10 +153,9 @@ export function AuthProvider({ children }) {
     )
 
     return () => {
-      authAxios.interceptors.request.eject(reqId)
       authAxios.interceptors.response.eject(resId)
     }
-  }, [accessToken, getValidToken])
+  }, [getValidToken])
 
   return (
     <AuthContext.Provider value={{ accessToken, user, loading, login, logout, getValidToken }}>
