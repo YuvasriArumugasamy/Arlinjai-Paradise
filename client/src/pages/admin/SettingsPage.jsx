@@ -4,6 +4,7 @@ import { FaSave, FaHotel, FaLock, FaBell, FaCalendarAlt, FaEye, FaEyeSlash } fro
 import toast from 'react-hot-toast'
 import axios from 'axios'
 import { HOTEL_INFO, API_BASE_URL } from '../../constants'
+import PushNotificationCard from '../../components/admin/PushNotificationCard'
 
 const TABS = [
   { id: 'general', label: 'General', icon: FaHotel },
@@ -312,6 +313,9 @@ export default function SettingsPage() {
               <h3 className="font-playfair font-bold text-navy text-lg border-b border-gray-100 pb-4">
                 Notification Preferences
               </h3>
+
+              <PushNotificationCard />
+
               {[
                 { key: 'emailNotif', label: 'Email Notifications', desc: 'Receive booking notifications via email' },
                 { key: 'smsNotif', label: 'SMS Notifications', desc: 'Receive booking notifications via SMS' },

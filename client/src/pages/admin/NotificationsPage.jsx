@@ -4,6 +4,7 @@ import { FaTrash, FaBell, FaEnvelopeOpen, FaTimes, FaCalendarAlt } from 'react-i
 import toast from 'react-hot-toast'
 import { authAxios } from '../../context/AuthContext'
 import { API_BASE_URL } from '../../constants'
+import PushNotificationCard from '../../components/admin/PushNotificationCard'
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([])
@@ -97,6 +98,8 @@ export default function NotificationsPage() {
           </div>
         </div>
       </div>
+
+      <PushNotificationCard />
 
       {loading ? (
         <div className="flex justify-center items-center py-12">
