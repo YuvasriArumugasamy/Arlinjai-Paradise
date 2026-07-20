@@ -286,7 +286,7 @@ export default function RoomsAdminPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: 'Total Rooms',  value: rooms.length,    color: 'bg-navy',    icon: FaBed },
           { label: 'Available',    value: totalAvailable,  color: 'bg-green-500', icon: FaCheckCircle },
@@ -300,14 +300,14 @@ export default function RoomsAdminPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
-              className="bg-white rounded-xl p-4 shadow-card flex items-center gap-3"
+              className="bg-white rounded-xl p-3 sm:p-4 shadow-card flex items-center gap-2.5 sm:gap-3 min-w-0"
             >
-              <div className={`w-10 h-10 ${s.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                <Icon size={16} className="text-white" />
+              <div className={`w-9 h-9 sm:w-10 sm:h-10 ${s.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                <Icon size={15} className="text-white" />
               </div>
-              <div>
-                <p className="font-playfair text-2xl font-bold text-navy">{s.value}</p>
-                <p className="font-poppins text-xs text-gray-500">{s.label}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-playfair text-xl sm:text-2xl font-bold text-navy leading-tight">{s.value}</p>
+                <p className="font-poppins text-[11px] sm:text-xs text-gray-500 truncate" title={s.label}>{s.label}</p>
               </div>
             </motion.div>
           )

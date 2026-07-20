@@ -202,7 +202,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Status Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: 'Available Rooms', value: stats.availableRooms || 15, icon: FaBed, color: 'text-green-500' },
           { label: 'Occupied Today', value: stats.currentlyCheckedIn ?? 0, icon: FaCheck, color: 'text-blue-500' },
@@ -216,12 +216,12 @@ export default function DashboardPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 + i * 0.05 }}
-              className="bg-white rounded-xl p-4 shadow-card border border-gray-50 flex items-center gap-3"
+              className="bg-white rounded-xl p-3 sm:p-4 shadow-card border border-gray-50 flex items-center gap-2.5 sm:gap-3 min-w-0"
             >
-              <Icon size={22} className={item.color} />
-              <div>
-                <p className="font-playfair font-bold text-2xl text-navy">{item.value}</p>
-                <p className="font-poppins text-xs text-gray-500">{item.label}</p>
+              <Icon size={20} className={`${item.color} flex-shrink-0`} />
+              <div className="min-w-0 flex-1">
+                <p className="font-playfair font-bold text-xl sm:text-2xl text-navy leading-tight">{item.value}</p>
+                <p className="font-poppins text-[11px] sm:text-xs text-gray-500 truncate" title={item.label}>{item.label}</p>
               </div>
             </motion.div>
           )
