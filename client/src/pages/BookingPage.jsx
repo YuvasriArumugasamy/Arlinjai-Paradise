@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -11,6 +11,7 @@ import axios from 'axios'
 import Breadcrumb from '../components/common/Breadcrumb'
 import { ROOMS, HOTEL_INFO, API_BASE_URL } from '../constants'
 import signatureImg from './admin/image.png'
+import useSEO from '../hooks/useSEO'
 
 const STEPS = ['Select Room', 'Your Details', 'Review & Pay', 'Confirmation']
 
@@ -46,8 +47,6 @@ function StepIndicator({ currentStep }) {
     </div>
   )
 }
-
-import useSEO from '../hooks/useSEO'
 
 // State and code detection helper
 const STATE_CODES = {
