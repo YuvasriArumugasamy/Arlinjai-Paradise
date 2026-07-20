@@ -16,13 +16,6 @@ const getSettings = async (req, res, next) => {
         earlyCheckInFee: 500,
         lateCheckOutFee: 500,
       })
-    } else {
-      let modified = false
-      if (!settings.standardCheckInTime) { settings.standardCheckInTime = '11:00'; modified = true }
-      if (!settings.standardCheckOutTime) { settings.standardCheckOutTime = '09:00'; modified = true }
-      if (settings.earlyCheckInFee === undefined) { settings.earlyCheckInFee = 500; modified = true }
-      if (settings.lateCheckOutFee === undefined) { settings.lateCheckOutFee = 500; modified = true }
-      if (modified) await settings.save()
     }
     res.json({ success: true, settings })
   } catch (error) {
@@ -35,22 +28,30 @@ const getSettings = async (req, res, next) => {
 // @access  Private (Admin/Manager)
 const updateSettings = async (req, res, next) => {
   try {
-    let settings = await Settings.findOne({ key: 'global' })
-    if (!settings) {
-      settings = new Settings({ key: 'global' })
-    }
+    const {
+      isPeakSeason,
+      gstRate,
+      specialPrices,
+      standardCheckInTime,
+      standardCheckOutTime,
+      earlyCheckInFee,
+      lateCheckOutFee,
+    } = req.body
 
-    const { isPeakSeason, gstRate, specialPrices, standardCheckInTime, standardCheckOutTime, earlyCheckInFee, lateCheckOutFee } = req.body
+    const updateFields = {}
+    if (isPeakSeason !== undefined) updateFields.isPeakSeason = Boolean(isPeakSeason)
+    if (gstRate !== undefined) updateFields.gstRate = Number(gstRate)
+    if (specialPrices !== undefined) updateFields.specialPrices = specialPrices
+    if (standardCheckInTime !== undefined) updateFields.standardCheckInTime = String(standardCheckInTime)
+    if (standardCheckOutTime !== undefined) updateFields.standardCheckOutTime = String(standardCheckOutTime)
+    if (earlyCheckInFee !== undefined) updateFields.earlyCheckInFee = Number(earlyCheckInFee)
+    if (lateCheckOutFee !== undefined) updateFields.lateCheckOutFee = Number(lateCheckOutFee)
 
-    if (isPeakSeason !== undefined) settings.isPeakSeason = isPeakSeason
-    if (gstRate !== undefined) settings.gstRate = Number(gstRate)
-    if (specialPrices !== undefined) settings.specialPrices = specialPrices
-    if (standardCheckInTime !== undefined) settings.standardCheckInTime = standardCheckInTime
-    if (standardCheckOutTime !== undefined) settings.standardCheckOutTime = standardCheckOutTime
-    if (earlyCheckInFee !== undefined) settings.earlyCheckInFee = Number(earlyCheckInFee)
-    if (lateCheckOutFee !== undefined) settings.lateCheckOutFee = Number(lateCheckOutFee)
-
-    await settings.save()
+    const settings = await Settings.findOneAndUpdate(
+      { key: 'global' },
+      { $set: updateFields },
+      { new: true, upsert: true, runValidators: true }
+    )
 
     res.json({ success: true, message: 'Settings updated successfully', settings })
   } catch (error) {

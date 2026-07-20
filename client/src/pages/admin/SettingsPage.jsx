@@ -119,8 +119,8 @@ export default function SettingsPage() {
           setTimingRules({
             standardCheckInTime: s.standardCheckInTime || '11:00',
             standardCheckOutTime: s.standardCheckOutTime || '09:00',
-            earlyCheckInFee: s.earlyCheckInFee !== undefined ? Number(s.earlyCheckInFee) : 500,
-            lateCheckOutFee: s.lateCheckOutFee !== undefined ? Number(s.lateCheckOutFee) : 500,
+            earlyCheckInFee: (s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) ? Number(s.earlyCheckInFee) : 500,
+            lateCheckOutFee: (s.lateCheckOutFee !== undefined && s.lateCheckOutFee !== null) ? Number(s.lateCheckOutFee) : 500,
           })
         }
       })
@@ -141,8 +141,8 @@ export default function SettingsPage() {
         setTimingRules({
           standardCheckInTime: s.standardCheckInTime || '11:00',
           standardCheckOutTime: s.standardCheckOutTime || '09:00',
-          earlyCheckInFee: s.earlyCheckInFee !== undefined ? Number(s.earlyCheckInFee) : 500,
-          lateCheckOutFee: s.lateCheckOutFee !== undefined ? Number(s.lateCheckOutFee) : 500,
+          earlyCheckInFee: (s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) ? Number(s.earlyCheckInFee) : Number(timingRules.earlyCheckInFee),
+          lateCheckOutFee: (s.lateCheckOutFee !== undefined && s.lateCheckOutFee !== null) ? Number(s.lateCheckOutFee) : Number(timingRules.lateCheckOutFee),
         })
       }
       toast.success('Check-in / Check-out timing and fee settings updated successfully!')
