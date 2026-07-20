@@ -5,9 +5,9 @@ const Settings = require('../models/Settings')
 // @access  Public
 const getSettings = async (req, res, next) => {
   try {
-    let settings = await Settings.findOne({ key: 'global' })
-    if (!settings) {
-      settings = await Settings.create({
+    let settingsDoc = await Settings.findOne({ key: 'global' }).lean()
+    if (!settingsDoc) {
+      settingsDoc = await Settings.create({
         key: 'global',
         isPeakSeason: false,
         gstRate: 12,
@@ -16,6 +16,17 @@ const getSettings = async (req, res, next) => {
         earlyCheckInFee: 500,
         lateCheckOutFee: 500,
       })
+      settingsDoc = settingsDoc.toObject ? settingsDoc.toObject() : settingsDoc
+    }
+    const settings = {
+      key: 'global',
+      isPeakSeason: false,
+      gstRate: 12,
+      standardCheckInTime: '11:00',
+      standardCheckOutTime: '09:00',
+      earlyCheckInFee: 500,
+      lateCheckOutFee: 500,
+      ...settingsDoc,
     }
     res.json({ success: true, settings })
   } catch (error) {

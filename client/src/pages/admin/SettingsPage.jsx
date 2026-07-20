@@ -321,14 +321,6 @@ export default function SettingsPage() {
                   <label className="label-text">Email</label>
                   <input type="email" value={settings.email} onChange={(e) => setSettings({ ...settings, email: e.target.value })} className="input-field" />
                 </div>
-                <div>
-                  <label className="label-text">Check-in Time</label>
-                  <input type="time" value={timingRules.standardCheckInTime} onChange={(e) => setTimingRules({ ...timingRules, standardCheckInTime: e.target.value })} className="input-field" />
-                </div>
-                <div>
-                  <label className="label-text">Check-out Time</label>
-                  <input type="time" value={timingRules.standardCheckOutTime} onChange={(e) => setTimingRules({ ...timingRules, standardCheckOutTime: e.target.value })} className="input-field" />
-                </div>
               </div>
 
               {/* Check-in / Check-out & Timing Fee Rules */}
