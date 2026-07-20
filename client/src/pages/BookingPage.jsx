@@ -748,7 +748,6 @@ export default function BookingPage() {
               <option value="Driving License">Driving License</option>
               <option value="Passport">Passport</option>
               <option value="Voter ID">Voter ID</option>
-              <option value="PAN Card">PAN Card</option>
             </select>
           </div>
 
@@ -764,7 +763,6 @@ export default function BookingPage() {
                 bookingData.idType === 'Aadhaar Card' ? 'XXXX XXXX XXXX'
                 : bookingData.idType === 'Driving License' ? 'TN00 00000000000'
                 : bookingData.idType === 'Passport' ? 'A1234567'
-                : bookingData.idType === 'PAN Card' ? 'ABCDE1234F'
                 : 'Enter ID number'
               }
               className="input-field"
