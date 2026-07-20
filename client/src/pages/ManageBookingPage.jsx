@@ -365,7 +365,7 @@ export default function ManageBookingPage() {
             transition={{ delay: 0.3 }}
             className="bg-white rounded-xl shadow-2xl p-6 max-w-xl mx-auto"
           >
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative">
                 <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gold" size={14} />
                 <input
@@ -374,14 +374,14 @@ export default function ManageBookingPage() {
                   onChange={(e) => setBookingIdInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleFind()}
                   placeholder="Paste your Booking ID here..."
-                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg font-poppins text-sm
-                             focus:outline-none focus:border-gold transition-colors"
+                  className="w-full pl-10 pr-4 py-3.5 border-2 border-gray-200 rounded-xl font-poppins text-sm
+                             focus:outline-none focus:border-gold transition-colors text-gray-800"
                 />
               </div>
               <button
                 onClick={handleFind}
                 disabled={loading}
-                className="btn-gold px-6 py-3 text-sm font-semibold whitespace-nowrap flex items-center gap-2"
+                className="btn-gold w-full sm:w-auto px-6 py-3.5 text-sm font-semibold whitespace-nowrap flex items-center justify-center gap-2 rounded-xl cursor-pointer"
               >
                 {loading ? (
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
