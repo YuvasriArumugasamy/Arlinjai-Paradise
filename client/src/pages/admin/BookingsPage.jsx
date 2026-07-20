@@ -39,40 +39,110 @@ export default function BookingsPage() {
   const [filterMode, setFilterMode] = useState('month')
   const [selectedBooking, setSelectedBooking] = useState(null)
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
-        if (res.data.success) {
-          const mapped = res.data.bookings.map(b => ({
-            id: b._id || b.bookingId,
-            bookingId: b.bookingId || b._id,
-            guest: b.guest?.name || b.guest || '—',
-            gender: b.guest?.gender || b.gender || '',
-            dob: b.guest?.dob || b.dob || '',
-            email: b.guest?.email || b.email || '',
-            phone: b.guest?.phone || b.phone || '',
-            idType: b.guest?.idType || b.idType || '',
-            idNumber: b.guest?.idNumber || b.idNumber || '',
-            room: b.roomSnapshot?.name || b.room?.name || '—',
-            checkIn: b.checkIn,
-            checkOut: b.checkOut,
-            nights: b.nights,
-            guests: b.guests,
-            amount: b.pricing?.finalAmount || 0,
-            paymentMethod: b.paymentMethod || 'pay_at_hotel',
-            status: b.status,
-            createdAt: b.createdAt
-          }))
-          setBookings(mapped)
-        }
-      } catch (err) {
-        console.error('Failed to fetch bookings from server:', err)
-        toast.error('Unable to load bookings from server.')
+  // Offline Booking Modal State
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [addLoading, setAddLoading] = useState(false)
+  const [addForm, setAddForm] = useState({
+    guestName: '',
+    phone: '',
+    email: '',
+    roomSlug: 'deluxe-ac-room',
+    checkIn: '',
+    checkOut: '',
+    guests: 2,
+    amount: '',
+    paymentMethod: 'pay_at_hotel',
+    status: 'confirmed',
+  })
+
+  const fetchBookings = async () => {
+    try {
+      const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
+      if (res.data.success) {
+        const mapped = res.data.bookings.map(b => ({
+          id: b._id || b.bookingId,
+          bookingId: b.bookingId || b._id,
+          guest: b.guest?.name || b.guest || '—',
+          gender: b.guest?.gender || b.gender || '',
+          dob: b.guest?.dob || b.dob || '',
+          email: b.guest?.email || b.email || '',
+          phone: b.guest?.phone || b.phone || '',
+          idType: b.guest?.idType || b.idType || '',
+          idNumber: b.guest?.idNumber || b.idNumber || '',
+          room: b.roomSnapshot?.name || b.room?.name || '—',
+          checkIn: b.checkIn,
+          checkOut: b.checkOut,
+          nights: b.nights,
+          guests: b.guests,
+          amount: b.pricing?.finalAmount || 0,
+          paymentMethod: b.paymentMethod || 'pay_at_hotel',
+          status: b.status,
+          createdAt: b.createdAt
+        }))
+        setBookings(mapped)
       }
+    } catch (err) {
+      console.error('Failed to fetch bookings from server:', err)
+      toast.error('Unable to load bookings from server.')
     }
+  }
+
+  useEffect(() => {
     fetchBookings()
   }, [])
+
+  const handleCreateOfflineBooking = async (e) => {
+    e.preventDefault()
+    if (!addForm.guestName || !addForm.phone || !addForm.checkIn || !addForm.checkOut) {
+      toast.error('Please fill required fields (Name, Phone, Dates)')
+      return
+    }
+    if (new Date(addForm.checkIn) >= new Date(addForm.checkOut)) {
+      toast.error('Check-out date must be after Check-in date')
+      return
+    }
+
+    try {
+      setAddLoading(true)
+      const payload = {
+        name: addForm.guestName,
+        phone: addForm.phone,
+        email: addForm.email || 'offline@arlinjaiparadise.com',
+        roomId: addForm.roomSlug,
+        checkIn: addForm.checkIn,
+        checkOut: addForm.checkOut,
+        guests: Number(addForm.guests),
+        roomAmount: addForm.amount ? Number(addForm.amount) : undefined,
+        paymentMethod: addForm.paymentMethod,
+        status: addForm.status,
+      }
+
+      const res = await authAxios.post(`${API_BASE_URL}/bookings`, payload)
+      if (res.data.success) {
+        toast.success('Offline booking created successfully!')
+        setShowAddModal(false)
+        setAddForm({
+          guestName: '',
+          phone: '',
+          email: '',
+          roomSlug: 'deluxe-ac-room',
+          checkIn: '',
+          checkOut: '',
+          guests: 2,
+          amount: '',
+          paymentMethod: 'pay_at_hotel',
+          status: 'confirmed',
+        })
+        fetchBookings()
+      }
+    } catch (err) {
+      console.error('Failed to create offline booking:', err)
+      const msg = err.response?.data?.message || 'Failed to create offline booking'
+      toast.error(msg)
+    } finally {
+      setAddLoading(false)
+    }
+  }
 
   const filtered = bookings.filter((b) => {
     const q = search.toLowerCase()
@@ -176,7 +246,14 @@ export default function BookingsPage() {
           <h2 className="font-playfair text-2xl font-bold text-navy">Bookings</h2>
           <p className="font-poppins text-sm text-gray-500">{filtered.length} bookings found</p>
         </div>
-        <div className="flex items-center gap-3 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-3 self-start sm:self-auto">
+          {/* Add Offline Booking Button */}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 bg-[#D0A448] hover:bg-[#b88e36] text-navy font-poppins font-semibold text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-full shadow-sm transition-all active:scale-95 cursor-pointer"
+          >
+            <span className="text-base sm:text-lg font-bold leading-none">+</span> Add Offline Booking
+          </button>
           {/* Calendar dropdown filter */}
           <div className="relative flex items-center bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
             <FaCalendarAlt className="text-slate-400 mr-2.5" size={14} />
@@ -514,6 +591,170 @@ export default function BookingsPage() {
                 </button>
               </div>
             </div>
+          </motion.div>
+        </div>
+      )}
+      {/* Add Offline Booking Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-navy text-white flex-shrink-0">
+              <h3 className="font-playfair font-bold text-gold text-lg flex items-center gap-2">
+                <span>+</span> Add Offline Booking
+              </h3>
+              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-white transition-colors">
+                <FaTimes size={18} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleCreateOfflineBooking} className="p-6 space-y-4 overflow-y-auto font-poppins text-xs">
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1">Guest Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.guestName}
+                  onChange={(e) => setAddForm({ ...addForm, guestName: e.target.value })}
+                  placeholder="e.g. Ramesh Kumar"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">Phone Number *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={addForm.phone}
+                    onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
+                    placeholder="e.g. 9876543210"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">Email (Optional)</label>
+                  <input
+                    type="email"
+                    value={addForm.email}
+                    onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
+                    placeholder="guest@gmail.com"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1">Room Category *</label>
+                <select
+                  value={addForm.roomSlug}
+                  onChange={(e) => setAddForm({ ...addForm, roomSlug: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold cursor-pointer"
+                >
+                  <option value="deluxe-ac-room">Deluxe AC Room</option>
+                  <option value="normal-ac-room">Normal AC Room</option>
+                  <option value="non-ac-room">Non AC Room</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">Check-In Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={addForm.checkIn}
+                    onChange={(e) => setAddForm({ ...addForm, checkIn: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">Check-Out Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={addForm.checkOut}
+                    onChange={(e) => setAddForm({ ...addForm, checkOut: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">Number of Guests</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={addForm.guests}
+                    onChange={(e) => setAddForm({ ...addForm, guests: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">Custom Amount (₹) (Optional)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={addForm.amount}
+                    onChange={(e) => setAddForm({ ...addForm, amount: e.target.value })}
+                    placeholder="Leave blank for auto rate"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">Payment Method</label>
+                  <select
+                    value={addForm.paymentMethod}
+                    onChange={(e) => setAddForm({ ...addForm, paymentMethod: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold cursor-pointer"
+                  >
+                    <option value="pay_at_hotel">Cash / Pay at Hotel</option>
+                    <option value="upi">UPI / GPay / PhonePe</option>
+                    <option value="card">Credit / Debit Card</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">Booking Status</label>
+                  <select
+                    value={addForm.status}
+                    onChange={(e) => setAddForm({ ...addForm, status: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold cursor-pointer"
+                  >
+                    <option value="confirmed">Confirmed</option>
+                    <option value="checked-in">Checked In</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-3 flex justify-end gap-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addLoading}
+                  className="px-6 py-2.5 bg-[#D0A448] hover:bg-[#b88e36] text-navy font-bold rounded-lg shadow-sm transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  {addLoading ? 'Creating...' : '+ Create Booking'}
+                </button>
+              </div>
+            </form>
           </motion.div>
         </div>
       )}
