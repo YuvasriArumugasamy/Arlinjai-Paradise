@@ -340,15 +340,21 @@ export default function BookingPage() {
     let earlyCheckInFee = 0
     let lateCheckOutFee = 0
 
+    const stdInTime = globalSettings?.standardCheckInTime || '11:00'
+    const stdOutTime = globalSettings?.standardCheckOutTime || '09:00'
+    const earlyFeeVal = globalSettings?.earlyCheckInFee !== undefined ? globalSettings.earlyCheckInFee : 500
+    const lateFeeVal = globalSettings?.lateCheckOutFee !== undefined ? globalSettings.lateCheckOutFee : 500
+
     if (bookingData.checkInTime) {
       const parts = bookingData.checkInTime.split(':')
       if (parts.length >= 2) {
         const h = parseInt(parts[0], 10)
         const m = parseInt(parts[1], 10)
+        const [stdH, stdM] = stdInTime.split(':').map(Number)
         if (!isNaN(h) && !isNaN(m)) {
           const inMinutes = h * 60 + m
-          if (inMinutes < 11 * 60) {
-            earlyCheckInFee = 500
+          if (inMinutes < stdH * 60 + (stdM || 0)) {
+            earlyCheckInFee = earlyFeeVal
           }
         }
       }
@@ -359,10 +365,11 @@ export default function BookingPage() {
       if (parts.length >= 2) {
         const h = parseInt(parts[0], 10)
         const m = parseInt(parts[1], 10)
+        const [stdH, stdM] = stdOutTime.split(':').map(Number)
         if (!isNaN(h) && !isNaN(m)) {
           const outMinutes = h * 60 + m
-          if (outMinutes > 9 * 60) {
-            lateCheckOutFee = 500
+          if (outMinutes > stdH * 60 + (stdM || 0)) {
+            lateCheckOutFee = lateFeeVal
           }
         }
       }

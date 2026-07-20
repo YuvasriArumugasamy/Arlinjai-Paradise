@@ -207,19 +207,26 @@ const createBooking = async (req, res, next) => {
           }
           currentDay.setDate(currentDay.getDate() + 1)
         }
+        const stdInTime = globalSettings?.standardCheckInTime || '11:00'
+        const stdOutTime = globalSettings?.standardCheckOutTime || '09:00'
+        const earlyFeeVal = globalSettings?.earlyCheckInFee !== undefined ? globalSettings.earlyCheckInFee : 500
+        const lateFeeVal = globalSettings?.lateCheckOutFee !== undefined ? globalSettings.lateCheckOutFee : 500
+
         let timingFee = 0
         if (checkInTime) {
           const parts = checkInTime.split(':')
           if (parts.length >= 2) {
             const inMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)
-            if (inMins < 11 * 60) timingFee += 500
+            const [stdH, stdM] = stdInTime.split(':').map(Number)
+            if (inMins < (stdH * 60 + (stdM || 0))) timingFee += earlyFeeVal
           }
         }
         if (checkOutTime) {
           const parts = checkOutTime.split(':')
           if (parts.length >= 2) {
             const outMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)
-            if (outMins > 9 * 60) timingFee += 500
+            const [stdH, stdM] = stdOutTime.split(':').map(Number)
+            if (outMins > (stdH * 60 + (stdM || 0))) timingFee += lateFeeVal
           }
         }
         const finalPricePerNight = Math.round(baseAmount / nights)
@@ -292,19 +299,26 @@ const createBooking = async (req, res, next) => {
         }
         currentDay.setDate(currentDay.getDate() + 1)
       }
+      const stdInTime = globalSettings?.standardCheckInTime || '11:00'
+      const stdOutTime = globalSettings?.standardCheckOutTime || '09:00'
+      const earlyFeeVal = globalSettings?.earlyCheckInFee !== undefined ? globalSettings.earlyCheckInFee : 500
+      const lateFeeVal = globalSettings?.lateCheckOutFee !== undefined ? globalSettings.lateCheckOutFee : 500
+
       let timingFee = 0
       if (checkInTime) {
         const parts = checkInTime.split(':')
         if (parts.length >= 2) {
           const inMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)
-          if (inMins < 11 * 60) timingFee += 500
+          const [stdH, stdM] = stdInTime.split(':').map(Number)
+          if (inMins < (stdH * 60 + (stdM || 0))) timingFee += earlyFeeVal
         }
       }
       if (checkOutTime) {
         const parts = checkOutTime.split(':')
         if (parts.length >= 2) {
           const outMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)
-          if (outMins > 9 * 60) timingFee += 500
+          const [stdH, stdM] = stdOutTime.split(':').map(Number)
+          if (outMins > (stdH * 60 + (stdM || 0))) timingFee += lateFeeVal
         }
       }
       const pricePerNight = Math.round(baseAmount / nights)

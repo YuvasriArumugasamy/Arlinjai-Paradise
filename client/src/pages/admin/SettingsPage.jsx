@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaSave, FaHotel, FaLock, FaBell, FaCalendarAlt, FaEye, FaEyeSlash } from 'react-icons/fa'
 import toast from 'react-hot-toast'
@@ -100,6 +100,43 @@ export default function SettingsPage() {
       toast.success('Peak season pricing activated!')
     } else {
       toast.success('Peak season pricing deactivated')
+    }
+  }
+
+  const [timingRules, setTimingRules] = useState({
+    standardCheckInTime: '11:00',
+    standardCheckOutTime: '09:00',
+    earlyCheckInFee: 500,
+    lateCheckOutFee: 500,
+  })
+
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/settings`)
+      .then(res => {
+        if (res.data?.success && res.data?.settings) {
+          const s = res.data.settings
+          setTimingRules({
+            standardCheckInTime: s.standardCheckInTime || '11:00',
+            standardCheckOutTime: s.standardCheckOutTime || '09:00',
+            earlyCheckInFee: s.earlyCheckInFee !== undefined ? s.earlyCheckInFee : 500,
+            lateCheckOutFee: s.lateCheckOutFee !== undefined ? s.lateCheckOutFee : 500,
+          })
+        }
+      })
+      .catch(err => console.error('Failed to load timing rules:', err))
+  }, [])
+
+  const handleSaveTimingRules = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      await axios.put(
+        `${API_BASE_URL}/settings`,
+        timingRules,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      toast.success('Check-in / Check-out timing and fee settings updated!')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update timing rules')
     }
   }
 
@@ -264,11 +301,90 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="label-text">Check-in Time</label>
-                  <input type="time" value={settings.checkIn} onChange={(e) => setSettings({ ...settings, checkIn: e.target.value })} className="input-field" />
+                  <input type="time" value={timingRules.standardCheckInTime} onChange={(e) => setTimingRules({ ...timingRules, standardCheckInTime: e.target.value })} className="input-field" />
                 </div>
                 <div>
                   <label className="label-text">Check-out Time</label>
-                  <input type="time" value={settings.checkOut} onChange={(e) => setSettings({ ...settings, checkOut: e.target.value })} className="input-field" />
+                  <input type="time" value={timingRules.standardCheckOutTime} onChange={(e) => setTimingRules({ ...timingRules, standardCheckOutTime: e.target.value })} className="input-field" />
+                </div>
+              </div>
+
+              {/* Check-in / Check-out & Timing Fee Rules */}
+              <div className="mt-8 pt-8 border-t border-gray-100">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                  <div>
+                    <h4 className="font-playfair font-bold text-navy text-lg flex items-center gap-2">
+                      ⏰ Standard Timing & Extra Fee Rules
+                    </h4>
+                    <p className="font-poppins text-xs text-gray-500 mt-0.5">
+                      Configure standard hotel check-in/out times and extra charges applied for early arrival or late departure.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSaveTimingRules}
+                    className="btn-gold flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg shadow-sm"
+                  >
+                    <FaSave size={12} /> Save Timing Rules
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 bg-slate-50 p-5 rounded-xl border border-slate-200">
+                  <div>
+                    <label className="label-text flex items-center gap-1.5 font-semibold text-navy">
+                      <span>Standard Check-in Time</span>
+                    </label>
+                    <input
+                      type="time"
+                      value={timingRules.standardCheckInTime}
+                      onChange={(e) => setTimingRules({ ...timingRules, standardCheckInTime: e.target.value })}
+                      className="input-field bg-white"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">Default standard check-in time for guests (e.g. 11:00)</p>
+                  </div>
+
+                  <div>
+                    <label className="label-text flex items-center gap-1.5 font-semibold text-navy">
+                      <span>Standard Check-out Time</span>
+                    </label>
+                    <input
+                      type="time"
+                      value={timingRules.standardCheckOutTime}
+                      onChange={(e) => setTimingRules({ ...timingRules, standardCheckOutTime: e.target.value })}
+                      className="input-field bg-white"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">Default standard check-out time for guests (e.g. 09:00)</p>
+                  </div>
+
+                  <div>
+                    <label className="label-text flex items-center gap-1.5 font-semibold text-navy">
+                      <span>Early Check-in Extra Fee (₹)</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={timingRules.earlyCheckInFee}
+                      onChange={(e) => setTimingRules({ ...timingRules, earlyCheckInFee: Number(e.target.value) })}
+                      className="input-field bg-white"
+                      placeholder="500"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">Extra fee charged if guest checks in before standard check-in time</p>
+                  </div>
+
+                  <div>
+                    <label className="label-text flex items-center gap-1.5 font-semibold text-navy">
+                      <span>Late Check-out Extra Fee (₹)</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={timingRules.lateCheckOutFee}
+                      onChange={(e) => setTimingRules({ ...timingRules, lateCheckOutFee: Number(e.target.value) })}
+                      className="input-field bg-white"
+                      placeholder="500"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">Extra fee charged if guest checks out after standard check-out time</p>
+                  </div>
                 </div>
               </div>
 

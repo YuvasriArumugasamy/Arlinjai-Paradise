@@ -16,6 +16,22 @@ const settingsSchema = new mongoose.Schema(
       type: Number,
       default: 12, // 12% default GST
     },
+    standardCheckInTime: {
+      type: String,
+      default: '11:00',
+    },
+    standardCheckOutTime: {
+      type: String,
+      default: '09:00',
+    },
+    earlyCheckInFee: {
+      type: Number,
+      default: 500,
+    },
+    lateCheckOutFee: {
+      type: Number,
+      default: 500,
+    },
     specialPrices: [
       {
         roomCategory: {
