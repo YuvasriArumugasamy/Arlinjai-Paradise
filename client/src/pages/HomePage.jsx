@@ -8,13 +8,17 @@ import GuestReviews from '../components/home/GuestReviews'
 import CallToAction from '../components/home/CallToAction'
 import MapSection from '../components/home/MapSection'
 import useSEO from '../hooks/useSEO'
+import { generateHotelSchema } from '../utils/seoHelpers'
 
 export default function HomePage() {
   useSEO({
-    title: 'Your Home in Kanyakumari',
-    description: 'Experience premium comfort, cleanliness, and care at Arlinjai Paradise Hotel, Kanyakumari. Steps away from the beach. Book your stay now!',
-    keywords: 'Arlinjai Paradise, hotel Kanyakumari, beach hotel Kanyakumari, luxury rooms Kanyakumari, accommodation in Kanyakumari'
+    title: 'Your Home in Kanyakumari | Best Hotel near Beach',
+    description: 'Experience premium comfort, cleanliness, and care at Arlinjai Paradise Hotel, Kanyakumari. Located near Beach Road & Sunset Point. Book AC & Non-AC rooms now!',
+    keywords: 'Arlinjai Paradise, hotel Kanyakumari, beach hotel Kanyakumari, luxury rooms Kanyakumari, accommodation in Kanyakumari, budget hotel Kanyakumari, best place to stay in Kanyakumari',
+    canonicalUrl: '/',
+    schema: generateHotelSchema()
   })
+
   return (
     <>
       <HeroSection />

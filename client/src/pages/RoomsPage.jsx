@@ -27,9 +27,10 @@ const PRICE_RANGES = [
 
 export default function RoomsPage() {
   useSEO({
-    title: 'Rooms & Suites',
-    description: 'Explore our luxury, standard, and budget-friendly AC & Non-AC rooms in Kanyakumari. Select the perfect room for your comfortable stay at Arlinjai Paradise.',
-    keywords: 'Arlinjai Paradise rooms, luxury AC rooms, normal AC rooms, Non-AC rooms Kanyakumari, budget hotel rooms'
+    title: 'Deluxe AC & Non-AC Rooms in Kanyakumari',
+    description: 'Explore our luxury Deluxe AC, Standard AC, and budget-friendly Non-AC rooms in Kanyakumari near beach. Best room rates with free high-speed WiFi and 24/7 service.',
+    keywords: 'Arlinjai Paradise rooms, luxury AC rooms Kanyakumari, normal AC rooms, Non-AC rooms Kanyakumari, budget hotel rooms near Kanyakumari beach, family residency Kanyakumari',
+    canonicalUrl: '/rooms',
   })
   const [searchParams] = useSearchParams()
   const [category, setCategory] = useState('all')

@@ -36,9 +36,10 @@ import useSEO from '../hooks/useSEO'
 
 export default function ContactPage() {
   useSEO({
-    title: 'Contact Us',
-    description: 'Get in touch with Arlinjai Paradise Hotel Kanyakumari. Reach out for direct bookings, queries, feedback, or customer assistance.',
-    keywords: 'Contact Arlinjai Paradise, hotel phone number, Kanyakumari hotel email, reach hotel'
+    title: 'Contact Us | Hotel Address & Booking Phone Number',
+    description: 'Get in touch with Arlinjai Paradise Hotel, No. 5/69 Beach Road, Kanyakumari. Call +91 9486271234 for direct booking discount and enquiries.',
+    keywords: 'Contact Arlinjai Paradise, hotel phone number Kanyakumari, Kanyakumari hotel email, Beach road hotel Kanyakumari, book room phone number',
+    canonicalUrl: '/contact',
   })
   const [form, setForm] = useState({ name: '', phone: '', email: '', subject: '', message: '' })
   const [loading, setLoading] = useState(false)
