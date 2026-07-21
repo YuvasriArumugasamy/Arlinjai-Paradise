@@ -289,7 +289,7 @@ export default function AmenitiesSection() {
                 display: 'flex', gap: '20px', marginTop: '16px',
               }}>
                 {[
-                  { num: '500+', label: 'Happy Guests' },
+                  { num: '1000+', label: 'Happy Guests' },
                   { num: '12', label: 'Amenities' },
                   { num: '5+', label: 'Years' },
                 ].map((s, i) => (

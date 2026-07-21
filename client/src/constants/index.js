@@ -577,7 +577,7 @@ export const GALLERY_IMAGES = RAW_GALLERY_IMAGES.map((img) => ({
 
 // Stats for Counter Section
 export const STATS = [
-  { value: 500, label: 'Happy Guests', suffix: '+' },
+  { value: 1000, label: 'Happy Guests', suffix: '+' },
   { value: 3, label: 'Room Types', suffix: '' },
   { value: 6, label: 'Nearby Attractions', suffix: '' },
   { value: 5, label: 'Years of Service', suffix: '+' },

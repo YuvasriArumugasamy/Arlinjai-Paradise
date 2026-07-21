@@ -108,7 +108,7 @@ export default function GuestReviews() {
               {[...Array(5)].map((_, i) => <FaStar key={i} size={16} className="text-gold" />)}
             </div>
             <span className="font-poppins text-gray-600 text-sm">
-              5.0 Rating · 500+ Happy Guests
+              5.0 Rating · 1000+ Happy Guests
             </span>
           </motion.div>
         </div>
