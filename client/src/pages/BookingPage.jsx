@@ -1160,81 +1160,78 @@ export default function BookingPage() {
               }
             }
 
-            // ── Direct Booking Flow (Bypass Razorpay) ────
-            /*
-            if (!window.Razorpay) {
-              toast.error('Payment gateway not loaded. Please refresh and try again.')
+            if (bookingData.paymentMethod === 'pay_at_hotel') {
+              await finalizeBooking()
               return
             }
+
+            // ── Online Payment Flow (Razorpay) ────
             setPaymentLoading(true)
+            try {
+              let orderData = null
+              try {
+                orderData = await createRazorpayOrder()
+              } catch (err) {
+                console.warn('Backend order creation failed, falling back to direct SDK:', err.message)
+              }
 
-            const rzpOptions = {
-              key: 'rzp_test_TBQl2GSohl5ZkT',
-              amount: totalPrice * 100, // paise
-              currency: 'INR',
-              name: 'Arlinjai Paradise',
-              description: `Room Booking — ${selectedRoom?.name || bookingData.roomId}`,
-              image: '/logo.png',
-              prefill: {
-                name: bookingData.name,
-                email: bookingData.email,
-                contact: bookingData.phone,
-              },
-              notes: {
-                room: selectedRoom?.name || bookingData.roomId,
-                checkIn: bookingData.checkIn,
-                checkOut: bookingData.checkOut,
-              },
-              theme: { color: '#C9A96E' },
-              method: {
-                upi: true,
-                card: true,
-                netbanking: true,
-                wallet: true,
-                upi_intent: true,
-              },
-              config: {
-                display: {
-                  blocks: {
-                    upi_block: {
-                      name: 'Pay via UPI / QR Code',
-                      instruments: [
-                        { method: 'upi', flows: ['qr', 'collect', 'intent'] },
-                      ],
-                    },
+              if (!window.Razorpay) {
+                toast.error('Payment gateway not loaded. Please refresh and try again.')
+                setPaymentLoading(false)
+                return
+              }
+
+              const rzpOptions = {
+                key: orderData?.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_TEvtR5UG0yQQ1H',
+                amount: orderData?.amount || totalPrice * 100, // paise
+                currency: orderData?.currency || 'INR',
+                order_id: orderData?.orderId || undefined,
+                name: 'Arlinjai Paradise',
+                description: `Room Booking — ${selectedRoom?.name || bookingData.roomId}`,
+                image: '/logo.png',
+                prefill: {
+                  name: bookingData.name,
+                  email: bookingData.email,
+                  contact: bookingData.phone,
+                },
+                notes: {
+                  room: selectedRoom?.name || bookingData.roomId,
+                  checkIn: bookingData.checkIn,
+                  checkOut: bookingData.checkOut,
+                },
+                theme: { color: '#C9A96E' },
+                modal: {
+                  ondismiss: () => {
+                    setPaymentLoading(false)
+                    toast.error('Payment cancelled. Booking not confirmed.')
                   },
-                  sequence: ['block.upi_block'],
-                  preferences: { show_default_blocks: true },
                 },
-              },
-              modal: {
-                ondismiss: () => {
-                  setPaymentLoading(false)
-                  toast.error('Payment cancelled. Booking not confirmed.')
-                },
-              },
-              handler: async (response) => {
-                toast.success('Payment successful! 🎉')
-                // Try server verify — but don't block if server is offline
-                try {
-                  await axios.post(`${API_BASE_URL}/payments/verify`, {
-                    razorpay_order_id: response.razorpay_order_id || '',
+                handler: async (response) => {
+                  toast.success('Payment successful! 🎉')
+                  try {
+                    await verifyRazorpayPayment({
+                      razorpay_order_id: response.razorpay_order_id || orderData?.orderId || '',
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_signature: response.razorpay_signature || '',
+                    })
+                  } catch (verifyErr) {
+                    console.warn('Server payment verification skipped:', verifyErr.message)
+                  }
+                  await finalizeBooking({
                     razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_signature: response.razorpay_signature || '',
+                    razorpay_order_id: response.razorpay_order_id || orderData?.orderId || '',
+                    paymentStatus: 'paid',
+                    status: 'confirmed',
                   })
-                } catch { }
-                await finalizeBooking({
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_order_id: response.razorpay_order_id || '',
-                })
-              },
+                },
+              }
+
+              const rzp = new window.Razorpay(rzpOptions)
+              rzp.open()
+            } catch (err) {
+              setPaymentLoading(false)
+              toast.error(err.message || 'Failed to initialize payment. Please try again.')
             }
-
-            const rzp = new window.Razorpay(rzpOptions)
-            rzp.open()
-            */
-
-            await handleConfirmBooking()
           }}
           disabled={loading || paymentLoading}
           className="btn-gold w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5"
