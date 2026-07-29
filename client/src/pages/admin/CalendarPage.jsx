@@ -54,6 +54,7 @@ export default function CalendarPage() {
     checkOut: '',
     checkOutTime: '11:00',
     guests: 2,
+    children: 0,
     advancePaid: 0,
     paymentMethod: 'Cash',
     notes: '',
@@ -83,6 +84,7 @@ export default function CalendarPage() {
       checkOut: checkOutStr,
       checkOutTime: '11:00',
       guests: 2,
+      children: 0,
       advancePaid: 0,
       paymentMethod: 'Cash',
       notes: `Offline Booking pre-filled for ${room.name}`,
@@ -124,7 +126,8 @@ export default function CalendarPage() {
       checkOut: bookingModalData.checkOut,
       checkInTime: bookingModalData.checkInTime,
       checkOutTime: bookingModalData.checkOutTime,
-      guests: bookingModalData.guests,
+      guests: Number(bookingModalData.guests || 2),
+      children: Number(bookingModalData.children || 0),
       name: bookingModalData.name,
       phone: bookingModalData.phone,
       email: bookingModalData.email || 'offline@arlinjaiparadise.com',
@@ -700,25 +703,27 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              {/* Guests & Rooms */}
+              {/* Adults & Children */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Guests</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Adults</label>
                   <input 
                     type="number" 
                     min="1"
+                    max="10"
                     value={bookingModalData.guests}
-                    onChange={(e) => setBookingModalData(prev => ({ ...prev, guests: parseInt(e.target.value) || 2 }))}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, guests: parseInt(e.target.value) || 1 }))}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Number of Rooms</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Children</label>
                   <input 
                     type="number" 
-                    min="1"
-                    value={bookingModalData.numRooms}
-                    onChange={(e) => setBookingModalData(prev => ({ ...prev, numRooms: parseInt(e.target.value) || 1 }))}
+                    min="0"
+                    max="10"
+                    value={bookingModalData.children}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, children: parseInt(e.target.value) || 0 }))}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
                   />
                 </div>
