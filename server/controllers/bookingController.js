@@ -1,9 +1,18 @@
+const mongoose = require('mongoose')
 const Booking = require('../models/Booking')
 const Room = require('../models/Room')
 const Notification = require('../models/Notification')
 const { validationResult } = require('express-validator')
 const nodemailer = require('nodemailer')
 const { sendBookingNotification } = require('./notificationController')
+
+// Helper to query booking safely without Mongoose CastError on invalid ObjectIds
+const getBookingQuery = (id) => {
+  if (!id) return { _id: null }
+  return mongoose.Types.ObjectId.isValid(id)
+    ? { $or: [{ _id: id }, { bookingId: id }] }
+    : { bookingId: id }
+}
 
 // Email transporter
 const createTransporter = () => {
@@ -407,9 +416,7 @@ const getBookings = async (req, res, next) => {
 // @access  Private
 const getBooking = async (req, res, next) => {
   try {
-    const booking = await Booking.findOne({
-      $or: [{ _id: req.params.id }, { bookingId: req.params.id }],
-    }).populate('room')
+    const booking = await Booking.findOne(getBookingQuery(req.params.id)).populate('room')
 
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' })
@@ -427,9 +434,7 @@ const getBooking = async (req, res, next) => {
 const updateBookingStatus = async (req, res, next) => {
   try {
     const { status, notes } = req.body
-    const booking = await Booking.findOne({
-      $or: [{ _id: req.params.id }, { bookingId: req.params.id }],
-    })
+    const booking = await Booking.findOne(getBookingQuery(req.params.id))
 
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' })
@@ -459,7 +464,7 @@ const updateRoomAssignment = async (req, res, next) => {
   try {
     const { assignedRoom } = req.body
     const booking = await Booking.findOneAndUpdate(
-      { $or: [{ _id: req.params.id }, { bookingId: req.params.id }] },
+      getBookingQuery(req.params.id),
       { $set: { assignedRoom: assignedRoom || null } },
       { new: true }
     )
@@ -479,9 +484,7 @@ const updateRoomAssignment = async (req, res, next) => {
 // @access  Private (Admin)
 const deleteBooking = async (req, res, next) => {
   try {
-    const booking = await Booking.findOneAndDelete({
-      $or: [{ _id: req.params.id }, { bookingId: req.params.id }],
-    })
+    const booking = await Booking.findOneAndDelete(getBookingQuery(req.params.id))
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' })
     }
@@ -495,9 +498,7 @@ const updateBooking = async (req, res, next) => {
   try {
     const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber } = req.body
 
-    const booking = await Booking.findOne({
-      $or: [{ _id: req.params.id }, { bookingId: req.params.id }],
-    })
+    const booking = await Booking.findOne(getBookingQuery(req.params.id))
 
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' })
