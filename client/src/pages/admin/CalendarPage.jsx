@@ -135,7 +135,12 @@ export default function CalendarPage() {
       phone: bookingModalData.phone,
       email: bookingModalData.email || 'offline@arlinjaiparadise.com',
       address: 'Offline Booking',
-      paymentMethod: bookingModalData.paymentMethod.toLowerCase() === 'cash' ? 'cash' : bookingModalData.paymentMethod.toLowerCase() === 'upi' ? 'upi' : 'card',
+      paymentMethod: bookingModalData.paymentMethod === 'Pay at Hotel' ? 'pay_at_hotel'
+        : bookingModalData.paymentMethod.toLowerCase() === 'cash' ? 'cash'
+        : bookingModalData.paymentMethod.toLowerCase() === 'upi' ? 'upi'
+        : bookingModalData.paymentMethod.toLowerCase() === 'card' ? 'card'
+        : bookingModalData.paymentMethod.toLowerCase() === 'bank transfer' || bookingModalData.paymentMethod.toLowerCase() === 'bank_transfer' ? 'bank_transfer'
+        : 'pay_at_hotel',
       specialRequests: bookingModalData.notes,
       advancePaid: Number(bookingModalData.advancePaid),
       roomAmount: Number(bookingModalData.roomAmount || 0),
@@ -813,9 +818,11 @@ export default function CalendarPage() {
                     onChange={(e) => setBookingModalData(prev => ({ ...prev, paymentMethod: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-medium"
                   >
+                    <option value="Pay at Hotel">Pay at Hotel (No Advance)</option>
                     <option value="Cash">Cash</option>
                     <option value="UPI">UPI</option>
                     <option value="Card">Card</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
                   </select>
                 </div>
                 <div>

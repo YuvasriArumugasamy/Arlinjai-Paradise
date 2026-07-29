@@ -104,7 +104,7 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['pay_at_hotel', 'upi', 'card', 'bank_transfer'],
+      enum: ['pay_at_hotel', 'upi', 'card', 'bank_transfer', 'cash'],
       default: 'pay_at_hotel',
     },
     paymentStatus: {

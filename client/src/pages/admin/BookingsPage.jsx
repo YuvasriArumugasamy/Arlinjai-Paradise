@@ -163,11 +163,12 @@ export default function BookingsPage() {
       extraBeds: booking.extraBeds || 0,
       amount: booking.roomAmount || booking.amount || '',
       advancePaid: booking.advancePaid || 0,
-      paymentMethod: booking.paymentMethod === 'pay_at_hotel' ? 'Cash'
+      paymentMethod: booking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel'
+        : booking.paymentMethod === 'cash' ? 'Cash'
         : booking.paymentMethod === 'upi' ? 'UPI'
         : booking.paymentMethod === 'card' ? 'Card'
         : booking.paymentMethod === 'bank_transfer' ? 'Bank Transfer'
-        : 'Cash',
+        : 'Pay at Hotel',
       specialNotes: booking.specialRequests || '',
     })
   }
@@ -187,7 +188,8 @@ export default function BookingsPage() {
       setAddLoading(true)
 
       const pMethodMap = {
-        'Cash': 'pay_at_hotel',
+        'Pay at Hotel': 'pay_at_hotel',
+        'Cash': 'cash',
         'UPI': 'upi',
         'Card': 'card',
         'Bank Transfer': 'bank_transfer'
@@ -659,7 +661,7 @@ export default function BookingsPage() {
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">Payment Method</p>
                     <p className="font-medium text-navy capitalize">
-                      {selectedBooking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel' : selectedBooking.paymentMethod}
+                      {selectedBooking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel (No Advance)' : selectedBooking.paymentMethod}
                     </p>
                   </div>
                   {selectedBooking.specialRequests && (
@@ -950,6 +952,7 @@ export default function BookingsPage() {
                     onChange={(e) => setAddForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-medium"
                   >
+                    <option value="Pay at Hotel">Pay at Hotel (No Advance)</option>
                     <option value="Cash">Cash</option>
                     <option value="UPI">UPI</option>
                     <option value="Card">Card</option>
