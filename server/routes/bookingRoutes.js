@@ -1,6 +1,6 @@
 const express = require('express')
 const { body } = require('express-validator')
-const { createBooking, getBookings, getBooking, updateBookingStatus, updateRoomAssignment, deleteBooking } = require('../controllers/bookingController')
+const { createBooking, getBookings, getBooking, updateBooking, updateBookingStatus, updateRoomAssignment, deleteBooking } = require('../controllers/bookingController')
 const { protect } = require('../middleware/authMiddleware')
 const { staffOnly, adminOnly } = require('../middleware/roleMiddleware')
 
@@ -22,6 +22,7 @@ router.route('/')
 
 router.route('/:id')
   .get(protect, staffOnly, getBooking)
+  .patch(protect, staffOnly, updateBooking)
   .delete(protect, adminOnly, deleteBooking)
 
 router.patch('/:id/status', protect, staffOnly, updateBookingStatus)

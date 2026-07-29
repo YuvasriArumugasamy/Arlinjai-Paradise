@@ -4,7 +4,7 @@ import {
   FaSearch, FaFilter, FaEye, FaTimes, FaDownload,
   FaUser, FaPhoneAlt, FaEnvelope, FaBed, FaCalendarAlt,
   FaIdCard, FaVenusMars, FaBirthdayCake, FaMoneyBillWave,
-  FaWhatsapp, FaTimesCircle, FaTrashAlt
+  FaWhatsapp, FaTimesCircle, FaTrashAlt, FaEdit
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { authAxios } from '../../context/AuthContext'
@@ -42,6 +42,8 @@ export default function BookingsPage() {
   // Offline Booking Modal State
   const [showAddModal, setShowAddModal] = useState(false)
   const [addLoading, setAddLoading] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editingBookingId, setEditingBookingId] = useState(null)
   
   const getTodayISO = () => new Date().toISOString().slice(0, 10)
   const getTomorrowISO = () => new Date(Date.now() + 86400000).toISOString().slice(0, 10)
@@ -101,6 +103,64 @@ export default function BookingsPage() {
     fetchBookings()
   }, [])
 
+  const resetAddForm = () => {
+    setIsEditMode(false)
+    setEditingBookingId(null)
+    setAddForm({
+      guestName: '',
+      phone: '',
+      email: '',
+      roomSlug: 'deluxe-ac-room',
+      roomsCount: 1,
+      checkIn: getTodayISO(),
+      checkInTime: '12:00',
+      checkOut: getTomorrowISO(),
+      checkOutTime: '11:00',
+      guests: 2,
+      children: 0,
+      amount: '',
+      advancePaid: 0,
+      paymentMethod: 'Cash',
+      specialNotes: '',
+    })
+  }
+
+  const getRoomSlugFromName = (name) => {
+    const map = {
+      'Deluxe AC Room': 'deluxe-ac-room',
+      'Normal AC Room': 'normal-ac-room',
+      'Non AC Room': 'non-ac-room',
+    }
+    return map[name] || 'deluxe-ac-room'
+  }
+
+  const openEditModal = (booking) => {
+    setIsEditMode(true)
+    setEditingBookingId(booking.id)
+    setShowAddModal(true)
+    setAddForm({
+      guestName: booking.guest || '',
+      phone: booking.phone || '',
+      email: booking.email || '',
+      roomSlug: getRoomSlugFromName(booking.room),
+      roomsCount: booking.roomsCount || 1,
+      checkIn: booking.checkIn ? new Date(booking.checkIn).toISOString().slice(0, 10) : getTodayISO(),
+      checkInTime: booking.checkInTime || '12:00',
+      checkOut: booking.checkOut ? new Date(booking.checkOut).toISOString().slice(0, 10) : getTomorrowISO(),
+      checkOutTime: booking.checkOutTime || '11:00',
+      guests: booking.guests || 1,
+      children: booking.children || 0,
+      amount: booking.amount || '',
+      advancePaid: 0,
+      paymentMethod: booking.paymentMethod === 'pay_at_hotel' ? 'Cash'
+        : booking.paymentMethod === 'upi' ? 'UPI'
+        : booking.paymentMethod === 'card' ? 'Card'
+        : booking.paymentMethod === 'bank_transfer' ? 'Bank Transfer'
+        : 'Cash',
+      specialNotes: booking.specialRequests || '',
+    })
+  }
+
   const handleCreateOfflineBooking = async (e) => {
     e.preventDefault()
     if (!addForm.guestName || !addForm.phone || !addForm.checkIn || !addForm.checkOut) {
@@ -140,27 +200,17 @@ export default function BookingsPage() {
         status: 'confirmed',
       }
 
-      const res = await authAxios.post(`${API_BASE_URL}/bookings`, payload)
+      const res = isEditMode && editingBookingId
+        ? await authAxios.patch(`${API_BASE_URL}/bookings/${editingBookingId}`, payload)
+        : await authAxios.post(`${API_BASE_URL}/bookings`, { ...payload, status: 'confirmed' })
       if (res.data.success) {
-        toast.success('Offline booking confirmed successfully!')
+        toast.success(isEditMode ? 'Offline booking updated successfully!' : 'Offline booking confirmed successfully!')
         setShowAddModal(false)
-        setAddForm({
-          guestName: '',
-          phone: '',
-          email: '',
-          roomSlug: 'deluxe-ac-room',
-          roomsCount: 1,
-          checkIn: getTodayISO(),
-          checkInTime: '12:00',
-          checkOut: getTomorrowISO(),
-          checkOutTime: '11:00',
-          guests: 2,
-          amount: '',
-          advancePaid: 0,
-          paymentMethod: 'Cash',
-          specialNotes: '',
-        })
+        resetAddForm()
         fetchBookings()
+        if (isEditMode && selectedBooking?.id === editingBookingId) {
+          setSelectedBooking(res.data.booking)
+        }
       }
     } catch (err) {
       console.error('Failed to create offline booking:', err)
@@ -276,7 +326,10 @@ export default function BookingsPage() {
         <div className="flex flex-wrap items-center gap-3 self-start sm:self-auto">
           {/* Add Offline Booking Button */}
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              resetAddForm()
+              setShowAddModal(true)
+            }}
             className="flex items-center gap-2 bg-[#D0A448] hover:bg-[#b88e36] text-navy font-poppins font-semibold text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-full shadow-sm transition-all active:scale-95 cursor-pointer"
           >
             <span className="text-base sm:text-lg font-bold leading-none">+</span> Add Offline Booking
@@ -590,7 +643,7 @@ export default function BookingsPage() {
               {/* Update Status */}
               <div className="border-t pt-4">
                 <p className="font-poppins text-sm font-semibold text-gray-700 mb-2">Update Status</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
                   {['confirmed', 'cancelled'].map((s) => (
                     <button key={s} onClick={() => updateStatus(selectedBooking.id, s)}
                       className={`font-poppins text-xs px-4 py-1.5 rounded-full border transition-colors capitalize
@@ -600,6 +653,12 @@ export default function BookingsPage() {
                       {s}
                     </button>
                   ))}
+                  <button
+                    onClick={() => openEditModal(selectedBooking)}
+                    className="font-poppins text-xs px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 hover:border-gold hover:text-gold"
+                  >
+                    <FaEdit className="inline-block mr-1" /> Edit
+                  </button>
                 </div>
               </div>
 
@@ -635,7 +694,7 @@ export default function BookingsPage() {
               <div className="flex items-center gap-2">
                 <span className="text-[#C9A227] font-bold text-lg leading-none">+</span>
                 <h3 className="font-playfair font-bold text-navy text-xl">
-                  Add Offline Booking
+                  {isEditMode ? 'Edit Offline Booking' : 'Add Offline Booking'}
                 </h3>
               </div>
               <button
@@ -878,7 +937,7 @@ export default function BookingsPage() {
                   disabled={addLoading}
                   className="w-full py-3.5 bg-[#C9A227] hover:bg-[#b59120] text-white font-poppins font-bold text-sm rounded-xl shadow-md transition-all active:scale-[0.99] cursor-pointer"
                 >
-                  {addLoading ? 'Confirming...' : 'Confirm Offline Booking'}
+                  {addLoading ? (isEditMode ? 'Updating...' : 'Confirming...') : (isEditMode ? 'Update Offline Booking' : 'Confirm Offline Booking')}
                 </button>
               </div>
             </form>

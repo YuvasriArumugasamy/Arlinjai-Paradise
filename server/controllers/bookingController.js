@@ -491,4 +491,64 @@ const deleteBooking = async (req, res, next) => {
   }
 }
 
-module.exports = { createBooking, getBookings, getBooking, updateBookingStatus, updateRoomAssignment, deleteBooking }
+const updateBooking = async (req, res, next) => {
+  try {
+    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber } = req.body
+
+    const booking = await Booking.findOne({
+      $or: [{ _id: req.params.id }, { bookingId: req.params.id }],
+    })
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' })
+    }
+
+    booking.guest.name = name || booking.guest.name
+    booking.guest.email = email || booking.guest.email
+    booking.guest.phone = phone || booking.guest.phone
+    booking.guest.address = address || booking.guest.address
+    booking.guest.gender = gender || booking.guest.gender
+    booking.guest.dob = dob ? new Date(dob) : booking.guest.dob
+    booking.guest.idType = idType || booking.guest.idType
+    booking.guest.idNumber = idNumber || booking.guest.idNumber
+
+    if (roomId) {
+      const mongoose = require('mongoose')
+      let room = null
+      if (mongoose.Types.ObjectId.isValid(roomId)) {
+        room = await Room.findById(roomId)
+      } else {
+        const slugMap = {
+          'deluxe-ac': 'deluxe-ac-room',
+          'normal-ac': 'normal-ac-room',
+          'non-ac': 'non-ac-room'
+        }
+        const slug = slugMap[roomId] || roomId
+        room = await Room.findOne({ slug })
+      }
+      if (room) {
+        booking.room = room._id
+        booking.roomSnapshot.name = room.name
+        booking.roomSnapshot.price = room.price
+        booking.roomSnapshot.category = room.category
+      }
+    }
+
+    if (checkIn) booking.checkIn = new Date(checkIn)
+    if (checkInTime) booking.checkInTime = checkInTime
+    if (checkOut) booking.checkOut = new Date(checkOut)
+    if (checkOutTime) booking.checkOutTime = checkOutTime
+    if (guests !== undefined) booking.guests = parseInt(guests)
+    if (children !== undefined) booking.children = parseInt(children)
+    if (specialRequests !== undefined) booking.specialRequests = specialRequests
+    if (paymentMethod) booking.paymentMethod = paymentMethod
+
+    await booking.save()
+
+    res.json({ success: true, message: 'Booking updated successfully', booking })
+  } catch (error) {
+    next(error)
+  }
+}
+
+module.exports = { createBooking, getBookings, getBooking, updateBooking, updateBookingStatus, updateRoomAssignment, deleteBooking }
