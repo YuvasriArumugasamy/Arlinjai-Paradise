@@ -119,7 +119,7 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Validation failed', errors: errors.array() })
     }
 
-    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, status, assignedRoom } = req.body
+    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid, status, assignedRoom } = req.body
 
     const Settings = require('../models/Settings')
     const globalSettings = await Settings.findOne({ key: 'global' })
@@ -238,15 +238,16 @@ const createBooking = async (req, res, next) => {
             if (outMins > (stdH * 60 + (stdM || 0))) timingFee += lateFeeVal
           }
         }
-        const finalPricePerNight = Math.round(baseAmount / nights)
-        const subtotal = baseAmount + timingFee
-        const gstAmount = Math.round(subtotal * (gstRate / 100))
-        const totalAmount = customPrice !== null ? customPrice : (subtotal + gstAmount)
+        const customPriceVal = roomAmount ? parseFloat(roomAmount) : null
+        const baseRoomAmt = customPriceVal !== null ? customPriceVal : subtotal
+        const gstAmount = Math.round(baseRoomAmt * (gstRate / 100))
+        const totalAmount = baseRoomAmt + gstAmount
+        const advanceVal = Number(advancePaid || 0)
 
         const booking = await Booking.create({
           guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
           room: new mongoose.Types.ObjectId('000000000000000000000001'),
-          roomSnapshot: { name: sr.name, price: finalPricePerNight, category: sr.category },
+          roomSnapshot: { name: sr.name, price: Math.round(baseRoomAmt / nights), category: sr.category },
           checkIn: checkInDate,
           checkInTime: checkInTime || '11:00',
           checkOut: checkOutDate,
@@ -255,8 +256,10 @@ const createBooking = async (req, res, next) => {
           guests: parseInt(guests),
           children: parseInt(children || 0),
           extraBeds: parseInt(extraBeds || 0),
+          advancePaid: advanceVal,
+          roomAmount: baseRoomAmt,
           specialRequests,
-          pricing: { pricePerNight: finalPricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
+          pricing: { pricePerNight: Math.round(baseRoomAmt / nights), totalAmount, discountAmount: 0, finalAmount: totalAmount, advancePaid: advanceVal, roomAmount: baseRoomAmt },
           paymentMethod: paymentMethod || 'pay_at_hotel',
           status: status || 'pending',
           assignedRoom: assignedRoom || null,
@@ -332,15 +335,16 @@ const createBooking = async (req, res, next) => {
           if (outMins > (stdH * 60 + (stdM || 0))) timingFee += lateFeeVal
         }
       }
-      const pricePerNight = Math.round(baseAmount / nights)
-      const subtotal = baseAmount + timingFee
-      const gstAmount = Math.round(subtotal * (gstRate / 100))
-      const totalAmount = customPrice !== null ? customPrice : (subtotal + gstAmount)
+      const customPriceVal = roomAmount ? parseFloat(roomAmount) : null
+      const baseRoomAmt = customPriceVal !== null ? customPriceVal : subtotal
+      const gstAmount = Math.round(baseRoomAmt * (gstRate / 100))
+      const totalAmount = baseRoomAmt + gstAmount
+      const advanceVal = Number(advancePaid || 0)
 
       const booking = await Booking.create({
         guest: { name, email, phone, address, gender: gender || null, dob: dob ? new Date(dob) : null, idType: idType || null, idNumber: idNumber || null },
         room: room._id,
-        roomSnapshot: { name: room.name, price: pricePerNight, category: room.category },
+        roomSnapshot: { name: room.name, price: Math.round(baseRoomAmt / nights), category: room.category },
         checkIn: checkInDate,
         checkInTime: checkInTime || '11:00',
         checkOut: checkOutDate,
@@ -348,8 +352,11 @@ const createBooking = async (req, res, next) => {
         nights,
         guests: parseInt(guests),
         children: parseInt(children || 0),
+        extraBeds: parseInt(extraBeds || 0),
+        advancePaid: advanceVal,
+        roomAmount: baseRoomAmt,
         specialRequests,
-        pricing: { pricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
+        pricing: { pricePerNight: Math.round(baseRoomAmt / nights), totalAmount, discountAmount: 0, finalAmount: totalAmount, advancePaid: advanceVal, roomAmount: baseRoomAmt },
         paymentMethod: paymentMethod || 'pay_at_hotel',
         status: status || 'pending',
         assignedRoom: assignedRoom || null,
@@ -497,7 +504,7 @@ const deleteBooking = async (req, res, next) => {
 
 const updateBooking = async (req, res, next) => {
   try {
-    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber } = req.body
+    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid } = req.body
 
     const booking = await Booking.findOne(getBookingQuery(req.params.id))
 
@@ -543,6 +550,19 @@ const updateBooking = async (req, res, next) => {
     if (guests !== undefined) booking.guests = parseInt(guests)
     if (children !== undefined) booking.children = parseInt(children)
     if (extraBeds !== undefined) booking.extraBeds = parseInt(extraBeds)
+    if (advancePaid !== undefined) {
+      booking.advancePaid = Number(advancePaid)
+      if (booking.pricing) booking.pricing.advancePaid = Number(advancePaid)
+    }
+    if (roomAmount !== undefined) {
+      booking.roomAmount = Number(roomAmount)
+      if (booking.pricing) {
+        booking.pricing.roomAmount = Number(roomAmount)
+        const gst = Math.round(Number(roomAmount) * 0.12)
+        booking.pricing.totalAmount = Number(roomAmount) + gst
+        booking.pricing.finalAmount = Number(roomAmount) + gst
+      }
+    }
     if (specialRequests !== undefined) booking.specialRequests = specialRequests
     if (paymentMethod) booking.paymentMethod = paymentMethod
 

@@ -76,6 +76,14 @@ const bookingSchema = new mongoose.Schema(
       min: 0,
       max: 10,
     },
+    advancePaid: {
+      type: Number,
+      default: 0,
+    },
+    roomAmount: {
+      type: Number,
+      default: 0,
+    },
     specialRequests: {
       type: String,
       trim: true,
@@ -85,6 +93,8 @@ const bookingSchema = new mongoose.Schema(
       totalAmount: { type: Number, required: true },
       discountAmount: { type: Number, default: 0 },
       finalAmount: { type: Number, required: true },
+      advancePaid: { type: Number, default: 0 },
+      roomAmount: { type: Number, default: 0 },
       couponCode: String,
     },
     status: {

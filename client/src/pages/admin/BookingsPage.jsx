@@ -86,7 +86,10 @@ export default function BookingsPage() {
     nights: b.nights,
     guests: b.guests,
     children: b.children || 0,
-    amount: b.pricing?.finalAmount ?? b.amount ?? 0,
+    extraBeds: b.extraBeds || 0,
+    amount: b.pricing?.finalAmount ?? b.pricing?.totalAmount ?? b.amount ?? 0,
+    roomAmount: b.roomAmount ?? b.pricing?.roomAmount ?? 0,
+    advancePaid: b.advancePaid ?? b.pricing?.advancePaid ?? 0,
     paymentMethod: b.paymentMethod || 'pay_at_hotel',
     specialRequests: b.specialRequests || '',
     status: b.status,
@@ -157,8 +160,9 @@ export default function BookingsPage() {
       checkOutTime: booking.checkOutTime || '11:00',
       guests: booking.guests || 1,
       children: booking.children || 0,
-      amount: booking.amount || '',
-      advancePaid: 0,
+      extraBeds: booking.extraBeds || 0,
+      amount: booking.roomAmount || booking.amount || '',
+      advancePaid: booking.advancePaid || 0,
       paymentMethod: booking.paymentMethod === 'pay_at_hotel' ? 'Cash'
         : booking.paymentMethod === 'upi' ? 'UPI'
         : booking.paymentMethod === 'card' ? 'Card'
@@ -610,6 +614,7 @@ export default function BookingsPage() {
                     { label: 'Room Type',  value: selectedBooking.room },
                     { label: 'Adults',     value: selectedBooking.guests },
                     { label: 'Children',   value: selectedBooking.children ?? 0 },
+                    { label: 'Extra Beds',  value: selectedBooking.extraBeds ?? 0 },
                     { label: 'Check In',   value: `${fmt(selectedBooking.checkIn)} (${selectedBooking.checkInTime || '12:00 PM'})` },
                     { label: 'Check Out',  value: `${fmt(selectedBooking.checkOut)} (${selectedBooking.checkOutTime || '11:00 AM'})` },
                     { label: 'Nights',     value: selectedBooking.nights },
@@ -628,12 +633,28 @@ export default function BookingsPage() {
               {/* Payment */}
               <div>
                 <p className="font-poppins text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <FaMoneyBillWave size={10} className="text-gold" /> Payment
+                  <FaMoneyBillWave size={10} className="text-gold" /> Payment Information
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
+                  {selectedBooking.roomAmount > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Room Charge (before GST)</p>
+                      <p className="font-semibold text-navy">₹{Number(selectedBooking.roomAmount).toLocaleString()}</p>
+                    </div>
+                  )}
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Total Amount</p>
+                    <p className="text-xs text-gray-400 mb-0.5">Total Amount (incl. GST)</p>
                     <p className="font-bold text-gold text-lg">₹{(selectedBooking.amount || 0).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Advance Paid</p>
+                    <p className="font-semibold text-green-600 text-sm">₹{Number(selectedBooking.advancePaid || 0).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Balance Due at Check-In</p>
+                    <p className="font-bold text-red-600 text-sm">
+                      ₹{Math.max(0, (selectedBooking.amount || 0) - Number(selectedBooking.advancePaid || 0)).toLocaleString()}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">Payment Method</p>
@@ -642,7 +663,7 @@ export default function BookingsPage() {
                     </p>
                   </div>
                   {selectedBooking.specialRequests && (
-                    <div className="col-span-2">
+                    <div className="col-span-2 border-t border-gray-200 pt-2 mt-1">
                       <p className="text-xs text-gray-400 mb-0.5">Special Requests</p>
                       <p className="font-medium text-navy break-words">{selectedBooking.specialRequests}</p>
                     </div>
