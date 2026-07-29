@@ -66,31 +66,37 @@ export default function BookingsPage() {
     specialNotes: '',
   })
 
+  const mapSingleBooking = (b) => ({
+    id: b._id || b.bookingId,
+    bookingId: b.bookingId || b._id,
+    guest: typeof b.guest === 'string' ? b.guest : (b.guest?.name || '—'),
+    gender: typeof b.guest === 'object' ? (b.guest?.gender || '') : (b.gender || ''),
+    dob: typeof b.guest === 'object' ? (b.guest?.dob || '') : (b.dob || ''),
+    email: typeof b.guest === 'object' ? (b.guest?.email || '') : (b.email || ''),
+    phone: typeof b.guest === 'object' ? (b.guest?.phone || '') : (b.phone || ''),
+    idType: typeof b.guest === 'object' ? (b.guest?.idType || '') : (b.idType || ''),
+    idNumber: typeof b.guest === 'object' ? (b.guest?.idNumber || '') : (b.idNumber || ''),
+    address: typeof b.guest === 'object' ? (b.guest?.address || '') : (b.address || ''),
+    room: b.roomSnapshot?.name || (typeof b.room === 'string' ? b.room : b.room?.name) || '—',
+    checkIn: b.checkIn,
+    checkInTime: b.checkInTime || '12:00 PM',
+    checkOut: b.checkOut,
+    checkOutTime: b.checkOutTime || '11:00 AM',
+    nights: b.nights,
+    guests: b.guests,
+    children: b.children || 0,
+    amount: b.pricing?.finalAmount ?? b.amount ?? 0,
+    paymentMethod: b.paymentMethod || 'pay_at_hotel',
+    specialRequests: b.specialRequests || '',
+    status: b.status,
+    createdAt: b.createdAt
+  })
+
   const fetchBookings = async () => {
     try {
       const res = await authAxios.get(`${API_BASE_URL}/bookings?limit=100`)
       if (res.data.success) {
-        const mapped = res.data.bookings.map(b => ({
-          id: b._id || b.bookingId,
-          bookingId: b.bookingId || b._id,
-          guest: b.guest?.name || b.guest || '—',
-          gender: b.guest?.gender || b.gender || '',
-          dob: b.guest?.dob || b.dob || '',
-          email: b.guest?.email || b.email || '',
-          phone: b.guest?.phone || b.phone || '',
-          idType: b.guest?.idType || b.idType || '',
-          idNumber: b.guest?.idNumber || b.idNumber || '',
-          room: b.roomSnapshot?.name || b.room?.name || '—',
-          checkIn: b.checkIn,
-          checkOut: b.checkOut,
-          nights: b.nights,
-          guests: b.guests,
-          children: b.children || 0,
-          amount: b.pricing?.finalAmount || 0,
-          paymentMethod: b.paymentMethod || 'pay_at_hotel',
-          status: b.status,
-          createdAt: b.createdAt
-        }))
+        const mapped = res.data.bookings.map(mapSingleBooking)
         setBookings(mapped)
       }
     } catch (err) {
@@ -209,7 +215,7 @@ export default function BookingsPage() {
         resetAddForm()
         fetchBookings()
         if (isEditMode && selectedBooking?.id === editingBookingId) {
-          setSelectedBooking(res.data.booking)
+          setSelectedBooking(res.data.booking ? mapSingleBooking(res.data.booking) : null)
         }
       }
     } catch (err) {
@@ -567,7 +573,9 @@ export default function BookingsPage() {
                       <p className="text-xs text-gray-400 flex items-center gap-1 mb-0.5">
                         {Icon && <Icon size={9} className="text-gold" />} {label}
                       </p>
-                      <p className="font-medium text-navy text-sm break-words">{value}</p>
+                      <p className="font-medium text-navy text-sm break-words">
+                        {typeof value === 'object' ? (value?.name || '—') : String(value ?? '—')}
+                      </p>
                     </div>
                   ))}
                 </div>
