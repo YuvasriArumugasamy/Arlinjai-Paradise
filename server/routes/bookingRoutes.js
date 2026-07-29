@@ -23,6 +23,7 @@ router.route('/')
 router.route('/:id')
   .get(protect, staffOnly, getBooking)
   .patch(protect, staffOnly, updateBooking)
+  .put(protect, staffOnly, updateBooking)
   .delete(protect, adminOnly, deleteBooking)
 
 router.patch('/:id/status', protect, staffOnly, updateBookingStatus)
