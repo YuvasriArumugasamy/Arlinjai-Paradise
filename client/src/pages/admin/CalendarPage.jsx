@@ -55,6 +55,7 @@ export default function CalendarPage() {
     checkOutTime: '11:00',
     guests: 2,
     children: 0,
+    extraBeds: 0,
     advancePaid: 0,
     paymentMethod: 'Cash',
     notes: '',
@@ -85,6 +86,7 @@ export default function CalendarPage() {
       checkOutTime: '11:00',
       guests: 2,
       children: 0,
+      extraBeds: 0,
       advancePaid: 0,
       paymentMethod: 'Cash',
       notes: `Offline Booking pre-filled for ${room.name}`,
@@ -128,6 +130,7 @@ export default function CalendarPage() {
       checkOutTime: bookingModalData.checkOutTime,
       guests: Number(bookingModalData.guests || 2),
       children: Number(bookingModalData.children || 0),
+      extraBeds: Number(bookingModalData.extraBeds || 0),
       name: bookingModalData.name,
       phone: bookingModalData.phone,
       email: bookingModalData.email || 'offline@arlinjaiparadise.com',
@@ -703,8 +706,8 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              {/* Adults & Children */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Adults, Children & Extra Beds */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Adults</label>
                   <input 
@@ -724,6 +727,17 @@ export default function CalendarPage() {
                     max="10"
                     value={bookingModalData.children}
                     onChange={(e) => setBookingModalData(prev => ({ ...prev, children: parseInt(e.target.value) || 0 }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Extra Beds</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    max="10"
+                    value={bookingModalData.extraBeds}
+                    onChange={(e) => setBookingModalData(prev => ({ ...prev, extraBeds: parseInt(e.target.value) || 0 }))}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
                   />
                 </div>

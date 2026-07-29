@@ -60,6 +60,7 @@ export default function BookingsPage() {
     checkOutTime: '11:00',
     guests: 2,
     children: 0,
+    extraBeds: 0,
     amount: '',
     advancePaid: 0,
     paymentMethod: 'Cash',
@@ -199,6 +200,7 @@ export default function BookingsPage() {
         checkOutTime: addForm.checkOutTime || '11:00 AM',
         guests: Number(addForm.guests),
         children: Number(addForm.children || 0),
+        extraBeds: Number(addForm.extraBeds || 0),
         roomAmount: addForm.amount ? Number(addForm.amount) : undefined,
         advancePaid: Number(addForm.advancePaid || 0),
         paymentMethod: pMethodMap[addForm.paymentMethod] || 'pay_at_hotel',
@@ -872,6 +874,21 @@ export default function BookingsPage() {
                   max="10"
                   value={addForm.children}
                   onChange={(e) => setAddForm({ ...addForm, children: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
+                />
+              </div>
+
+              {/* Extra Beds */}
+              <div>
+                <label className="block text-slate-700 font-bold text-xs mb-1.5">
+                  Extra Beds
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={addForm.extraBeds}
+                  onChange={(e) => setAddForm({ ...addForm, extraBeds: e.target.value })}
                   className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
                 />
               </div>

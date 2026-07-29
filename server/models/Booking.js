@@ -70,6 +70,12 @@ const bookingSchema = new mongoose.Schema(
       min: 0,
       max: 10,
     },
+    extraBeds: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 10,
+    },
     specialRequests: {
       type: String,
       trim: true,

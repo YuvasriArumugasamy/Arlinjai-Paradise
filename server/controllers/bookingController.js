@@ -119,7 +119,7 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Validation failed', errors: errors.array() })
     }
 
-    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, status, assignedRoom } = req.body
+    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, status, assignedRoom } = req.body
 
     const Settings = require('../models/Settings')
     const globalSettings = await Settings.findOne({ key: 'global' })
@@ -254,6 +254,7 @@ const createBooking = async (req, res, next) => {
           nights,
           guests: parseInt(guests),
           children: parseInt(children || 0),
+          extraBeds: parseInt(extraBeds || 0),
           specialRequests,
           pricing: { pricePerNight: finalPricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
           paymentMethod: paymentMethod || 'pay_at_hotel',
@@ -496,7 +497,7 @@ const deleteBooking = async (req, res, next) => {
 
 const updateBooking = async (req, res, next) => {
   try {
-    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber } = req.body
+    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber } = req.body
 
     const booking = await Booking.findOne(getBookingQuery(req.params.id))
 
@@ -541,6 +542,7 @@ const updateBooking = async (req, res, next) => {
     if (checkOutTime) booking.checkOutTime = checkOutTime
     if (guests !== undefined) booking.guests = parseInt(guests)
     if (children !== undefined) booking.children = parseInt(children)
+    if (extraBeds !== undefined) booking.extraBeds = parseInt(extraBeds)
     if (specialRequests !== undefined) booking.specialRequests = specialRequests
     if (paymentMethod) booking.paymentMethod = paymentMethod
 
