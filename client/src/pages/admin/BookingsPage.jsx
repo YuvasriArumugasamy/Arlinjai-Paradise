@@ -693,280 +693,270 @@ export default function BookingsPage() {
       )}
       {/* Add Offline Booking Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]"
-          >
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto font-poppins">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 relative max-h-[95vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0 bg-white">
-              <div className="flex items-center gap-2">
-                <span className="text-[#C9A227] font-bold text-lg leading-none">+</span>
-                <h3 className="font-playfair font-bold text-navy text-xl">
-                  {isEditMode ? 'Edit Offline Booking' : 'Add Offline Booking'}
-                </h3>
-              </div>
-              <button
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+              <h3 className="font-playfair font-bold text-navy text-xl flex items-center gap-2">
+                <span className="text-gold font-poppins">+</span> {isEditMode ? 'Edit Offline Booking' : 'Add Offline Booking'}
+              </h3>
+              <button 
                 onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-navy transition-colors p-1"
+                className="text-gray-400 hover:text-gray-600 transition-colors text-lg font-bold cursor-pointer"
               >
-                <FaTimes size={18} />
+                ✕
               </button>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleCreateOfflineBooking} className="p-6 space-y-4 overflow-y-auto font-poppins text-xs">
+            <form onSubmit={handleCreateOfflineBooking} className="space-y-4 text-left">
               {/* Customer Name */}
               <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Customer Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Customer Name *</label>
+                <input 
+                  type="text" 
                   required
-                  value={addForm.guestName}
-                  onChange={(e) => setAddForm({ ...addForm, guestName: e.target.value })}
                   placeholder="Name"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700 placeholder:text-slate-300"
+                  value={addForm.guestName}
+                  onChange={(e) => setAddForm(prev => ({ ...prev, guestName: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
                 />
               </div>
 
-              {/* Phone Number */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  required
-                  value={addForm.phone}
-                  onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
-                  placeholder="e.g. 9876543210"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700 placeholder:text-slate-300"
-                />
+              {/* Phone & Email */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number *</label>
+                  <input 
+                    type="tel" 
+                    required
+                    placeholder="e.g. 9876543210"
+                    value={addForm.phone}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
+                  <input 
+                    type="email" 
+                    placeholder="e.g. guest@example.com"
+                    value={addForm.email}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
               </div>
 
-              {/* Email Address */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={addForm.email}
-                  onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
-                  placeholder="e.g. guest@example.com"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700 placeholder:text-slate-300"
-                />
+              {/* Room Type & Number of Rooms */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Room Type *</label>
+                  <select 
+                    value={addForm.roomSlug}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, roomSlug: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-medium"
+                  >
+                    <option value="deluxe-ac-room">Deluxe AC Room</option>
+                    <option value="normal-ac-room">Normal AC Room</option>
+                    <option value="non-ac-room">Non AC Room</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Number of Rooms</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={addForm.roomsCount}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, roomsCount: parseInt(e.target.value) || 1 }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
               </div>
 
-              {/* Room Type */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Room Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={addForm.roomSlug}
-                  onChange={(e) => setAddForm({ ...addForm, roomSlug: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold cursor-pointer text-slate-700 bg-white"
-                >
-                  <option value="deluxe-ac-room">Deluxe AC Room</option>
-                  <option value="normal-ac-room">Normal AC Room</option>
-                  <option value="non-ac-room">Non AC Room</option>
-                </select>
+              {/* Check-In Date & Check-In Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Check-In Date *</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={addForm.checkIn}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, checkIn: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Check-In Time *</label>
+                  <input 
+                    type="time" 
+                    required
+                    value={addForm.checkInTime}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, checkInTime: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
               </div>
 
-              {/* Number of Rooms */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Number of Rooms
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="15"
-                  value={addForm.roomsCount}
-                  onChange={(e) => setAddForm({ ...addForm, roomsCount: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
-                />
+              {/* Check-Out Date & Check-Out Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Check-Out Date *</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={addForm.checkOut}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, checkOut: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Check-Out Time *</label>
+                  <input 
+                    type="time" 
+                    required
+                    value={addForm.checkOutTime}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, checkOutTime: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
               </div>
 
-              {/* Check-In Date */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Check-In Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={addForm.checkIn}
-                  onChange={(e) => setAddForm({ ...addForm, checkIn: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
-                />
+              {/* Adults, Children & Extra Beds */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Adults</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    max="10"
+                    value={addForm.guests}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, guests: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Children</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    max="10"
+                    value={addForm.children}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, children: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Extra Beds</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    max="10"
+                    value={addForm.extraBeds}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, extraBeds: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
               </div>
 
-              {/* Check-In Time */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Check-In Time <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="time"
-                  required
-                  value={addForm.checkInTime}
-                  onChange={(e) => setAddForm({ ...addForm, checkInTime: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
-                />
+              {/* Room Charge & Advance Paid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Room Charge (₹) * <span className="text-gray-400 font-normal">(before GST)</span></label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    required
+                    placeholder="Enter room charge amount"
+                    value={addForm.amount}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, amount: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Advance Paid (₹)</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    placeholder="0"
+                    value={addForm.advancePaid}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, advancePaid: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
               </div>
 
-              {/* Check-Out Date */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Check-Out Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={addForm.checkOut}
-                  onChange={(e) => setAddForm({ ...addForm, checkOut: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
-                />
-              </div>
+              {/* Payment Summary with GST */}
+              {(parseFloat(addForm.amount) > 0 || parseFloat(addForm.advancePaid) > 0) && (() => {
+                const roomCharge = parseFloat(addForm.amount) || 0
+                const gst = Math.round(roomCharge * 0.12)
+                const total = roomCharge + gst
+                const advance = parseFloat(addForm.advancePaid) || 0
+                const balance = Math.max(0, total - advance)
+                return (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-1.5">
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">💰 Payment Summary</p>
+                    <div className="flex justify-between text-sm text-gray-700">
+                      <span>Room Charge</span>
+                      <span>₹{roomCharge.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>GST (12%)</span>
+                      <span>₹{gst.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-amber-300 pt-1.5 mt-1">
+                      <span>Total Amount</span>
+                      <span className="text-[#C9A227]">₹{total.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-green-700">
+                      <span>Advance Paid</span>
+                      <span className="font-semibold">₹{advance.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold text-red-600 border-t border-amber-300 pt-1.5">
+                      <span>Balance Due at Check-In</span>
+                      <span>₹{balance.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                )
+              })()}
 
-              {/* Check-Out Time */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Check-Out Time <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="time"
-                  required
-                  value={addForm.checkOutTime}
-                  onChange={(e) => setAddForm({ ...addForm, checkOutTime: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
-                />
-              </div>
-
-              {/* Adults */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Adults
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={addForm.guests}
-                  onChange={(e) => setAddForm({ ...addForm, guests: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
-                />
-              </div>
-
-              {/* Children */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Children
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={addForm.children}
-                  onChange={(e) => setAddForm({ ...addForm, children: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
-                />
-              </div>
-
-              {/* Extra Beds */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Extra Beds
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={addForm.extraBeds}
-                  onChange={(e) => setAddForm({ ...addForm, extraBeds: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
-                />
-              </div>
-
-              {/* Room Charge (₹) * (before GST) */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Room Charge (₹) <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">(before GST)</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  required
-                  value={addForm.amount}
-                  onChange={(e) => setAddForm({ ...addForm, amount: e.target.value })}
-                  placeholder="Enter room charge amount"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700 placeholder:text-slate-300"
-                />
-              </div>
-
-              {/* Advance Paid (₹) */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Advance Paid (₹)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={addForm.advancePaid}
-                  onChange={(e) => setAddForm({ ...addForm, advancePaid: e.target.value })}
-                  placeholder="0"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
-                />
-              </div>
-
-              {/* Payment Method (for Advance) */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Payment Method <span className="text-slate-400 font-normal">(for Advance)</span>
-                </label>
-                <select
-                  value={addForm.paymentMethod}
-                  onChange={(e) => setAddForm({ ...addForm, paymentMethod: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold cursor-pointer text-slate-700 bg-white"
-                >
-                  <option value="Cash">Cash</option>
-                  <option value="UPI">UPI</option>
-                  <option value="Card">Card</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                </select>
-              </div>
-
-              {/* Special Notes */}
-              <div>
-                <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Special Notes
-                </label>
-                <input
-                  type="text"
-                  value={addForm.specialNotes}
-                  onChange={(e) => setAddForm({ ...addForm, specialNotes: e.target.value })}
-                  placeholder="Offline Booking pre-filled for Room"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700 placeholder:text-slate-300"
-                />
+              {/* Payment Method & Special Notes */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Payment Method (for Advance)</label>
+                  <select 
+                    value={addForm.paymentMethod}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-medium"
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Card">Card</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Special Notes</label>
+                  <input 
+                    type="text" 
+                    placeholder="Special requests or notes"
+                    value={addForm.specialNotes}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, specialNotes: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                  />
+                </div>
               </div>
 
               {/* Submit Button */}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={addLoading}
-                  className="w-full py-3.5 bg-[#C9A227] hover:bg-[#b59120] text-white font-poppins font-bold text-sm rounded-xl shadow-md transition-all active:scale-[0.99] cursor-pointer"
-                >
-                  {addLoading ? (isEditMode ? 'Updating...' : 'Confirming...') : (isEditMode ? 'Update Offline Booking' : 'Confirm Offline Booking')}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={addLoading}
+                className="w-full bg-[#C9A227] hover:bg-[#A07D10] text-white font-semibold py-3 rounded-lg text-sm transition-colors mt-6 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {addLoading ? (isEditMode ? 'Updating...' : 'Confirming...') : (isEditMode ? 'Update Offline Booking' : 'Confirm Offline Booking')}
+              </button>
             </form>
-          </motion.div>
+          </div>
         </div>
       )}
     </div>
