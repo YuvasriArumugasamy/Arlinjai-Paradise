@@ -250,7 +250,7 @@ export default function BookingsPage() {
 
   const exportCSV = () => {
     const headers = ['ID', 'Guest', 'Gender', 'DOB', 'Phone', 'Email', 'ID Type', 'ID Number',
-      'Room', 'Check In', 'Check Out', 'Nights', 'Guests', 'Children', 'Amount', 'Payment', 'Status', 'Booked On']
+      'Room', 'Check In', 'Check Out', 'Nights', 'Adults', 'Children', 'Amount', 'Payment', 'Status', 'Booked On']
     const rows = bookings.map((b) => [
       b.bookingId || b.id, b.guest, b.gender || '', b.dob || '', b.phone, b.email,
       b.idType || '', b.idNumber || '', b.room,
@@ -545,7 +545,7 @@ export default function BookingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-poppins text-sm bg-lightbg rounded-lg p-4">
                   {[
                     { label: 'Room Type',  value: selectedBooking.room },
-                    { label: 'Guests',     value: selectedBooking.guests },
+                    { label: 'Adults',     value: selectedBooking.guests },
                     { label: 'Children',   value: selectedBooking.children ?? 0 },
                     { label: 'Check In',   value: `${fmt(selectedBooking.checkIn)} (${selectedBooking.checkInTime || '12:00 PM'})` },
                     { label: 'Check Out',  value: `${fmt(selectedBooking.checkOut)} (${selectedBooking.checkOutTime || '11:00 AM'})` },
@@ -779,10 +779,10 @@ export default function BookingsPage() {
                 />
               </div>
 
-              {/* Guests */}
+              {/* Adults */}
               <div>
                 <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Guests
+                  Adults
                 </label>
                 <input
                   type="number"
