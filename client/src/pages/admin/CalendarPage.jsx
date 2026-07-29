@@ -128,9 +128,9 @@ export default function CalendarPage() {
       checkOut: bookingModalData.checkOut,
       checkInTime: bookingModalData.checkInTime,
       checkOutTime: bookingModalData.checkOutTime,
-      guests: Number(bookingModalData.guests || 2),
-      children: Number(bookingModalData.children || 0),
-      extraBeds: Number(bookingModalData.extraBeds || 0),
+      guests: parseInt(bookingModalData.guests || 2, 10),
+      children: parseInt(bookingModalData.children || 0, 10),
+      extraBeds: parseInt(bookingModalData.extraBeds || 0, 10),
       name: bookingModalData.name,
       phone: bookingModalData.phone,
       email: bookingModalData.email || 'offline@arlinjaiparadise.com',
@@ -142,8 +142,8 @@ export default function CalendarPage() {
         : bookingModalData.paymentMethod.toLowerCase() === 'bank transfer' || bookingModalData.paymentMethod.toLowerCase() === 'bank_transfer' ? 'bank_transfer'
         : 'pay_at_hotel',
       specialRequests: bookingModalData.notes,
-      advancePaid: Number(bookingModalData.advancePaid),
-      roomAmount: Number(bookingModalData.roomAmount || 0),
+      advancePaid: parseFloat(bookingModalData.advancePaid || 0),
+      roomAmount: bookingModalData.roomAmount ? parseFloat(bookingModalData.roomAmount) : undefined,
       status: 'confirmed',
       assignedRoom: bookingModalData.physicalRoomId || null,
     }
