@@ -64,6 +64,12 @@ const bookingSchema = new mongoose.Schema(
       min: 1,
       max: 10,
     },
+    children: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 10,
+    },
     specialRequests: {
       type: String,
       trim: true,

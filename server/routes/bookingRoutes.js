@@ -13,6 +13,7 @@ const bookingValidation = [
   body('checkIn').isISO8601().withMessage('Valid check-in date required'),
   body('checkOut').isISO8601().withMessage('Valid check-out date required'),
   body('guests').isInt({ min: 1, max: 10 }).withMessage('Guests must be between 1 and 10'),
+  body('children').optional({ checkFalsy: true }).isInt({ min: 0, max: 10 }).withMessage('Children must be between 0 and 10'),
 ]
 
 router.route('/')

@@ -110,7 +110,7 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Validation failed', errors: errors.array() })
     }
 
-    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, status, assignedRoom } = req.body
+    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, status, assignedRoom } = req.body
 
     const Settings = require('../models/Settings')
     const globalSettings = await Settings.findOne({ key: 'global' })
@@ -244,6 +244,7 @@ const createBooking = async (req, res, next) => {
           checkOutTime: checkOutTime || '09:00',
           nights,
           guests: parseInt(guests),
+          children: parseInt(children || 0),
           specialRequests,
           pricing: { pricePerNight: finalPricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
           paymentMethod: paymentMethod || 'pay_at_hotel',
@@ -336,6 +337,7 @@ const createBooking = async (req, res, next) => {
         checkOutTime: checkOutTime || '09:00',
         nights,
         guests: parseInt(guests),
+        children: parseInt(children || 0),
         specialRequests,
         pricing: { pricePerNight, totalAmount, discountAmount: 0, finalAmount: totalAmount },
         paymentMethod: paymentMethod || 'pay_at_hotel',

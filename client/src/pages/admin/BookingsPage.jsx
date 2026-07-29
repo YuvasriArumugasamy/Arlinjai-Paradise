@@ -57,6 +57,7 @@ export default function BookingsPage() {
     checkOut: getTomorrowISO(),
     checkOutTime: '11:00',
     guests: 2,
+    children: 0,
     amount: '',
     advancePaid: 0,
     paymentMethod: 'Cash',
@@ -82,6 +83,7 @@ export default function BookingsPage() {
           checkOut: b.checkOut,
           nights: b.nights,
           guests: b.guests,
+          children: b.children || 0,
           amount: b.pricing?.finalAmount || 0,
           paymentMethod: b.paymentMethod || 'pay_at_hotel',
           status: b.status,
@@ -130,6 +132,7 @@ export default function BookingsPage() {
         checkOut: addForm.checkOut,
         checkOutTime: addForm.checkOutTime || '11:00 AM',
         guests: Number(addForm.guests),
+        children: Number(addForm.children || 0),
         roomAmount: addForm.amount ? Number(addForm.amount) : undefined,
         advancePaid: Number(addForm.advancePaid || 0),
         paymentMethod: pMethodMap[addForm.paymentMethod] || 'pay_at_hotel',
@@ -247,11 +250,11 @@ export default function BookingsPage() {
 
   const exportCSV = () => {
     const headers = ['ID', 'Guest', 'Gender', 'DOB', 'Phone', 'Email', 'ID Type', 'ID Number',
-      'Room', 'Check In', 'Check Out', 'Nights', 'Guests', 'Amount', 'Payment', 'Status', 'Booked On']
+      'Room', 'Check In', 'Check Out', 'Nights', 'Guests', 'Children', 'Amount', 'Payment', 'Status', 'Booked On']
     const rows = bookings.map((b) => [
       b.bookingId || b.id, b.guest, b.gender || '', b.dob || '', b.phone, b.email,
       b.idType || '', b.idNumber || '', b.room,
-      fmt(b.checkIn), fmt(b.checkOut), b.nights, b.guests,
+      fmt(b.checkIn), fmt(b.checkOut), b.nights, b.guests, b.children || 0,
       b.amount, b.paymentMethod, b.status, fmt(b.createdAt),
     ])
     const csv = [headers, ...rows].map((r) => r.map((v) => `"${v}"`).join(',')).join('\n')
@@ -543,6 +546,7 @@ export default function BookingsPage() {
                   {[
                     { label: 'Room Type',  value: selectedBooking.room },
                     { label: 'Guests',     value: selectedBooking.guests },
+                    { label: 'Children',   value: selectedBooking.children ?? 0 },
                     { label: 'Check In',   value: `${fmt(selectedBooking.checkIn)} (${selectedBooking.checkInTime || '12:00 PM'})` },
                     { label: 'Check Out',  value: `${fmt(selectedBooking.checkOut)} (${selectedBooking.checkOutTime || '11:00 AM'})` },
                     { label: 'Nights',     value: selectedBooking.nights },
@@ -790,17 +794,17 @@ export default function BookingsPage() {
                 />
               </div>
 
-              {/* Number of Rooms */}
+              {/* Children */}
               <div>
                 <label className="block text-slate-700 font-bold text-xs mb-1.5">
-                  Number of Rooms
+                  Children
                 </label>
                 <input
                   type="number"
-                  min="1"
-                  max="15"
-                  value={addForm.roomsCount}
-                  onChange={(e) => setAddForm({ ...addForm, roomsCount: e.target.value })}
+                  min="0"
+                  max="10"
+                  value={addForm.children}
+                  onChange={(e) => setAddForm({ ...addForm, children: e.target.value })}
                   className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors text-slate-700"
                 />
               </div>
