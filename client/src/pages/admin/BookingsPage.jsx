@@ -67,34 +67,41 @@ export default function BookingsPage() {
     specialNotes: '',
   })
 
-  const mapSingleBooking = (b) => ({
-    id: b._id || b.bookingId,
-    bookingId: b.bookingId || b._id,
-    guest: typeof b.guest === 'string' ? b.guest : (b.guest?.name || '—'),
-    gender: typeof b.guest === 'object' ? (b.guest?.gender || '') : (b.gender || ''),
-    dob: typeof b.guest === 'object' ? (b.guest?.dob || '') : (b.dob || ''),
-    email: typeof b.guest === 'object' ? (b.guest?.email || '') : (b.email || ''),
-    phone: typeof b.guest === 'object' ? (b.guest?.phone || '') : (b.phone || ''),
-    idType: typeof b.guest === 'object' ? (b.guest?.idType || '') : (b.idType || ''),
-    idNumber: typeof b.guest === 'object' ? (b.guest?.idNumber || '') : (b.idNumber || ''),
-    address: typeof b.guest === 'object' ? (b.guest?.address || '') : (b.address || ''),
-    room: b.roomSnapshot?.name || (typeof b.room === 'string' ? b.room : b.room?.name) || '—',
-    checkIn: b.checkIn,
-    checkInTime: b.checkInTime || '12:00 PM',
-    checkOut: b.checkOut,
-    checkOutTime: b.checkOutTime || '11:00 AM',
-    nights: b.nights,
-    guests: b.guests,
-    children: b.children || 0,
-    extraBeds: b.extraBeds || 0,
-    amount: b.pricing?.finalAmount ?? b.pricing?.totalAmount ?? b.amount ?? 0,
-    roomAmount: b.roomAmount ?? b.pricing?.roomAmount ?? 0,
-    advancePaid: b.advancePaid ?? b.pricing?.advancePaid ?? 0,
-    paymentMethod: b.paymentMethod || 'pay_at_hotel',
-    specialRequests: b.specialRequests || '',
-    status: b.status,
-    createdAt: b.createdAt
-  })
+  const mapSingleBooking = (b) => {
+    const rawAmt = b.pricing?.finalAmount ?? b.pricing?.totalAmount ?? b.amount ?? 0
+    const rAmt = b.roomAmount ?? b.pricing?.roomAmount ?? (rawAmt ? Math.round(rawAmt / 1.12) : 0)
+    const totAmt = b.pricing?.finalAmount ?? (rAmt ? rAmt + Math.round(rAmt * 0.12) : rawAmt)
+    const advPaid = b.advancePaid ?? b.pricing?.advancePaid ?? 0
+
+    return {
+      id: b._id || b.bookingId,
+      bookingId: b.bookingId || b._id,
+      guest: typeof b.guest === 'string' ? b.guest : (b.guest?.name || '—'),
+      gender: typeof b.guest === 'object' ? (b.guest?.gender || '') : (b.gender || ''),
+      dob: typeof b.guest === 'object' ? (b.guest?.dob || '') : (b.dob || ''),
+      email: typeof b.guest === 'object' ? (b.guest?.email || '') : (b.email || ''),
+      phone: typeof b.guest === 'object' ? (b.guest?.phone || '') : (b.phone || ''),
+      idType: typeof b.guest === 'object' ? (b.guest?.idType || '') : (b.idType || ''),
+      idNumber: typeof b.guest === 'object' ? (b.guest?.idNumber || '') : (b.idNumber || ''),
+      address: typeof b.guest === 'object' ? (b.guest?.address || '') : (b.address || ''),
+      room: b.roomSnapshot?.name || (typeof b.room === 'string' ? b.room : b.room?.name) || '—',
+      checkIn: b.checkIn,
+      checkInTime: b.checkInTime || '12:00 PM',
+      checkOut: b.checkOut,
+      checkOutTime: b.checkOutTime || '11:00 AM',
+      nights: b.nights,
+      guests: b.guests,
+      children: b.children || 0,
+      extraBeds: b.extraBeds ?? 0,
+      amount: totAmt,
+      roomAmount: rAmt,
+      advancePaid: advPaid,
+      paymentMethod: b.paymentMethod || 'pay_at_hotel',
+      specialRequests: b.specialRequests || '',
+      status: b.status,
+      createdAt: b.createdAt
+    }
+  }
 
   const fetchBookings = async () => {
     try {

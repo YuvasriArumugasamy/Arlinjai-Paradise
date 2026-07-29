@@ -552,16 +552,16 @@ const updateBooking = async (req, res, next) => {
     if (extraBeds !== undefined) booking.extraBeds = parseInt(extraBeds)
     if (advancePaid !== undefined) {
       booking.advancePaid = Number(advancePaid)
-      if (booking.pricing) booking.pricing.advancePaid = Number(advancePaid)
+      if (!booking.pricing) booking.pricing = {}
+      booking.pricing.advancePaid = Number(advancePaid)
     }
     if (roomAmount !== undefined) {
       booking.roomAmount = Number(roomAmount)
-      if (booking.pricing) {
-        booking.pricing.roomAmount = Number(roomAmount)
-        const gst = Math.round(Number(roomAmount) * 0.12)
-        booking.pricing.totalAmount = Number(roomAmount) + gst
-        booking.pricing.finalAmount = Number(roomAmount) + gst
-      }
+      if (!booking.pricing) booking.pricing = {}
+      booking.pricing.roomAmount = Number(roomAmount)
+      const gst = Math.round(Number(roomAmount) * 0.12)
+      booking.pricing.totalAmount = Number(roomAmount) + gst
+      booking.pricing.finalAmount = Number(roomAmount) + gst
     }
     if (specialRequests !== undefined) booking.specialRequests = specialRequests
     if (paymentMethod) booking.paymentMethod = paymentMethod
