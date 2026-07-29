@@ -128,9 +128,10 @@ export default function BookingsPage() {
       checkOutTime: '11:00',
       guests: 2,
       children: 0,
+      extraBeds: 0,
       amount: '',
       advancePaid: 0,
-      paymentMethod: 'Cash',
+      paymentMethod: 'Pay at Hotel',
       specialNotes: '',
     })
   }
