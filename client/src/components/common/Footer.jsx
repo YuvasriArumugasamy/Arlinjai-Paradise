@@ -130,7 +130,7 @@ export default function Footer() {
           <p className="font-poppins text-[10px] text-white/90 leading-relaxed">
             Copyright © {new Date().getFullYear()} Arlinjai Paradise, Kanyakumari.
             <br className="md:hidden" /> All rights reserved |{' '}
-            <br className="md:hidden" /> Website Designed 💖 by -Yuvasri Arumugasamy
+            <br className="md:hidden" /> Website Designed by ❤️ YuvaTech Solutions
           </p>
           <Link to="/login" className="font-poppins text-[10px] text-white/90 hover:text-gold transition-colors duration-200">
             Admin
