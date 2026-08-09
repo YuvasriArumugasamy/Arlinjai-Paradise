@@ -85,13 +85,14 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    roomAmount: {
+    taxType: {
+      type: String,
+      enum: ['without_tax', 'with_tax', 'no_tax'],
+      default: 'without_tax',
+    },
+    gstAmount: {
       type: Number,
       default: 0,
-    },
-    specialRequests: {
-      type: String,
-      trim: true,
     },
     pricing: {
       pricePerNight: { type: Number, required: true },
@@ -100,6 +101,8 @@ const bookingSchema = new mongoose.Schema(
       finalAmount: { type: Number, required: true },
       advancePaid: { type: Number, default: 0 },
       roomAmount: { type: Number, default: 0 },
+      gstAmount: { type: Number, default: 0 },
+      taxType: { type: String, default: 'without_tax' },
       couponCode: String,
     },
     status: {

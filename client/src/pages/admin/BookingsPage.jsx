@@ -65,6 +65,7 @@ export default function BookingsPage() {
     advancePaid: 0,
     paymentMethod: 'Cash',
     specialNotes: '',
+    taxType: 'without_tax',
   })
 
   const mapSingleBooking = (b) => {
@@ -98,6 +99,8 @@ export default function BookingsPage() {
       advancePaid: advPaid,
       paymentMethod: b.paymentMethod || 'pay_at_hotel',
       specialRequests: b.specialRequests || '',
+      taxType: b.taxType || b.pricing?.taxType || 'without_tax',
+      gstAmount: b.gstAmount || b.pricing?.gstAmount || 0,
       status: b.status,
       createdAt: b.createdAt
     }
@@ -140,6 +143,7 @@ export default function BookingsPage() {
       advancePaid: 0,
       paymentMethod: 'Pay at Hotel',
       specialNotes: '',
+      taxType: 'without_tax',
     })
   }
 
@@ -178,6 +182,7 @@ export default function BookingsPage() {
         : booking.paymentMethod === 'bank_transfer' ? 'Bank Transfer'
         : 'Pay at Hotel',
       specialNotes: booking.specialRequests || '',
+      taxType: booking.taxType || 'without_tax',
     })
   }
 
@@ -219,6 +224,7 @@ export default function BookingsPage() {
         advancePaid: parseFloat(addForm.advancePaid || 0),
         paymentMethod: pMethodMap[addForm.paymentMethod] || 'pay_at_hotel',
         specialRequests: addForm.specialNotes,
+        taxType: addForm.taxType || 'without_tax',
         status: 'confirmed',
       }
 
@@ -891,48 +897,102 @@ export default function BookingsPage() {
               </div>
 
               {/* Room Charge & Advance Paid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Room Charge (₹) * <span className="text-gray-400 font-normal">(before GST)</span></label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    required
-                    placeholder="Enter room charge amount"
-                    value={addForm.amount}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, amount: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-semibold"
-                  />
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Room Charge (₹) *</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      required
+                      placeholder="Enter room charge amount"
+                      value={addForm.amount}
+                      onChange={(e) => setAddForm(prev => ({ ...prev, amount: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Advance Paid (₹)</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      placeholder="0"
+                      value={addForm.advancePaid}
+                      onChange={(e) => setAddForm(prev => ({ ...prev, advancePaid: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                    />
+                  </div>
                 </div>
+
+                {/* Tax Option Buttons */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Advance Paid (₹)</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    placeholder="0"
-                    value={addForm.advancePaid}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, advancePaid: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
-                  />
+                  <label className="block text-[11px] font-semibold text-gray-600 mb-1">Tax Calculation Option</label>
+                  <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setAddForm(prev => ({ ...prev, taxType: 'without_tax' }))}
+                      className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                        (addForm.taxType || 'without_tax') === 'without_tax' ? 'bg-[#C9A227] text-white shadow-sm' : 'text-gray-600 hover:text-navy'
+                      }`}
+                    >
+                      Without Tax (+12%)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddForm(prev => ({ ...prev, taxType: 'with_tax' }))}
+                      className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                        addForm.taxType === 'with_tax' ? 'bg-[#C9A227] text-white shadow-sm' : 'text-gray-600 hover:text-navy'
+                      }`}
+                    >
+                      With Tax (Included)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddForm(prev => ({ ...prev, taxType: 'no_tax' }))}
+                      className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                        addForm.taxType === 'no_tax' ? 'bg-[#C9A227] text-white shadow-sm' : 'text-gray-600 hover:text-navy'
+                      }`}
+                    >
+                      No Tax (0%)
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Payment Summary with GST */}
               {(parseFloat(addForm.amount) > 0 || parseFloat(addForm.advancePaid) > 0) && (() => {
-                const roomCharge = parseFloat(addForm.amount) || 0
-                const gst = Math.round(roomCharge * 0.12)
-                const total = roomCharge + gst
+                const enteredCharge = parseFloat(addForm.amount) || 0
+                const currentTax = addForm.taxType || 'without_tax'
+                let baseRoomCharge = enteredCharge
+                let gst = 0
+                let total = enteredCharge
+
+                if (currentTax === 'with_tax') {
+                  total = enteredCharge
+                  baseRoomCharge = Math.round(enteredCharge / 1.12)
+                  gst = total - baseRoomCharge
+                } else if (currentTax === 'no_tax') {
+                  total = enteredCharge
+                  baseRoomCharge = enteredCharge
+                  gst = 0
+                } else {
+                  baseRoomCharge = enteredCharge
+                  gst = Math.round(enteredCharge * 0.12)
+                  total = enteredCharge + gst
+                }
+
                 const advance = parseFloat(addForm.advancePaid) || 0
                 const balance = Math.max(0, total - advance)
+
                 return (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-1.5">
                     <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">💰 Payment Summary</p>
                     <div className="flex justify-between text-sm text-gray-700">
-                      <span>Room Charge</span>
-                      <span>₹{roomCharge.toLocaleString('en-IN')}</span>
+                      <span>Room Charge {currentTax === 'with_tax' ? '(Base)' : ''}</span>
+                      <span>₹{baseRoomCharge.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>GST (12%)</span>
+                      <span>GST {currentTax === 'with_tax' ? '(12% Included)' : currentTax === 'no_tax' ? '(0%)' : '(12% Extra)'}</span>
                       <span>₹{gst.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-amber-300 pt-1.5 mt-1">

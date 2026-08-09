@@ -61,6 +61,7 @@ export default function CalendarPage() {
     paymentMethod: 'Pay at Hotel',
     notes: '',
     roomAmount: '',
+    taxType: 'without_tax',
   })
 
   const getOccupiedRoomIds = useCallback((checkIn, checkOut, excludeBookingId = null) => {
@@ -110,6 +111,7 @@ export default function CalendarPage() {
       paymentMethod: 'Pay at Hotel',
       notes: `Offline Booking pre-filled for ${room.name}`,
       roomAmount: '',
+      taxType: 'without_tax',
     })
     setShowBookingModal(true)
     scrollToTop()
@@ -191,15 +193,33 @@ export default function CalendarPage() {
       'non-ac': 1500
     }
     const numRoomsCount = parseInt(bookingModalData.numRooms || 1, 10)
-    const userBasePrice = bookingModalData.roomAmount ? Number(bookingModalData.roomAmount) : (categoryPrices[bookingModalData.roomType] || 1500) * nights * numRoomsCount
-    const userGstAmount = Math.round(userBasePrice * 0.12)
-    const userTotalPrice = userBasePrice + userGstAmount
+    const enteredRoomCharge = bookingModalData.roomAmount ? Number(bookingModalData.roomAmount) : (categoryPrices[bookingModalData.roomType] || 1500) * nights * numRoomsCount
+    const currentTaxType = bookingModalData.taxType || 'without_tax'
+
+    let userBasePrice = enteredRoomCharge
+    let userGstAmount = 0
+    let userTotalPrice = enteredRoomCharge
+
+    if (currentTaxType === 'with_tax') {
+      userTotalPrice = enteredRoomCharge
+      userBasePrice = Math.round(enteredRoomCharge / 1.12)
+      userGstAmount = userTotalPrice - userBasePrice
+    } else if (currentTaxType === 'no_tax') {
+      userTotalPrice = enteredRoomCharge
+      userBasePrice = enteredRoomCharge
+      userGstAmount = 0
+    } else {
+      userBasePrice = enteredRoomCharge
+      userGstAmount = Math.round(enteredRoomCharge * 0.12)
+      userTotalPrice = enteredRoomCharge + userGstAmount
+    }
 
     const assignedRoomStr = (bookingModalData.selectedPhysicalRooms || []).join(', ') || null
 
     const payload = {
       roomId: bookingModalData.roomType,
       numRooms: numRoomsCount,
+      taxType: currentTaxType,
       checkIn: bookingModalData.checkIn,
       checkOut: bookingModalData.checkOut,
       checkInTime: bookingModalData.checkInTime,
@@ -219,7 +239,7 @@ export default function CalendarPage() {
         : 'pay_at_hotel',
       specialRequests: bookingModalData.notes,
       advancePaid: parseFloat(bookingModalData.advancePaid || 0),
-      roomAmount: bookingModalData.roomAmount ? parseFloat(bookingModalData.roomAmount) : undefined,
+      roomAmount: enteredRoomCharge,
       status: 'confirmed',
       assignedRoom: assignedRoomStr,
     }
@@ -886,48 +906,102 @@ export default function CalendarPage() {
               </div>
 
               {/* Room Charge & Advance Paid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Room Charge (₹) * <span className="text-gray-400 font-normal">(before GST)</span></label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    required
-                    placeholder="Enter room charge amount"
-                    value={bookingModalData.roomAmount || ''}
-                    onChange={(e) => setBookingModalData(prev => ({ ...prev, roomAmount: parseFloat(e.target.value) || 0 }))}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-semibold"
-                  />
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Room Charge (₹) *</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      required
+                      placeholder="Enter room charge amount"
+                      value={bookingModalData.roomAmount || ''}
+                      onChange={(e) => setBookingModalData(prev => ({ ...prev, roomAmount: parseFloat(e.target.value) || 0 }))}
+                      className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Advance Paid (₹)</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      placeholder="0"
+                      value={bookingModalData.advancePaid}
+                      onChange={(e) => setBookingModalData(prev => ({ ...prev, advancePaid: parseFloat(e.target.value) || 0 }))}
+                      className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
+                    />
+                  </div>
                 </div>
+
+                {/* Tax Option Buttons */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Advance Paid (₹)</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    placeholder="0"
-                    value={bookingModalData.advancePaid}
-                    onChange={(e) => setBookingModalData(prev => ({ ...prev, advancePaid: parseFloat(e.target.value) || 0 }))}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
-                  />
+                  <label className="block text-[11px] font-semibold text-gray-600 mb-1">Tax Calculation Option</label>
+                  <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setBookingModalData(prev => ({ ...prev, taxType: 'without_tax' }))}
+                      className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                        (bookingModalData.taxType || 'without_tax') === 'without_tax' ? 'bg-[#C9A227] text-white shadow-sm' : 'text-gray-600 hover:text-navy'
+                      }`}
+                    >
+                      Without Tax (+12%)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookingModalData(prev => ({ ...prev, taxType: 'with_tax' }))}
+                      className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                        bookingModalData.taxType === 'with_tax' ? 'bg-[#C9A227] text-white shadow-sm' : 'text-gray-600 hover:text-navy'
+                      }`}
+                    >
+                      With Tax (Included)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookingModalData(prev => ({ ...prev, taxType: 'no_tax' }))}
+                      className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                        bookingModalData.taxType === 'no_tax' ? 'bg-[#C9A227] text-white shadow-sm' : 'text-gray-600 hover:text-navy'
+                      }`}
+                    >
+                      No Tax (0%)
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Payment Summary with GST */}
               {(bookingModalData.roomAmount > 0 || bookingModalData.advancePaid > 0) && (() => {
-                const roomCharge = parseFloat(bookingModalData.roomAmount) || 0
-                const gst = Math.round(roomCharge * 0.12)
-                const total = roomCharge + gst
+                const enteredCharge = parseFloat(bookingModalData.roomAmount) || 0
+                const currentTax = bookingModalData.taxType || 'without_tax'
+                let baseRoomCharge = enteredCharge
+                let gst = 0
+                let total = enteredCharge
+
+                if (currentTax === 'with_tax') {
+                  total = enteredCharge
+                  baseRoomCharge = Math.round(enteredCharge / 1.12)
+                  gst = total - baseRoomCharge
+                } else if (currentTax === 'no_tax') {
+                  total = enteredCharge
+                  baseRoomCharge = enteredCharge
+                  gst = 0
+                } else {
+                  baseRoomCharge = enteredCharge
+                  gst = Math.round(enteredCharge * 0.12)
+                  total = enteredCharge + gst
+                }
+
                 const advance = parseFloat(bookingModalData.advancePaid) || 0
                 const balance = Math.max(0, total - advance)
+
                 return (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-1.5">
                     <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">💰 Payment Summary</p>
                     <div className="flex justify-between text-sm text-gray-700">
-                      <span>Room Charge</span>
-                      <span>₹{roomCharge.toLocaleString('en-IN')}</span>
+                      <span>Room Charge {currentTax === 'with_tax' ? '(Base)' : ''}</span>
+                      <span>₹{baseRoomCharge.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>GST (12%)</span>
+                      <span>GST {currentTax === 'with_tax' ? '(12% Included)' : currentTax === 'no_tax' ? '(0%)' : '(12% Extra)'}</span>
                       <span>₹{gst.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-amber-300 pt-1.5 mt-1">

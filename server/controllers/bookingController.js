@@ -119,7 +119,7 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Validation failed', errors: errors.array() })
     }
 
-    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid, status, assignedRoom, numRooms } = req.body
+    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid, status, assignedRoom, numRooms, taxType } = req.body
 
     const Settings = require('../models/Settings')
     const globalSettings = await Settings.findOne({ key: 'global' })
@@ -239,9 +239,22 @@ const createBooking = async (req, res, next) => {
           }
         }
         const customPriceVal = roomAmount ? parseFloat(roomAmount) : null
-        const baseRoomAmt = customPriceVal !== null ? customPriceVal : subtotal
-        const gstAmount = Math.round(baseRoomAmt * (gstRate / 100))
-        const totalAmount = baseRoomAmt + gstAmount
+        let baseRoomAmt = customPriceVal !== null ? customPriceVal : subtotal
+        const currentTaxType = taxType || 'without_tax'
+        let calculatedGst = 0
+        let totalAmount = 0
+
+        if (currentTaxType === 'with_tax') {
+          totalAmount = baseRoomAmt
+          baseRoomAmt = Math.round(totalAmount / (1 + (gstRate / 100)))
+          calculatedGst = totalAmount - baseRoomAmt
+        } else if (currentTaxType === 'no_tax') {
+          totalAmount = baseRoomAmt
+          calculatedGst = 0
+        } else {
+          calculatedGst = Math.round(baseRoomAmt * (gstRate / 100))
+          totalAmount = baseRoomAmt + calculatedGst
+        }
         const advanceVal = Number(advancePaid || 0)
 
         const booking = await Booking.create({
@@ -258,8 +271,10 @@ const createBooking = async (req, res, next) => {
           extraBeds: parseInt(extraBeds || 0),
           advancePaid: advanceVal,
           roomAmount: baseRoomAmt,
+          gstAmount: calculatedGst,
+          taxType: currentTaxType,
           specialRequests,
-          pricing: { pricePerNight: Math.round(baseRoomAmt / nights), totalAmount, discountAmount: 0, finalAmount: totalAmount, advancePaid: advanceVal, roomAmount: baseRoomAmt },
+          pricing: { pricePerNight: Math.round(baseRoomAmt / nights), totalAmount, discountAmount: 0, finalAmount: totalAmount, advancePaid: advanceVal, roomAmount: baseRoomAmt, gstAmount: calculatedGst, taxType: currentTaxType },
           paymentMethod: paymentMethod || 'pay_at_hotel',
           status: status || 'pending',
           assignedRoom: assignedRoom || null,
@@ -337,9 +352,22 @@ const createBooking = async (req, res, next) => {
         }
       }
       const customPriceVal = roomAmount ? parseFloat(roomAmount) : null
-      const baseRoomAmt = customPriceVal !== null ? customPriceVal : subtotal
-      const gstAmount = Math.round(baseRoomAmt * (gstRate / 100))
-      const totalAmount = baseRoomAmt + gstAmount
+      let baseRoomAmt = customPriceVal !== null ? customPriceVal : subtotal
+      const currentTaxType = taxType || 'without_tax'
+      let calculatedGst = 0
+      let totalAmount = 0
+
+      if (currentTaxType === 'with_tax') {
+        totalAmount = baseRoomAmt
+        baseRoomAmt = Math.round(totalAmount / (1 + (gstRate / 100)))
+        calculatedGst = totalAmount - baseRoomAmt
+      } else if (currentTaxType === 'no_tax') {
+        totalAmount = baseRoomAmt
+        calculatedGst = 0
+      } else {
+        calculatedGst = Math.round(baseRoomAmt * (gstRate / 100))
+        totalAmount = baseRoomAmt + calculatedGst
+      }
       const advanceVal = Number(advancePaid || 0)
 
       const booking = await Booking.create({
@@ -356,8 +384,10 @@ const createBooking = async (req, res, next) => {
         extraBeds: parseInt(extraBeds || 0),
         advancePaid: advanceVal,
         roomAmount: baseRoomAmt,
+        gstAmount: calculatedGst,
+        taxType: currentTaxType,
         specialRequests,
-        pricing: { pricePerNight: Math.round(baseRoomAmt / nights), totalAmount, discountAmount: 0, finalAmount: totalAmount, advancePaid: advanceVal, roomAmount: baseRoomAmt },
+        pricing: { pricePerNight: Math.round(baseRoomAmt / nights), totalAmount, discountAmount: 0, finalAmount: totalAmount, advancePaid: advanceVal, roomAmount: baseRoomAmt, gstAmount: calculatedGst, taxType: currentTaxType },
         paymentMethod: paymentMethod || 'pay_at_hotel',
         status: status || 'pending',
         assignedRoom: assignedRoom || null,
@@ -506,7 +536,7 @@ const deleteBooking = async (req, res, next) => {
 
 const updateBooking = async (req, res, next) => {
   try {
-    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid, numRooms, assignedRoom } = req.body
+    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid, numRooms, assignedRoom, taxType } = req.body
 
     const booking = await Booking.findOne(getBookingQuery(req.params.id))
 
@@ -557,14 +587,39 @@ const updateBooking = async (req, res, next) => {
       if (!booking.pricing) booking.pricing = {}
       booking.pricing.advancePaid = Number(advancePaid)
     }
-    if (roomAmount !== undefined) {
-      booking.roomAmount = Number(roomAmount)
+
+    if (taxType !== undefined) booking.taxType = taxType
+
+    if (roomAmount !== undefined || taxType !== undefined) {
+      const currentTaxType = taxType || booking.taxType || 'without_tax'
+      const rawAmt = roomAmount !== undefined ? Number(roomAmount) : booking.roomAmount
+      let baseRoomAmt = rawAmt
+      let calculatedGst = 0
+      let calculatedTotal = 0
+
+      if (currentTaxType === 'with_tax') {
+        calculatedTotal = rawAmt
+        baseRoomAmt = Math.round(rawAmt / 1.12)
+        calculatedGst = calculatedTotal - baseRoomAmt
+      } else if (currentTaxType === 'no_tax') {
+        calculatedTotal = rawAmt
+        baseRoomAmt = rawAmt
+        calculatedGst = 0
+      } else {
+        calculatedGst = Math.round(rawAmt * 0.12)
+        calculatedTotal = rawAmt + calculatedGst
+      }
+
+      booking.roomAmount = baseRoomAmt
+      booking.gstAmount = calculatedGst
       if (!booking.pricing) booking.pricing = {}
-      booking.pricing.roomAmount = Number(roomAmount)
-      const gst = Math.round(Number(roomAmount) * 0.12)
-      booking.pricing.totalAmount = Number(roomAmount) + gst
-      booking.pricing.finalAmount = Number(roomAmount) + gst
+      booking.pricing.roomAmount = baseRoomAmt
+      booking.pricing.gstAmount = calculatedGst
+      booking.pricing.taxType = currentTaxType
+      booking.pricing.totalAmount = calculatedTotal
+      booking.pricing.finalAmount = calculatedTotal
     }
+
     if (specialRequests !== undefined) booking.specialRequests = specialRequests
     if (paymentMethod) booking.paymentMethod = paymentMethod
     if (numRooms !== undefined) booking.numRooms = parseInt(numRooms, 10) || 1
