@@ -119,7 +119,7 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Validation failed', errors: errors.array() })
     }
 
-    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid, status, assignedRoom } = req.body
+    let { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid, status, assignedRoom, numRooms } = req.body
 
     const Settings = require('../models/Settings')
     const globalSettings = await Settings.findOne({ key: 'global' })
@@ -263,6 +263,7 @@ const createBooking = async (req, res, next) => {
           paymentMethod: paymentMethod || 'pay_at_hotel',
           status: status || 'pending',
           assignedRoom: assignedRoom || null,
+          numRooms: numRooms ? parseInt(numRooms, 10) : 1,
         })
 
         // Send push notification (async)
@@ -360,6 +361,7 @@ const createBooking = async (req, res, next) => {
         paymentMethod: paymentMethod || 'pay_at_hotel',
         status: status || 'pending',
         assignedRoom: assignedRoom || null,
+        numRooms: numRooms ? parseInt(numRooms, 10) : 1,
       })
 
       // Send confirmation email (async, don't block response)
@@ -504,7 +506,7 @@ const deleteBooking = async (req, res, next) => {
 
 const updateBooking = async (req, res, next) => {
   try {
-    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid } = req.body
+    const { roomId, checkIn, checkOut, checkInTime, checkOutTime, guests, children, extraBeds, name, email, phone, address, specialRequests, paymentMethod, gender, dob, idType, idNumber, roomAmount, advancePaid, numRooms, assignedRoom } = req.body
 
     const booking = await Booking.findOne(getBookingQuery(req.params.id))
 
@@ -565,6 +567,8 @@ const updateBooking = async (req, res, next) => {
     }
     if (specialRequests !== undefined) booking.specialRequests = specialRequests
     if (paymentMethod) booking.paymentMethod = paymentMethod
+    if (numRooms !== undefined) booking.numRooms = parseInt(numRooms, 10) || 1
+    if (assignedRoom !== undefined) booking.assignedRoom = assignedRoom || null
 
     await booking.save()
 

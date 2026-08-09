@@ -49,6 +49,7 @@ export default function CalendarPage() {
     email: '',
     roomType: 'deluxe-ac',
     numRooms: 1,
+    selectedPhysicalRooms: [],
     checkIn: '',
     checkInTime: '12:00',
     checkOut: '',
@@ -59,9 +60,26 @@ export default function CalendarPage() {
     advancePaid: 0,
     paymentMethod: 'Pay at Hotel',
     notes: '',
-    physicalRoomId: '',
-    physicalRoomName: '',
+    roomAmount: '',
   })
+
+  const getOccupiedRoomIds = useCallback((checkIn, checkOut, excludeBookingId = null) => {
+    if (!checkIn || !checkOut) return new Set()
+    const occupied = new Set()
+    bookings.forEach(b => {
+      if (b.status === 'cancelled') return
+      if (excludeBookingId && (b.id === excludeBookingId || b.bookingId === excludeBookingId)) return
+      const isOverlap = b.checkIn < checkOut && b.checkOut > checkIn
+      if (isOverlap && (b.assignedRoom || roomAssignments[b.id])) {
+        const rawAssigned = roomAssignments[b.id] || b.assignedRoom || ''
+        rawAssigned.split(',').forEach(r => {
+          const trimmed = r.trim()
+          if (trimmed) occupied.add(trimmed)
+        })
+      }
+    })
+    return occupied
+  }, [bookings, roomAssignments])
 
   const handleCellClick = (room, dateStr) => {
     const typeMap = {
@@ -80,6 +98,7 @@ export default function CalendarPage() {
       email: '',
       roomType: roomTypeId,
       numRooms: 1,
+      selectedPhysicalRooms: [room.id],
       checkIn: dateStr,
       checkInTime: '12:00',
       checkOut: checkOutStr,
@@ -90,11 +109,64 @@ export default function CalendarPage() {
       advancePaid: 0,
       paymentMethod: 'Pay at Hotel',
       notes: `Offline Booking pre-filled for ${room.name}`,
-      physicalRoomId: room.id,
-      physicalRoomName: room.name,
+      roomAmount: '',
     })
     setShowBookingModal(true)
     scrollToTop()
+  }
+
+  const handleNumRoomsChange = (newVal) => {
+    const count = Math.max(1, parseInt(newVal, 10) || 1)
+    const categoryType = {
+      'deluxe-ac': 'Deluxe AC',
+      'normal-ac': 'Normal AC',
+      'non-ac': 'Non AC'
+    }[bookingModalData.roomType] || 'Deluxe AC'
+
+    const occupiedSet = getOccupiedRoomIds(bookingModalData.checkIn, bookingModalData.checkOut)
+    const categoryRooms = rooms.filter(r => r.type === categoryType)
+
+    let updatedSelected = (bookingModalData.selectedPhysicalRooms || []).filter(id => {
+      const rm = categoryRooms.find(r => r.id === id)
+      return rm && !occupiedSet.has(id)
+    })
+
+    if (updatedSelected.length < count) {
+      categoryRooms.forEach(rm => {
+        if (updatedSelected.length < count && !occupiedSet.has(rm.id) && !updatedSelected.includes(rm.id)) {
+          updatedSelected.push(rm.id)
+        }
+      })
+    } else if (updatedSelected.length > count) {
+      updatedSelected = updatedSelected.slice(0, count)
+    }
+
+    setBookingModalData(prev => ({
+      ...prev,
+      numRooms: count,
+      selectedPhysicalRooms: updatedSelected
+    }))
+  }
+
+  const handleRoomTypeChange = (newType) => {
+    const categoryType = {
+      'deluxe-ac': 'Deluxe AC',
+      'normal-ac': 'Normal AC',
+      'non-ac': 'Non AC'
+    }[newType] || 'Deluxe AC'
+
+    const occupiedSet = getOccupiedRoomIds(bookingModalData.checkIn, bookingModalData.checkOut)
+    const categoryRooms = rooms.filter(r => r.type === categoryType)
+    const count = bookingModalData.numRooms || 1
+
+    const availableRooms = categoryRooms.filter(r => !occupiedSet.has(r.id)).map(r => r.id)
+    const updatedSelected = availableRooms.slice(0, count)
+
+    setBookingModalData(prev => ({
+      ...prev,
+      roomType: newType,
+      selectedPhysicalRooms: updatedSelected
+    }))
   }
 
   const handleConfirmBooking = async (e) => {
@@ -118,12 +190,16 @@ export default function CalendarPage() {
       'normal-ac': 2000,
       'non-ac': 1500
     }
-    const userBasePrice = bookingModalData.roomAmount ? Number(bookingModalData.roomAmount) : (categoryPrices[bookingModalData.roomType] || 1500) * nights
+    const numRoomsCount = parseInt(bookingModalData.numRooms || 1, 10)
+    const userBasePrice = bookingModalData.roomAmount ? Number(bookingModalData.roomAmount) : (categoryPrices[bookingModalData.roomType] || 1500) * nights * numRoomsCount
     const userGstAmount = Math.round(userBasePrice * 0.12)
     const userTotalPrice = userBasePrice + userGstAmount
 
+    const assignedRoomStr = (bookingModalData.selectedPhysicalRooms || []).join(', ') || null
+
     const payload = {
       roomId: bookingModalData.roomType,
+      numRooms: numRoomsCount,
       checkIn: bookingModalData.checkIn,
       checkOut: bookingModalData.checkOut,
       checkInTime: bookingModalData.checkInTime,
@@ -145,7 +221,7 @@ export default function CalendarPage() {
       advancePaid: parseFloat(bookingModalData.advancePaid || 0),
       roomAmount: bookingModalData.roomAmount ? parseFloat(bookingModalData.roomAmount) : undefined,
       status: 'confirmed',
-      assignedRoom: bookingModalData.physicalRoomId || null,
+      assignedRoom: assignedRoomStr,
     }
 
     try {
@@ -153,7 +229,7 @@ export default function CalendarPage() {
       if (res.data.success) {
         const newBooking = res.data.booking
         const newBookingId = newBooking?._id || newBooking?.id || newBooking?.bookingId
-        const assignedRoom = newBooking?.assignedRoom || bookingModalData.physicalRoomId || null
+        const assignedRoom = newBooking?.assignedRoom || assignedRoomStr
         
         // Add to calendar local state
         const mappedNewBooking = {
@@ -164,6 +240,7 @@ export default function CalendarPage() {
           checkIn: bookingModalData.checkIn,
           checkOut: bookingModalData.checkOut,
           nights: nights,
+          numRooms: numRoomsCount,
           guests: bookingModalData.guests,
           amount: userTotalPrice,
           status: 'confirmed',
@@ -268,6 +345,7 @@ export default function CalendarPage() {
             checkIn: checkInDate,
             checkOut: checkOutDate,
             nights: b.nights,
+            numRooms: b.numRooms || 1,
             guests: b.guests,
             children: b.children || 0,
             extraBeds: b.extraBeds || 0,
@@ -471,7 +549,11 @@ export default function CalendarPage() {
                     const dateStr = d.dateStr
                     // Check if there is an overlapping booking assigned to this physical room on this dateStr
                     const activeBooking = overlappingBookings.find(b => {
-                      const isAssigned = roomAssignments[b.id] === room.id
+                      const rawAssigned = roomAssignments[b.id] || b.assignedRoom || ''
+                      const assignedList = typeof rawAssigned === 'string'
+                        ? rawAssigned.split(',').map(s => s.trim())
+                        : []
+                      const isAssigned = assignedList.includes(room.id)
                       const isInRange = dateStr >= b.checkIn && dateStr < b.checkOut
                       if (isAssigned && isInRange) {
                         console.log(`✓ Booking found: ${b.guest} on ${dateStr} for room ${room.id}`)
@@ -647,7 +729,7 @@ export default function CalendarPage() {
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Room Type *</label>
                   <select 
                     value={bookingModalData.roomType}
-                    onChange={(e) => setBookingModalData(prev => ({ ...prev, roomType: e.target.value }))}
+                    onChange={(e) => handleRoomTypeChange(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-medium"
                   >
                     <option value="deluxe-ac">Deluxe AC Room</option>
@@ -661,9 +743,60 @@ export default function CalendarPage() {
                     type="number" 
                     min="1"
                     value={bookingModalData.numRooms}
-                    onChange={(e) => setBookingModalData(prev => ({ ...prev, numRooms: parseInt(e.target.value) || 1 }))}
+                    onChange={(e) => handleNumRoomsChange(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
                   />
+                </div>
+              </div>
+
+              {/* Physical Room Picker */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Assign Physical Rooms *
+                  </label>
+                  <span className="text-[11px] text-gray-500">
+                    Selected: <strong className="text-navy">{bookingModalData.selectedPhysicalRooms?.length || 0}</strong> / {bookingModalData.numRooms} room(s)
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                  {rooms
+                    .filter(r => r.type === ({ 'deluxe-ac': 'Deluxe AC', 'normal-ac': 'Normal AC', 'non-ac': 'Non AC' }[bookingModalData.roomType] || 'Deluxe AC'))
+                    .map(r => {
+                      const occupied = getOccupiedRoomIds(bookingModalData.checkIn, bookingModalData.checkOut).has(r.id)
+                      const isChecked = bookingModalData.selectedPhysicalRooms?.includes(r.id)
+                      return (
+                        <button 
+                          type="button"
+                          key={r.id}
+                          disabled={occupied}
+                          onClick={() => {
+                            const currentSelected = bookingModalData.selectedPhysicalRooms || []
+                            if (isChecked) {
+                              setBookingModalData(prev => ({
+                                ...prev,
+                                selectedPhysicalRooms: currentSelected.filter(id => id !== r.id)
+                              }))
+                            } else {
+                              setBookingModalData(prev => ({
+                                ...prev,
+                                selectedPhysicalRooms: [...currentSelected, r.id]
+                              }))
+                            }
+                          }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer border ${
+                            occupied 
+                              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-60'
+                              : isChecked
+                                ? 'bg-[#C9A227] text-white border-[#C9A227] shadow-sm'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-[#C9A227]'
+                          }`}
+                        >
+                          <span>{isChecked ? '✓' : '+'} {r.name}</span>
+                          {occupied && <span className="text-[9px] text-red-500 font-normal">(Booked)</span>}
+                        </button>
+                      )
+                    })}
                 </div>
               </div>
 

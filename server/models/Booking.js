@@ -37,6 +37,11 @@ const bookingSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    numRooms: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
     checkIn: {
       type: Date,
       required: [true, 'Check-in date is required'],
