@@ -93,14 +93,19 @@ export default function SettingsPage() {
     return localStorage.getItem('isPeakSeason') === 'true'
   })
 
-  const handleTogglePeakSeason = () => {
+  const handleTogglePeakSeason = async () => {
     const nextVal = !isPeakSeason
     setIsPeakSeason(nextVal)
-    localStorage.setItem('isPeakSeason', String(nextVal))
-    if (nextVal) {
-      toast.success('Peak season pricing activated!')
-    } else {
-      toast.success('Peak season pricing deactivated')
+    try { localStorage.setItem('isPeakSeason', String(nextVal)) } catch {}
+
+    try {
+      const res = await authAxios.put(`${API_BASE_URL}/settings`, { isPeakSeason: nextVal })
+      if (res.data?.success) {
+        toast.success(nextVal ? 'Peak season pricing activated!' : 'Normal season pricing activated!')
+      }
+    } catch (err) {
+      console.error('Failed to update peak season on server:', err)
+      toast.error('Failed to sync peak season setting with server')
     }
   }
 
@@ -127,6 +132,10 @@ export default function SettingsPage() {
       .then(res => {
         if (res.data?.success && res.data?.settings) {
           const s = res.data.settings
+          if (typeof s.isPeakSeason === 'boolean') {
+            setIsPeakSeason(s.isPeakSeason)
+            try { localStorage.setItem('isPeakSeason', String(s.isPeakSeason)) } catch {}
+          }
           if (!isUserSavedRef.current && s.earlyCheckInFee !== undefined && s.earlyCheckInFee !== null) {
             const updated = {
               standardCheckInTime: s.standardCheckInTime || '11:00',
@@ -139,7 +148,7 @@ export default function SettingsPage() {
           }
         }
       })
-      .catch(err => console.error('Failed to load timing rules:', err))
+      .catch(err => console.error('Failed to load settings:', err))
   }, [])
 
   const handleSaveTimingRules = async () => {

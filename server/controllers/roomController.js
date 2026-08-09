@@ -17,7 +17,26 @@ const getRooms = async (req, res, next) => {
       if (maxPrice) query.price.$lte = Number(maxPrice)
     }
 
-    const rooms = await Room.find(query).sort({ price: 1 }).lean()
+    const rooms = await Room.find(query).sort({ price: 1 })
+
+    // Default price definitions for Normal & Peak seasons
+    const defaultPrices = {
+      'deluxe-ac-room': { price: 3000, highSeasonPrice: 5000 },
+      'normal-ac-room': { price: 2500, highSeasonPrice: 4000 },
+      'non-ac-room':    { price: 2000, highSeasonPrice: 3000 }
+    }
+
+    for (const r of rooms) {
+      if (defaultPrices[r.slug]) {
+        const expected = defaultPrices[r.slug]
+        if (r.price !== expected.price || r.highSeasonPrice !== expected.highSeasonPrice) {
+          r.price = expected.price
+          r.highSeasonPrice = expected.highSeasonPrice
+          await Room.updateOne({ _id: r._id }, { price: expected.price, highSeasonPrice: expected.highSeasonPrice })
+        }
+      }
+    }
+
     res.json({ success: true, count: rooms.length, rooms })
   } catch (error) {
     next(error)
