@@ -188,9 +188,9 @@ export default function CalendarPage() {
 
     // Map roomTypeId to category prices
     const categoryPrices = {
-      'deluxe-ac': 2500,
-      'normal-ac': 2000,
-      'non-ac': 1500
+      'deluxe-ac': 3000,
+      'normal-ac': 2500,
+      'non-ac': 2000
     }
     const numRoomsCount = parseInt(bookingModalData.numRooms || 1, 10)
     const enteredRoomCharge = bookingModalData.roomAmount ? Number(bookingModalData.roomAmount) : (categoryPrices[bookingModalData.roomType] || 1500) * nights * numRoomsCount

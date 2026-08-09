@@ -148,9 +148,9 @@ const createBooking = async (req, res, next) => {
 
     let category = 'deluxe'
     const staticRooms = {
-      'deluxe-ac': { _id: 'deluxe-ac', name: 'Deluxe AC Room', price: 2500, category: 'deluxe', totalUnits: 5 },
-      'normal-ac': { _id: 'normal-ac', name: 'Normal AC Room', price: 2000, category: 'standard', totalUnits: 6 },
-      'non-ac':    { _id: 'non-ac',    name: 'Non AC Room',    price: 1500, category: 'budget',   totalUnits: 4 },
+      'deluxe-ac': { _id: 'deluxe-ac', name: 'Deluxe AC Room', price: 3000, category: 'deluxe', totalUnits: 5 },
+      'normal-ac': { _id: 'normal-ac', name: 'Normal AC Room', price: 2500, category: 'standard', totalUnits: 6 },
+      'non-ac':    { _id: 'non-ac',    name: 'Non AC Room',    price: 2000, category: 'budget',   totalUnits: 4 },
     }
 
     if (room) {

@@ -22,7 +22,7 @@ export const HOTEL_DETAILS = {
     latitude: 8.0883,
     longitude: 77.535,
   },
-  priceRange: '₹1500 - ₹5000',
+  priceRange: '₹2000 - ₹5000',
   ratingValue: '4.6',
   reviewCount: '128',
 }

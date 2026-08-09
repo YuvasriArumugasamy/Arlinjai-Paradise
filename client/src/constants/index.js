@@ -65,7 +65,7 @@ export const ROOMS = [
     badge: 'PREMIUM',
     get price() {
       const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
-      return isPeak ? 5000 : 2500
+      return isPeak ? 5000 : 3000
     },
     highSeasonPrice: 5000,
     highSeasonLabel: 'Dec–Jan',
@@ -109,7 +109,7 @@ export const ROOMS = [
     badge: 'VALUE',
     get price() {
       const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
-      return isPeak ? 4000 : 2000
+      return isPeak ? 4000 : 2500
     },
     highSeasonPrice: 4000,
     highSeasonLabel: 'Dec–Jan',
@@ -149,7 +149,7 @@ export const ROOMS = [
     badge: 'BUDGET',
     get price() {
       const isPeak = typeof window !== 'undefined' && localStorage.getItem('isPeakSeason') === 'true'
-      return isPeak ? 3000 : 1500
+      return isPeak ? 3000 : 2000
     },
     highSeasonPrice: 3000,
     highSeasonLabel: 'Dec–Jan',

@@ -24,7 +24,7 @@ const seedRooms = async () => {
         slug: 'deluxe-ac-room',
         category: 'deluxe',
         badge: 'PREMIUM',
-        price: 2500,
+        price: 3000,
         highSeasonPrice: 5000,
         size: 240,
         guests: 4,
@@ -40,7 +40,7 @@ const seedRooms = async () => {
         slug: 'normal-ac-room',
         category: 'standard',
         badge: 'VALUE',
-        price: 2000,
+        price: 2500,
         highSeasonPrice: 4000,
         size: 200,
         guests: 4,
@@ -56,7 +56,7 @@ const seedRooms = async () => {
         slug: 'non-ac-room',
         category: 'budget',
         badge: 'BUDGET',
-        price: 1500,
+        price: 2000,
         highSeasonPrice: 3000,
         size: 180,
         guests: 4,
@@ -74,6 +74,8 @@ const seedRooms = async () => {
       if (!exists) {
         console.log(`[SEED] Seeding room category: ${roomData.name}`)
         await Room.create(roomData)
+      } else {
+        await Room.updateOne({ slug: roomData.slug }, { price: roomData.price, highSeasonPrice: roomData.highSeasonPrice })
       }
     }
     console.log('[SEED] ✅ Room seeding check complete.')
