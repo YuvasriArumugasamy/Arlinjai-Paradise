@@ -20,6 +20,30 @@ const STATUS_STYLES = {
 
 const STATUS_OPTIONS = ['all', 'pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled']
 
+const rooms = [
+  { id: '101', name: 'Room 101', type: 'Deluxe AC' },
+  { id: '102', name: 'Room 102', type: 'Deluxe AC' },
+  { id: '103', name: 'Room 103', type: 'Deluxe AC' },
+  { id: '104', name: 'Room 104', type: 'Deluxe AC' },
+  { id: '105', name: 'Room 105', type: 'Deluxe AC' },
+  { id: '201', name: 'Room 201', type: 'Normal AC' },
+  { id: '301', name: 'Room 301', type: 'Normal AC' },
+  { id: '302', name: 'Room 302', type: 'Normal AC' },
+  { id: '303', name: 'Room 303', type: 'Normal AC' },
+  { id: '304', name: 'Room 304', type: 'Normal AC' },
+  { id: '305', name: 'Room 305', type: 'Normal AC' },
+  { id: '202', name: 'Room 202', type: 'Non AC' },
+  { id: '203', name: 'Room 203', type: 'Non AC' },
+  { id: '204', name: 'Room 204', type: 'Non AC' },
+  { id: '205', name: 'Room 205', type: 'Non AC' },
+]
+
+const slugToCategoryType = {
+  'deluxe-ac-room': 'Deluxe AC',
+  'normal-ac-room': 'Normal AC',
+  'non-ac-room': 'Non AC'
+}
+
 const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN') : '—'
 
 const getAge = (dob) => {
@@ -66,6 +90,7 @@ export default function BookingsPage() {
     paymentMethod: 'Cash',
     specialNotes: '',
     taxType: 'without_tax',
+    selectedPhysicalRooms: [],
   })
 
   const mapSingleBooking = (b) => {
@@ -101,6 +126,8 @@ export default function BookingsPage() {
       specialRequests: b.specialRequests || '',
       taxType: b.taxType || b.pricing?.taxType || 'without_tax',
       gstAmount: b.gstAmount || b.pricing?.gstAmount || 0,
+      assignedRoom: b.assignedRoom || null,
+      numRooms: b.numRooms || 1,
       status: b.status,
       createdAt: b.createdAt
     }
@@ -144,6 +171,7 @@ export default function BookingsPage() {
       paymentMethod: 'Pay at Hotel',
       specialNotes: '',
       taxType: 'without_tax',
+      selectedPhysicalRooms: [],
     })
   }
 
@@ -160,12 +188,13 @@ export default function BookingsPage() {
     setIsEditMode(true)
     setEditingBookingId(booking.id)
     setShowAddModal(true)
+    const initialAssigned = booking.assignedRoom ? booking.assignedRoom.split(',').map(s => s.trim()) : []
     setAddForm({
       guestName: booking.guest || '',
       phone: booking.phone || '',
       email: booking.email || '',
       roomSlug: getRoomSlugFromName(booking.room),
-      roomsCount: booking.roomsCount || 1,
+      roomsCount: booking.roomsCount || booking.numRooms || 1,
       checkIn: booking.checkIn ? new Date(booking.checkIn).toISOString().slice(0, 10) : getTodayISO(),
       checkInTime: booking.checkInTime || '12:00',
       checkOut: booking.checkOut ? new Date(booking.checkOut).toISOString().slice(0, 10) : getTomorrowISO(),
@@ -183,7 +212,69 @@ export default function BookingsPage() {
         : 'Pay at Hotel',
       specialNotes: booking.specialRequests || '',
       taxType: booking.taxType || 'without_tax',
+      selectedPhysicalRooms: initialAssigned,
     })
+  }
+
+  const getOccupiedRoomIds = (checkIn, checkOut, excludeBookingId = null) => {
+    if (!checkIn || !checkOut) return new Set()
+    const occupied = new Set()
+    bookings.forEach(b => {
+      if (b.status === 'cancelled') return
+      if (excludeBookingId && (b.id === excludeBookingId || b.bookingId === excludeBookingId)) return
+      const isOverlap = b.checkIn < checkOut && b.checkOut > checkIn
+      if (isOverlap && b.assignedRoom) {
+        b.assignedRoom.split(',').forEach(r => {
+          const trimmed = r.trim()
+          if (trimmed) occupied.add(trimmed)
+        })
+      }
+    })
+    return occupied
+  }
+
+  const handleNumRoomsChange = (newVal) => {
+    const count = Math.max(1, parseInt(newVal, 10) || 1)
+    const categoryType = slugToCategoryType[addForm.roomSlug] || 'Deluxe AC'
+    const occupiedSet = getOccupiedRoomIds(addForm.checkIn, addForm.checkOut, editingBookingId)
+    const categoryRooms = rooms.filter(r => r.type === categoryType)
+
+    let updatedSelected = (addForm.selectedPhysicalRooms || []).filter(id => {
+      const rm = categoryRooms.find(r => r.id === id)
+      return rm && !occupiedSet.has(id)
+    })
+
+    if (updatedSelected.length < count) {
+      categoryRooms.forEach(rm => {
+        if (updatedSelected.length < count && !occupiedSet.has(rm.id) && !updatedSelected.includes(rm.id)) {
+          updatedSelected.push(rm.id)
+        }
+      })
+    } else if (updatedSelected.length > count) {
+      updatedSelected = updatedSelected.slice(0, count)
+    }
+
+    setAddForm(prev => ({
+      ...prev,
+      roomsCount: count,
+      selectedPhysicalRooms: updatedSelected
+    }))
+  }
+
+  const handleRoomTypeChange = (newSlug) => {
+    const categoryType = slugToCategoryType[newSlug] || 'Deluxe AC'
+    const occupiedSet = getOccupiedRoomIds(addForm.checkIn, addForm.checkOut, editingBookingId)
+    const categoryRooms = rooms.filter(r => r.type === categoryType)
+    const count = addForm.roomsCount || 1
+
+    const availableRooms = categoryRooms.filter(r => !occupiedSet.has(r.id)).map(r => r.id)
+    const updatedSelected = availableRooms.slice(0, count)
+
+    setAddForm(prev => ({
+      ...prev,
+      roomSlug: newSlug,
+      selectedPhysicalRooms: updatedSelected
+    }))
   }
 
   const handleCreateOfflineBooking = async (e) => {
@@ -225,6 +316,8 @@ export default function BookingsPage() {
         paymentMethod: pMethodMap[addForm.paymentMethod] || 'pay_at_hotel',
         specialRequests: addForm.specialNotes,
         taxType: addForm.taxType || 'without_tax',
+        numRooms: parseInt(addForm.roomsCount || 1, 10),
+        assignedRoom: (addForm.selectedPhysicalRooms || []).join(', ') || null,
         status: 'confirmed',
       }
 
@@ -791,7 +884,7 @@ export default function BookingsPage() {
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Room Type *</label>
                   <select 
                     value={addForm.roomSlug}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, roomSlug: e.target.value }))}
+                    onChange={(e) => handleRoomTypeChange(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all font-medium"
                   >
                     <option value="deluxe-ac-room">Deluxe AC Room</option>
@@ -805,9 +898,60 @@ export default function BookingsPage() {
                     type="number" 
                     min="1"
                     value={addForm.roomsCount}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, roomsCount: parseInt(e.target.value) || 1 }))}
+                    onChange={(e) => handleNumRoomsChange(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all"
                   />
+                </div>
+              </div>
+
+              {/* Physical Room Picker */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Assign Physical Rooms *
+                  </label>
+                  <span className="text-[11px] text-gray-500">
+                    Selected: <strong className="text-navy">{addForm.selectedPhysicalRooms?.length || 0}</strong> / {addForm.roomsCount} room(s)
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                  {rooms
+                    .filter(r => r.type === (slugToCategoryType[addForm.roomSlug] || 'Deluxe AC'))
+                    .map(r => {
+                      const occupied = getOccupiedRoomIds(addForm.checkIn, addForm.checkOut, editingBookingId).has(r.id)
+                      const isChecked = addForm.selectedPhysicalRooms?.includes(r.id)
+                      return (
+                        <button 
+                          type="button"
+                          key={r.id}
+                          disabled={occupied}
+                          onClick={() => {
+                            const currentSelected = addForm.selectedPhysicalRooms || []
+                            if (isChecked) {
+                              setAddForm(prev => ({
+                                ...prev,
+                                selectedPhysicalRooms: currentSelected.filter(id => id !== r.id)
+                              }))
+                            } else {
+                              setAddForm(prev => ({
+                                ...prev,
+                                selectedPhysicalRooms: [...currentSelected, r.id]
+                              }))
+                            }
+                          }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer border ${
+                            occupied 
+                              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-60'
+                              : isChecked
+                                ? 'bg-[#C9A227] text-white border-[#C9A227] shadow-sm'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-[#C9A227]'
+                          }`}
+                        >
+                          <span>{isChecked ? '✓' : '+'} {r.name}</span>
+                          {occupied && <span className="text-[9px] text-red-500 font-normal">(Booked)</span>}
+                        </button>
+                      )
+                    })}
                 </div>
               </div>
 
