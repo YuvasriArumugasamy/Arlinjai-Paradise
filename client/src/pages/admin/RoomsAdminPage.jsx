@@ -381,25 +381,30 @@ export default function RoomsAdminPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Peak Season Control */}
-                <div className="border border-gray-200 rounded-xl p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="font-poppins text-xs font-semibold text-gray-700">Peak Season Pricing</span>
+                {/* Peak / Normal Season Control */}
+                <div className="border border-gray-200 rounded-xl p-4 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-poppins text-xs font-semibold text-gray-700">Seasonal Pricing Mode</span>
                     <span className={`px-2 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider ${
-                      globalSettings.isPeakSeason ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'
+                      globalSettings.isPeakSeason ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
                     }`}>
-                      {globalSettings.isPeakSeason ? 'Active' : 'Inactive'}
+                      {globalSettings.isPeakSeason ? '🔥 Peak Season' : '🌿 Normal Season'}
                     </span>
                   </div>
+                  <p className="font-poppins text-[11px] text-gray-500 leading-relaxed">
+                    {globalSettings.isPeakSeason 
+                      ? 'Peak Season Rates: Deluxe AC: ₹5,000 | Normal AC: ₹4,000 | Non AC: ₹3,000'
+                      : 'Normal Season Rates: Deluxe AC: ₹3,000 | Normal AC: ₹2,500 | Non AC: ₹2,000'}
+                  </p>
                   <button
                     onClick={handleTogglePeakSeason}
-                    className={`w-full py-2 px-4 rounded-lg font-poppins text-xs font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    className={`w-full mt-2 py-2 px-4 rounded-lg font-poppins text-xs font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer ${
                       globalSettings.isPeakSeason
                         ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        : 'bg-gray-100 hover:bg-gray-200 text-navy'
                     }`}
                   >
-                    <FaSun size={12} /> Toggle Peak Season
+                    <FaSun size={12} /> {globalSettings.isPeakSeason ? 'Switch to Normal Season' : 'Activate Peak Season'}
                   </button>
                 </div>
 
