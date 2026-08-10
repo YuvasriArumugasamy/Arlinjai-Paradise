@@ -4,11 +4,12 @@ import {
   FaSearch, FaFilter, FaEye, FaTimes, FaDownload,
   FaUser, FaPhoneAlt, FaEnvelope, FaBed, FaCalendarAlt,
   FaIdCard, FaVenusMars, FaBirthdayCake, FaMoneyBillWave,
-  FaWhatsapp, FaTimesCircle, FaTrashAlt, FaEdit
+  FaWhatsapp, FaTimesCircle, FaTrashAlt, FaEdit, FaPrint
 } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { authAxios } from '../../context/AuthContext'
 import { API_BASE_URL } from '../../constants'
+import signatureImg from './image.png'
 
 const STATUS_STYLES = {
   confirmed:    { bg: 'bg-blue-100',   text: 'text-blue-700',   label: 'Confirmed' },
@@ -56,12 +57,157 @@ const getAge = (dob) => {
   return age
 }
 
+const STATE_CODES = {
+  'tamil nadu': '33', 'tn': '33',
+  'delhi': '07', 'new delhi': '07',
+  'kerala': '32', 'kl': '32',
+  'karnataka': '29', 'ka': '29',
+  'andhra pradesh': '37', 'ap': '37',
+  'telangana': '36', 'tg': '36',
+  'maharashtra': '27', 'mh': '27',
+  'pondicherry': '34', 'puducherry': '34',
+  'goa': '30', 'ga': '30',
+  'gujarat': '24', 'gj': '24',
+  'rajasthan': '08', 'rj': '08',
+  'west bengal': '19', 'wb': '19',
+  'uttar pradesh': '09', 'up': '09',
+  'bihar': '10', 'br': '10',
+  'madhya pradesh': '23', 'mp': '23',
+  'punjab': '03', 'pb': '03',
+  'haryana': '06', 'hr': '06',
+};
+
+const getStateWithCode = (address) => {
+  if (!address) return { name: 'Tamil Nadu', code: '33' };
+  const clean = address.toLowerCase();
+  for (const [state, code] of Object.entries(STATE_CODES)) {
+    if (clean.includes(state)) {
+      const name = state.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { name, code };
+    }
+  }
+  const parts = address.split(',').map(p => p.trim());
+  if (parts.length >= 2) {
+    const nameCandidate = parts[parts.length - 2] || parts[parts.length - 1];
+    if (nameCandidate) {
+      const name = nameCandidate.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { name, code: '33' };
+    }
+  }
+  return { name: 'Tamil Nadu', code: '33' };
+};
+
+const formatDateDDMMYYYY = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
+const formatTimeHHMM = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const ampmLabel = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const hoursStr = String(hours).padStart(2, '0');
+  return `${hoursStr}:${minutes} ${ampmLabel}`;
+};
+
+const getOrdinalSuffix = (day) => {
+  if (day > 3 && day < 21) return 'th';
+  switch (day % 10) {
+    case 1:  return "st";
+    case 2:  return "nd";
+    case 3:  return "rd";
+    default: return "th";
+  }
+};
+
+const formatDateOrdinal = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const day = d.getDate();
+  const suffix = getOrdinalSuffix(day);
+  const month = d.toLocaleDateString('en-US', { month: 'long' });
+  const year = d.getFullYear();
+  return `${day}${suffix} ${month} ${year}`;
+};
+
+const numberToWords = (num) => {
+  const a = [
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+    'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
+  ];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  if (num === 0) return 'Zero';
+  
+  const convertThousands = (n) => {
+    let str = '';
+    if (n >= 100) {
+      str += a[Math.floor(n / 100)] + ' Hundred ';
+      n %= 100;
+    }
+    if (n > 0) {
+      if (str !== '') str += 'and ';
+      if (n < 20) {
+        str += a[n];
+      } else {
+        str += b[Math.floor(n / 10)];
+        if (n % 10 > 0) {
+          str += '-' + a[n % 10];
+        }
+      }
+    }
+    return str.trim();
+  };
+  
+  let parts = [];
+  let units = num % 1000;
+  let remaining = Math.floor(num / 1000);
+  
+  let thousands = remaining % 100;
+  remaining = Math.floor(remaining / 100);
+  
+  let lakhs = remaining % 100;
+  let crores = Math.floor(remaining / 100);
+  
+  if (crores > 0) {
+    parts.push(convertThousands(crores) + ' Crore');
+  }
+  if (lakhs > 0) {
+    parts.push(convertThousands(lakhs) + ' Lakh');
+  }
+  if (thousands > 0) {
+    parts.push(convertThousands(thousands) + ' Thousand');
+  }
+  if (units > 0) {
+    parts.push(convertThousands(units));
+  }
+  
+  return parts.join(' ').trim() + ' Rupees only';
+};
+
 export default function BookingsPage() {
   const [bookings, setBookings] = useState([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [filterMode, setFilterMode] = useState('month')
   const [selectedBooking, setSelectedBooking] = useState(null)
+  const [activePrintBooking, setActivePrintBooking] = useState(null)
+
+  const handlePrintBooking = (booking, e) => {
+    if (e) e.stopPropagation()
+    setActivePrintBooking(booking)
+    setTimeout(() => {
+      window.print()
+    }, 100)
+  }
 
   // Offline Booking Modal State
   const [showAddModal, setShowAddModal] = useState(false)
@@ -329,8 +475,11 @@ export default function BookingsPage() {
         setShowAddModal(false)
         resetAddForm()
         fetchBookings()
-        if (isEditMode && selectedBooking?.id === editingBookingId) {
-          setSelectedBooking(res.data.booking ? mapSingleBooking(res.data.booking) : null)
+        const createdBkg = res.data.booking ? mapSingleBooking(res.data.booking) : null
+        if (createdBkg) {
+          setSelectedBooking(createdBkg)
+        } else if (isEditMode && selectedBooking?.id === editingBookingId) {
+          setSelectedBooking(null)
         }
       }
     } catch (err) {
@@ -547,9 +696,22 @@ export default function BookingsPage() {
                       </span>
                     </td>
                     <td className="px-3 py-3">
-                      <button className="text-gray-400 group-hover:text-gold transition-colors p-1" title="View Details">
-                        <FaEye size={16} />
-                      </button>
+                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="text-gray-400 hover:text-gold transition-colors p-1 cursor-pointer"
+                          title="View Details"
+                          onClick={() => setSelectedBooking(booking)}
+                        >
+                          <FaEye size={16} />
+                        </button>
+                        <button
+                          className="text-gray-400 hover:text-navy transition-colors p-1 cursor-pointer"
+                          title="Print / Download PDF Confirmation"
+                          onClick={(e) => handlePrintBooking(booking, e)}
+                        >
+                          <FaPrint size={15} />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 )
@@ -618,17 +780,23 @@ export default function BookingsPage() {
               {/* Action Buttons */}
               <div className="mt-3.5 pt-3 border-t border-gray-100 flex gap-2">
                 <button
-                  onClick={(e) => handleWhatsApp(booking, e)}
-                  className="flex-grow flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
+                  onClick={(e) => handlePrintBooking(booking, e)}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-navy hover:bg-navy/90 text-white font-poppins text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
                 >
-                  <FaWhatsapp size={14} /> WhatsApp Guest
+                  <FaPrint size={13} /> PDF
+                </button>
+                <button
+                  onClick={(e) => handleWhatsApp(booking, e)}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
+                >
+                  <FaWhatsapp size={13} /> WhatsApp
                 </button>
                 <button
                   onClick={(e) => handleDelete(booking.id, e)}
                   className="flex-shrink-0 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 p-2 rounded-lg transition-colors cursor-pointer"
                   title="Delete Booking"
                 >
-                  <FaTrashAlt size={14} />
+                  <FaTrashAlt size={13} />
                 </button>
               </div>
             </motion.div>
@@ -804,6 +972,12 @@ export default function BookingsPage() {
 
               {/* Action Buttons */}
               <div className="border-t pt-4 flex flex-col gap-2.5">
+                <button
+                  onClick={() => handlePrintBooking(selectedBooking)}
+                  className="w-full flex items-center justify-center gap-2 bg-navy hover:bg-navy/90 text-white font-poppins text-sm font-semibold py-2.5 px-4 rounded-lg shadow-sm transition-colors cursor-pointer"
+                >
+                  <FaPrint size={16} /> Print / Download PDF Confirmation
+                </button>
                 <button
                   onClick={() => handleWhatsApp(selectedBooking)}
                   className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white font-poppins text-sm font-semibold py-2.5 px-4 rounded-lg shadow-sm transition-colors cursor-pointer"
@@ -1195,6 +1369,545 @@ export default function BookingsPage() {
           </div>
         </div>
       )}
+
+      {/* Printable Invoice (Hidden on Screen, Visible on Print) */}
+      {activePrintBooking && (() => {
+        const printGuestState = getStateWithCode(activePrintBooking.address);
+        const printIsTamilNadu = printGuestState.code === '33';
+        const printTotal = activePrintBooking.amount || 0;
+        const printRoomAmount = activePrintBooking.roomAmount || Math.round(printTotal / 1.12);
+        const printGstAmount = activePrintBooking.gstAmount || (printTotal - printRoomAmount);
+        const printGstLabelAmount = printIsTamilNadu ? printGstAmount / 2 : printGstAmount;
+        const printAdvance = Number(activePrintBooking.advancePaid || 0);
+        const printBalance = Math.max(0, printTotal - printAdvance);
+        const printPaymentMode = activePrintBooking.paymentMethod === 'pay_at_hotel' ? 'Pay at Hotel'
+          : activePrintBooking.paymentMethod === 'cash' ? 'Cash'
+          : activePrintBooking.paymentMethod === 'upi' ? 'UPI'
+          : activePrintBooking.paymentMethod === 'card' ? 'Card'
+          : activePrintBooking.paymentMethod === 'bank_transfer' ? 'Bank Transfer'
+          : activePrintBooking.paymentMethod || 'Cash';
+
+        return (
+          <div className="printable-invoice">
+            {/* Header section with left navy curved container & right contacts section */}
+            <div className="invoice-header-container">
+              {/* Left Navy container */}
+              <div className="invoice-header-left-navy">
+                <div className="logo-section">
+                  <div className="logo-circle">
+                    <img src="/Elegant monogram with seaside emblem.webp" alt="Arlinjai Paradise Logo" />
+                  </div>
+                </div>
+                <div className="hotel-details-section">
+                  <h2 className="hotel-title">Arlinjai Paradise</h2>
+                  <p className="hotel-subtitle">GSTIN: 33ALCPA0679E2ZN</p>
+                  <p className="hotel-subtitle">State: 33-Tamil Nadu</p>
+                </div>
+              </div>
+
+              {/* Right section containing Green bar and Tax Invoice Title */}
+              <div className="invoice-header-right">
+                <div className="green-contacts-bar">
+                  <div className="contact-item">
+                    <span className="contact-icon">📞</span>
+                    <span className="contact-text">9486271234</span>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">✉</span>
+                    <span className="contact-text">arlinjaiparadise@gmail.com</span>
+                  </div>
+                  <div className="contact-item address-item">
+                    <span className="contact-icon">📍</span>
+                    <span className="contact-text">ARLINJAI PARADISE , 6/248D, Kotakarai, Kovalam, Kanniyakumari,629702 Tamil Nadu,</span>
+                  </div>
+                </div>
+                <div className="title-section">
+                  <h1 className="tax-invoice-text">Tax Invoice</h1>
+                </div>
+              </div>
+            </div>
+
+            {/* Invoice Metadata and Bill To */}
+            <div className="invoice-meta-section">
+              <div className="bill-to-box">
+                <span className="section-label">Bill To</span>
+                <h2 className="guest-name">{activePrintBooking.guest}</h2>
+                <p className="guest-address">{activePrintBooking.address || 'Kanyakumari, Tamil Nadu'}</p>
+                <p className="guest-detail"><strong>Contact No.:</strong> {activePrintBooking.phone}</p>
+                <p className="guest-detail"><strong>GSTIN Number:</strong> N/A</p>
+                <p className="guest-detail"><strong>State:</strong> {printGuestState.code}-{printGuestState.name}</p>
+              </div>
+              <div className="meta-details-box">
+                <div className="meta-row">
+                  <span className="meta-label">Invoice No.:</span>
+                  <span className="meta-value">{activePrintBooking.bookingId || activePrintBooking.id}</span>
+                </div>
+                <div className="meta-row">
+                  <span className="meta-label">Date:</span>
+                  <span className="meta-value">{formatDateDDMMYYYY(new Date(activePrintBooking.createdAt || Date.now()))}</span>
+                </div>
+                <div className="meta-row">
+                  <span className="meta-label">Time:</span>
+                  <span className="meta-value">{formatTimeHHMM(new Date(activePrintBooking.createdAt || Date.now()))}</span>
+                </div>
+                <div className="meta-row">
+                  <span className="meta-label">Place of Supply:</span>
+                  <span className="meta-value">{printGuestState.code}-{printGuestState.name}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Booking Details Table */}
+            <table className="invoice-items-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '5%' }}>#</th>
+                  <th style={{ width: '38%' }}>Item Name</th>
+                  <th style={{ width: '12%' }}>HSN/ SAC</th>
+                  <th style={{ width: '8%' }}>Quantity</th>
+                  <th style={{ width: '8%' }}>Unit</th>
+                  <th style={{ width: '13%' }}>Price/ Unit</th>
+                  <th style={{ width: '15%' }}>GST</th>
+                  <th style={{ width: '13%' }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="text-center">1</td>
+                  <td className="item-name-cell">{activePrintBooking.room || 'Deluxe AC Room'}</td>
+                  <td className="text-center">996311</td>
+                  <td className="text-center">{activePrintBooking.numRooms || 1}</td>
+                  <td className="text-center">Nos</td>
+                  <td className="text-right">Rs {printRoomAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td className="text-right">Rs {printGstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({activePrintBooking.taxType === 'no_tax' ? '0.0%' : '12.0%'})</td>
+                  <td className="text-right">Rs {printTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+                <tr className="table-total-row">
+                  <td></td>
+                  <td className="text-left font-bold">Total</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td className="text-right font-bold">Rs {printGstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td className="text-right font-bold">Rs {printTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Description & Summary Section */}
+            <div className="invoice-bottom-section">
+              {/* Left side details */}
+              <div className="bottom-left-info">
+                <div className="info-block">
+                  <h4>Description</h4>
+                  <p>Check in date - {formatDateOrdinal(activePrintBooking.checkIn)}</p>
+                  <p>Check out date - {formatDateOrdinal(activePrintBooking.checkOut)}</p>
+                  <p>Pax - {activePrintBooking.guests}</p>
+                  {activePrintBooking.assignedRoom && <p>Assigned Room(s) - {activePrintBooking.assignedRoom}</p>}
+                </div>
+                <div className="info-block">
+                  <h4>Invoice Amount In Words</h4>
+                  <p className="words-amount">{numberToWords(printTotal)}</p>
+                </div>
+                <div className="info-block terms-block">
+                  <h4>Terms And Conditions</h4>
+                  <p>Thank you for doing business with us.</p>
+                  <div className="signature-area">
+                    <p>For: Arlinjai Paradise</p>
+                    <div className="sig-wrap">
+                      <img src={signatureImg} alt="Authorized Signature" className="signature-img" />
+                    </div>
+                    <h5>Authorized Signatory</h5>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side summary */}
+              <div className="bottom-right-summary">
+                <table className="summary-box-table">
+                  <tbody>
+                    <tr>
+                      <td>Sub Total</td>
+                      <td>Rs {printRoomAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                    {printIsTamilNadu ? (
+                      <>
+                        <tr>
+                          <td>CGST@{activePrintBooking.taxType === 'no_tax' ? '0.0' : '6.0'}%</td>
+                          <td>Rs {printGstLabelAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        </tr>
+                        <tr>
+                          <td>SGST@{activePrintBooking.taxType === 'no_tax' ? '0.0' : '6.0'}%</td>
+                          <td>Rs {printGstLabelAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        </tr>
+                      </>
+                    ) : (
+                      <tr>
+                        <td>IGST@{activePrintBooking.taxType === 'no_tax' ? '0.0' : '12.0'}%</td>
+                        <td>Rs {printGstLabelAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      </tr>
+                    )}
+                    <tr className="summary-total-row">
+                      <td>Total</td>
+                      <td>Rs {printTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                    <tr>
+                      <td>Received (Advance)</td>
+                      <td>Rs {printAdvance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                    <tr>
+                      <td>Balance Due</td>
+                      <td>Rs {printBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                    <tr>
+                      <td>Payment Mode</td>
+                      <td>{printPaymentMode}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Print Styles */}
+            <style>{`
+              @media screen {
+                .printable-invoice {
+                  display: none !important;
+                }
+              }
+              @page {
+                size: A4 portrait;
+                margin: 8mm 12mm 8mm 12mm !important;
+              }
+              @media print {
+                body * {
+                  visibility: hidden !important;
+                }
+                html, body {
+                  height: 100%;
+                  overflow: hidden;
+                }
+                .printable-invoice, .printable-invoice * {
+                  visibility: visible !important;
+                }
+                #root, #root *, div, main, section, article {
+                  transform: none !important;
+                  filter: none !important;
+                  perspective: none !important;
+                  will-change: auto !important;
+                }
+                .printable-invoice {
+                  position: absolute !important;
+                  left: 0 !important;
+                  top: 0 !important;
+                  width: 100% !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  background: #ffffff !important;
+                  color: #333333 !important;
+                  font-family: 'Poppins', sans-serif !important;
+                  box-sizing: border-box !important;
+                }
+                .invoice-header-container {
+                  display: flex !important;
+                  width: 100% !important;
+                  margin-bottom: 50px !important;
+                }
+                .invoice-header-left-navy {
+                  background: #1a2d42 !important;
+                  color: #ffffff !important;
+                  width: 400px !important;
+                  padding: 15px 20px !important;
+                  border-bottom-right-radius: 120px 100px !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  gap: 12px !important;
+                  box-sizing: border-box !important;
+                  position: relative !important;
+                  z-index: 1 !important;
+                }
+                .logo-circle {
+                  width: 65px !important;
+                  height: 65px !important;
+                  border-radius: 50% !important;
+                  border: 2px solid #C9A227 !important;
+                  background: #ffffff !important;
+                  display: flex !important;
+                  align-items: center !important;
+                  justify-content: center !important;
+                  overflow: hidden !important;
+                }
+                .logo-circle img {
+                  width: 85% !important;
+                  height: 85% !important;
+                  object-fit: contain !important;
+                }
+                .hotel-details-section .hotel-title {
+                  font-family: 'Playfair Display', serif !important;
+                  font-size: 20px !important;
+                  font-weight: 700 !important;
+                  margin: 0 0 4px 0 !important;
+                  color: #ffffff !important;
+                }
+                .hotel-details-section p {
+                  font-family: 'Poppins', sans-serif !important;
+                  font-size: 9px !important;
+                  margin: 1px 0 !important;
+                  opacity: 0.9 !important;
+                  color: #ffffff !important;
+                }
+                .invoice-header-right {
+                  width: calc(100% - 400px) !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  justify-content: space-between !important;
+                  box-sizing: border-box !important;
+                  position: relative !important;
+                  z-index: 2 !important;
+                }
+                .green-contacts-bar {
+                  background: #16c085 !important;
+                  color: #ffffff !important;
+                  display: flex !important;
+                  align-items: center !important;
+                  padding: 6px 10px 6px 135px !important;
+                  font-family: 'Poppins', sans-serif !important;
+                  font-size: 8px !important;
+                  gap: 5px !important;
+                  justify-content: space-between !important;
+                  height: 48px !important;
+                  box-sizing: border-box !important;
+                  border-bottom-left-radius: 120px 48px !important;
+                  margin-left: -120px !important;
+                  position: relative !important;
+                  z-index: 5 !important;
+                }
+                .contact-item {
+                  display: flex !important;
+                  align-items: center !important;
+                  gap: 4px !important;
+                  border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+                  padding-right: 8px !important;
+                  flex: 1 !important;
+                }
+                .contact-item:last-child {
+                  border-right: none !important;
+                  padding-right: 0 !important;
+                  flex: 1.5 !important;
+                }
+                .contact-icon {
+                  font-size: 10px !important;
+                }
+                .contact-text {
+                  line-height: 1.2 !important;
+                  color: #ffffff !important;
+                }
+                .title-section {
+                  text-align: right !important;
+                  padding-right: 10px !important;
+                  padding-bottom: 5px !important;
+                }
+                .tax-invoice-text {
+                  font-family: 'Playfair Display', Georgia, serif !important;
+                  font-size: 34px !important;
+                  color: #1a2d42 !important;
+                  margin: 0 !important;
+                  font-weight: 500 !important;
+                }
+                .invoice-meta-section {
+                  display: flex !important;
+                  justify-content: space-between !important;
+                  padding: 0 15px !important;
+                  margin-bottom: 50px !important;
+                }
+                .bill-to-box {
+                  width: 55% !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  gap: 2px !important;
+                }
+                .section-label {
+                  color: #16c085 !important;
+                  font-family: 'Poppins', sans-serif !important;
+                  font-size: 12px !important;
+                  font-weight: 600 !important;
+                  margin-bottom: 4px !important;
+                  text-transform: uppercase !important;
+                }
+                .guest-name {
+                  font-family: 'Poppins', sans-serif !important;
+                  font-size: 15px !important;
+                  font-weight: 700 !important;
+                  color: #1a2d42 !important;
+                  margin: 0 0 3px 0 !important;
+                }
+                .guest-address {
+                  font-family: 'Poppins', sans-serif !important;
+                  font-size: 10px !important;
+                  color: #555555 !important;
+                  margin: 0 0 4px 0 !important;
+                  line-height: 1.3 !important;
+                  max-width: 90% !important;
+                }
+                .guest-detail {
+                  font-family: 'Poppins', sans-serif !important;
+                  font-size: 10px !important;
+                  color: #333333 !important;
+                  margin: 1px 0 !important;
+                }
+                .meta-details-box {
+                  width: 38% !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  gap: 4px !important;
+                  font-family: 'Poppins', sans-serif !important;
+                  font-size: 10px !important;
+                }
+                .meta-row {
+                  display: flex !important;
+                  justify-content: space-between !important;
+                }
+                .meta-label {
+                  font-weight: 600 !important;
+                  color: #333333 !important;
+                }
+                .meta-value {
+                  color: #000000 !important;
+                  text-align: right !important;
+                }
+                .invoice-items-table {
+                  width: 100% !important;
+                  border-collapse: collapse !important;
+                  margin-bottom: 60px !important;
+                  font-family: 'Poppins', sans-serif !important;
+                }
+                .invoice-items-table th {
+                  background: #16c085 !important;
+                  color: #ffffff !important;
+                  font-size: 10px !important;
+                  font-weight: 600 !important;
+                  padding: 14px 10px !important;
+                  border: 1px solid #16c085 !important;
+                  text-transform: uppercase !important;
+                }
+                .invoice-items-table td {
+                  padding: 14px 10px !important;
+                  border: 1px solid #dddddd !important;
+                  font-size: 10px !important;
+                  color: #333333 !important;
+                  vertical-align: middle !important;
+                }
+                .invoice-items-table .item-name-cell {
+                  font-weight: 600 !important;
+                  color: #1a2d42 !important;
+                }
+                .table-total-row td {
+                  background: #16c085 !important;
+                  color: #ffffff !important;
+                  font-weight: 700 !important;
+                  font-size: 11px !important;
+                  border: 1px solid #16c085 !important;
+                }
+                .invoice-bottom-section {
+                  display: flex !important;
+                  justify-content: space-between !important;
+                  padding: 0 15px !important;
+                  margin-top: 40px !important;
+                  font-family: 'Poppins', sans-serif !important;
+                }
+                .bottom-left-info {
+                  width: 55% !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  gap: 20px !important;
+                }
+                .info-block h4 {
+                  color: #16c085 !important;
+                  font-size: 10px !important;
+                  font-weight: 600 !important;
+                  margin: 0 0 3px 0 !important;
+                  text-transform: uppercase !important;
+                  letter-spacing: 0.5px !important;
+                }
+                .info-block p {
+                  font-size: 10px !important;
+                  color: #444444 !important;
+                  margin: 1px 0 !important;
+                  line-height: 1.3 !important;
+                }
+                .words-amount {
+                  font-weight: 600 !important;
+                  color: #1a2d42 !important;
+                }
+                .terms-block {
+                  margin-top: 3px !important;
+                }
+                .signature-area {
+                  margin-top: 20px !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  align-items: flex-start !important;
+                }
+                .signature-area p {
+                  font-size: 9px !important;
+                  color: #555555 !important;
+                  margin-bottom: 1px !important;
+                }
+                .sig-wrap {
+                  height: 40px !important;
+                  margin-bottom: 2px !important;
+                }
+                .signature-img {
+                  height: 100% !important;
+                  width: auto !important;
+                  display: block !important;
+                }
+                .signature-area h5 {
+                  font-size: 10px !important;
+                  font-weight: 700 !important;
+                  color: #1a2d42 !important;
+                  margin: 3px 0 0 0 !important;
+                  border-top: 1px solid #cccccc !important;
+                  width: 140px !important;
+                  padding-top: 3px !important;
+                  text-align: center !important;
+                }
+                .bottom-right-summary {
+                  width: 38% !important;
+                }
+                .summary-box-table {
+                  width: 100% !important;
+                  border-collapse: collapse !important;
+                  border: 1px solid #dddddd !important;
+                }
+                .summary-box-table td {
+                  padding: 8px 10px !important;
+                  border: 1px solid #dddddd !important;
+                  font-size: 10px !important;
+                  color: #333333 !important;
+                }
+                .summary-box-table td:first-child {
+                  font-weight: 600 !important;
+                }
+                .summary-box-table td:last-child {
+                  text-align: right !important;
+                }
+                .summary-total-row td {
+                  background: #16c085 !important;
+                  color: #ffffff !important;
+                  font-weight: 700 !important;
+                  border: 1px solid #16c085 !important;
+                }
+                .text-center { text-align: center !important; }
+                .text-right { text-align: right !important; }
+                .text-left { text-align: left !important; }
+                .font-bold { font-weight: 700 !important; }
+              }
+            `}</style>
+          </div>
+        );
+      })()}
     </div>
   )
 }
