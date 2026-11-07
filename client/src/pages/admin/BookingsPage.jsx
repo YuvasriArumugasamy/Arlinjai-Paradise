@@ -197,7 +197,7 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [filterMode, setFilterMode] = useState('month')
+  const [filterMode, setFilterMode] = useState('all')
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [activePrintBooking, setActivePrintBooking] = useState(null)
 

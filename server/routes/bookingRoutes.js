@@ -1,6 +1,6 @@
 const express = require('express')
 const { body } = require('express-validator')
-const { createBooking, getBookings, getBooking, updateBooking, updateBookingStatus, updateRoomAssignment, deleteBooking } = require('../controllers/bookingController')
+const { createBooking, getBookings, getBooking, updateBooking, updateBookingStatus, updateRoomAssignment, deleteBooking, checkAvailability } = require('../controllers/bookingController')
 const { protect } = require('../middleware/authMiddleware')
 const { staffOnly, adminOnly } = require('../middleware/roleMiddleware')
 
@@ -15,6 +15,8 @@ const bookingValidation = [
   body('guests').isInt({ min: 1, max: 10 }).withMessage('Guests must be between 1 and 10'),
   body('children').optional({ checkFalsy: true }).isInt({ min: 0, max: 10 }).withMessage('Children must be between 0 and 10'),
 ]
+
+router.get('/check-availability', checkAvailability)
 
 router.route('/')
   .get(protect, staffOnly, getBookings)

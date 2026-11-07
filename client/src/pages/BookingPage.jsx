@@ -472,11 +472,34 @@ export default function BookingPage() {
       localStorage.setItem('arlinjai_bookings', JSON.stringify(savedBookings))
       goToStep(3)
     } catch (error) {
-      toast.error('Unable to confirm booking. Please try again.')
+      const errMsg = error?.response?.data?.message || 'Unable to confirm booking. Please try again.'
+      toast.error(errMsg)
       console.error('Booking save error:', error)
     } finally {
       setLoading(false)
       setPaymentLoading(false)
+    }
+  }
+
+  const checkRoomAvailability = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/bookings/check-availability`, {
+        params: {
+          roomId: bookingData.roomId,
+          checkIn: bookingData.checkIn,
+          checkOut: bookingData.checkOut,
+          numRooms: bookingData.numRooms || 1
+        }
+      })
+      if (!res.data.available) {
+        toast.error(res.data.message || 'Selected room is not available for these dates.')
+        return false
+      }
+      return true
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Unable to verify room availability. Please try again.'
+      toast.error(msg)
+      return false
     }
   }
 
@@ -488,6 +511,12 @@ export default function BookingPage() {
 
     setPaymentError('')
     setPaymentLoading(true)
+
+    const isAvail = await checkRoomAvailability()
+    if (!isAvail) {
+      setPaymentLoading(false)
+      return
+    }
 
     try {
       const orderData = await createRazorpayOrder()
@@ -554,6 +583,12 @@ export default function BookingPage() {
     if (bookingData.paymentMethod === 'razorpay') {
       await handleRazorpayCheckout()
     } else {
+      setPaymentLoading(true)
+      const isAvail = await checkRoomAvailability()
+      if (!isAvail) {
+        setPaymentLoading(false)
+        return
+      }
       await finalizeBooking()
     }
   }

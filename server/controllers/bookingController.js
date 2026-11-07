@@ -164,8 +164,14 @@ const createBooking = async (req, res, next) => {
 
     try {
       const parseLocalDate = (dateStr) => {
-        const [year, month, day] = dateStr.split('-')
-        return new Date(year, parseInt(month, 10) - 1, day)
+        if (!dateStr) return new Date()
+        if (dateStr instanceof Date) return dateStr
+        const clean = typeof dateStr === 'string' ? dateStr.split('T')[0] : ''
+        const parts = clean.split('-')
+        if (parts.length === 3) {
+          return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+        }
+        return new Date(dateStr)
       }
 
       const datesOverlap = (existingStart, existingEnd, requestedStart, requestedEnd) => {
@@ -175,6 +181,7 @@ const createBooking = async (req, res, next) => {
       const checkInDate = parseLocalDate(checkIn)
       const checkOutDate = parseLocalDate(checkOut)
       const nights = Math.max(1, Math.floor((checkOutDate - checkInDate) / 86400000))
+      const requestedUnits = parseInt(numRooms || 1, 10) || 1
 
       const availabilityQuery = {
         status: { $ne: 'cancelled' },
@@ -191,9 +198,16 @@ const createBooking = async (req, res, next) => {
         availabilityQuery.room = new mongoose.Types.ObjectId('000000000000000000000001')
         availabilityQuery['roomSnapshot.category'] = sr.category
 
-        const bookedCount = await Booking.countDocuments(availabilityQuery)
-        if (bookedCount >= sr.totalUnits) {
-          return res.status(400).json({ message: `${sr.name} is not available for the selected dates` })
+        const overlappingBookings = await Booking.find(availabilityQuery).select('numRooms')
+        const alreadyBookedUnits = overlappingBookings.reduce((sum, b) => sum + (parseInt(b.numRooms, 10) || 1), 0)
+        const totalUnits = sr.totalUnits || 1
+        if (alreadyBookedUnits + requestedUnits > totalUnits) {
+          const remaining = Math.max(0, totalUnits - alreadyBookedUnits)
+          return res.status(400).json({
+            message: remaining > 0
+              ? `${sr.name} has only ${remaining} room(s) available for the selected dates (you requested ${requestedUnits}).`
+              : `${sr.name} is fully booked for the selected dates.`
+          })
         }
 
         const customPrice = roomAmount ? parseFloat(roomAmount) : null
@@ -301,10 +315,16 @@ const createBooking = async (req, res, next) => {
         { room: new mongoose.Types.ObjectId('000000000000000000000001'), 'roomSnapshot.category': room.category }
       ]
 
-      const bookedCount = await Booking.countDocuments(availabilityQuery)
+      const overlappingBookings = await Booking.find(availabilityQuery).select('numRooms')
+      const alreadyBookedUnits = overlappingBookings.reduce((sum, b) => sum + (parseInt(b.numRooms, 10) || 1), 0)
       const totalUnits = room.totalUnits || 1
-      if (bookedCount >= totalUnits) {
-        return res.status(400).json({ message: `${room.name} is not available for the selected dates` })
+      if (alreadyBookedUnits + requestedUnits > totalUnits) {
+        const remaining = Math.max(0, totalUnits - alreadyBookedUnits)
+        return res.status(400).json({
+          message: remaining > 0
+            ? `${room.name} has only ${remaining} room(s) available for the selected dates (you requested ${requestedUnits}).`
+            : `${room.name} is fully booked for the selected dates.`
+        })
       }
 
       const customPrice = roomAmount ? parseFloat(roomAmount) : null
@@ -633,4 +653,115 @@ const updateBooking = async (req, res, next) => {
   }
 }
 
-module.exports = { createBooking, getBookings, getBooking, updateBooking, updateBookingStatus, updateRoomAssignment, deleteBooking }
+
+// @desc    Check room availability for given dates & room
+// @route   GET /api/bookings/check-availability
+// @access  Public
+const checkAvailability = async (req, res, next) => {
+  try {
+    const { roomId, checkIn, checkOut, numRooms = 1 } = req.query
+    if (!roomId || !checkIn || !checkOut) {
+      return res.status(400).json({ success: false, message: 'roomId, checkIn and checkOut are required' })
+    }
+
+    const parseLocalDate = (dateStr) => {
+      if (!dateStr) return new Date()
+      if (dateStr instanceof Date) return dateStr
+      const clean = typeof dateStr === 'string' ? dateStr.split('T')[0] : ''
+      const parts = clean.split('-')
+      if (parts.length === 3) {
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+      }
+      return new Date(dateStr)
+    }
+
+    const checkInDate = parseLocalDate(checkIn)
+    const checkOutDate = parseLocalDate(checkOut)
+    const requestedUnits = parseInt(numRooms, 10) || 1
+
+    let room = null
+    const mongoose = require('mongoose')
+    if (mongoose.Types.ObjectId.isValid(roomId)) {
+      room = await Room.findById(roomId)
+    } else {
+      const slugMap = {
+        'deluxe-ac': 'deluxe-ac-room',
+        'normal-ac': 'normal-ac-room',
+        'non-ac': 'non-ac-room'
+      }
+      const slug = slugMap[roomId] || roomId
+      room = await Room.findOne({ slug })
+    }
+
+    const staticRooms = {
+      'deluxe-ac': { _id: 'deluxe-ac', name: 'Deluxe AC Room', category: 'deluxe', totalUnits: 5 },
+      'normal-ac': { _id: 'normal-ac', name: 'Normal AC Room', category: 'standard', totalUnits: 6 },
+      'non-ac':    { _id: 'non-ac',    name: 'Non AC Room',    category: 'budget',   totalUnits: 4 },
+      'deluxe-ac-room': { _id: 'deluxe-ac', name: 'Deluxe AC Room', category: 'deluxe', totalUnits: 5 },
+      'normal-ac-room': { _id: 'normal-ac', name: 'Normal AC Room', category: 'standard', totalUnits: 6 },
+      'non-ac-room':    { _id: 'non-ac',    name: 'Non AC Room',    category: 'budget',   totalUnits: 4 },
+    }
+
+    let totalUnits = 1
+    let roomName = 'Room'
+    let isMarkedAvailable = true
+
+    const availabilityQuery = {
+      status: { $ne: 'cancelled' },
+      checkIn: { $lt: checkOutDate },
+      checkOut: { $gt: checkInDate },
+    }
+
+    if (room) {
+      totalUnits = room.totalUnits || 1
+      roomName = room.name
+      isMarkedAvailable = room.isAvailable !== false
+      availabilityQuery.$or = [
+        { room: room._id },
+        { room: new mongoose.Types.ObjectId('000000000000000000000001'), 'roomSnapshot.category': room.category }
+      ]
+    } else if (staticRooms[roomId]) {
+      const sr = staticRooms[roomId]
+      totalUnits = sr.totalUnits || 1
+      roomName = sr.name
+      availabilityQuery.room = new mongoose.Types.ObjectId('000000000000000000000001')
+      availabilityQuery['roomSnapshot.category'] = sr.category
+    } else {
+      return res.status(404).json({ success: false, message: 'Room not found' })
+    }
+
+    if (!isMarkedAvailable) {
+      return res.json({
+        success: true,
+        available: false,
+        remainingUnits: 0,
+        totalUnits,
+        bookedUnits: totalUnits,
+        message: `${roomName} is temporarily marked unavailable by management.`
+      })
+    }
+
+    const overlappingBookings = await Booking.find(availabilityQuery).select('numRooms')
+    const bookedUnits = overlappingBookings.reduce((sum, b) => sum + (parseInt(b.numRooms, 10) || 1), 0)
+    const remainingUnits = Math.max(0, totalUnits - bookedUnits)
+    const isAvailable = remainingUnits >= requestedUnits
+
+    return res.json({
+      success: true,
+      available: isAvailable,
+      requestedUnits,
+      remainingUnits,
+      bookedUnits,
+      totalUnits,
+      message: isAvailable 
+        ? `${remainingUnits} room(s) available.`
+        : remainingUnits > 0
+          ? `Only ${remainingUnits} room(s) available for selected dates (you requested ${requestedUnits}).`
+          : `${roomName} is fully booked for the selected dates.`
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+module.exports = { createBooking, getBookings, getBooking, updateBooking, updateBookingStatus, updateRoomAssignment, deleteBooking, checkAvailability }
